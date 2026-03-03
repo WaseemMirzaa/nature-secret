@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #fafaf9;
+  --fg: #1c1917;
+  --gold: #cba847;
+  --gold-soft: rgba(203, 168, 71, 0.12);
+  --gold-border: rgba(203, 168, 71, 0.35);
+}
+
+body {
+  @apply bg-neutral-50 text-neutral-900 antialiased;
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Premium focus ring */
+*:focus-visible {
+  @apply outline-none ring-2 ring-neutral-800 ring-offset-2 ring-offset-neutral-50;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Blog article body — minimal prose */
+.blog-prose {
+  font-size: 1.125rem;
+  line-height: 1.75;
+}
+.blog-prose p {
+  margin-top: 1.25em;
+  margin-bottom: 0;
+  color: #57534e;
+}
+.blog-prose p:first-child {
+  margin-top: 0;
+}
+.blog-prose h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #1c1917;
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+}
+.blog-prose h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1c1917;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+.blog-prose ul, .blog-prose ol {
+  margin-top: 1em;
+  padding-left: 1.5em;
+  color: #57534e;
+}
+.blog-prose li {
+  margin-top: 0.35em;
+}
+.blog-prose a {
+  color: #9a7209;
+  text-decoration: none;
+}
+.blog-prose a:hover {
+  text-decoration: underline;
+}
+.blog-prose strong {
+  color: #1c1917;
+  font-weight: 600;
+}
