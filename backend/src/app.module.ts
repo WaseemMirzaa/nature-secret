@@ -25,7 +25,7 @@ import { EventsModule } from './modules/events/events.module';
       password: process.env.MYSQL_PASSWORD || 'nature_secret_dev',
       database: process.env.MYSQL_DATABASE || 'nature_secret',
       autoLoadEntities: true,
-      synchronize: process.env.NODE_ENV !== 'production',
+      synchronize: true,
       charset: 'utf8mb4',
     }),
     AuthModule,

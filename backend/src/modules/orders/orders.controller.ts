@@ -1,17 +1,17 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { OrdersService } from './orders.service';
-import { Public } from '../../common/decorators/public.decorator';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CreateOrderDto } from './dto/create-order.dto';
 
 @Controller('orders')
+@UseGuards(JwtAuthGuard)
 export class OrdersController {
   constructor(private service: OrdersService) {}
 
-  @Public()
   @Post()
-  async create(@Body() dto: CreateOrderDto) {
+  async create(@Req() req: { user: { id: string } }, @Body() dto: CreateOrderDto) {
     const order = await this.service.create({
-      customerId: dto.customerId,
+      customerId: req.user.id,
       customerName: dto.customerName,
       email: dto.email,
       phone: dto.phone,
@@ -23,9 +23,10 @@ export class OrdersController {
     return order;
   }
 
-  @Public()
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return this.service.findOne(id);
+  async findOne(@Req() req: { user: { id: string } }, @Param('id') id: string) {
+    const order = await this.service.findOne(id);
+    if (order.customerId !== req.user.id) throw new ForbiddenException('Not your order');
+    return order;
   }
 }

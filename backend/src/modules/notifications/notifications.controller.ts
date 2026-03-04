@@ -1,13 +1,13 @@
 import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { WhatsAppService } from './whatsapp.service';
-import { Public } from '../../common/decorators/public.decorator';
+import { WebhookSecretGuard } from '../../common/guards/webhook-secret.guard';
 
 @Controller('webhooks')
 export class NotificationsController {
   constructor(private whatsapp: WhatsAppService) {}
 
-  @Public()
+  @UseGuards(WebhookSecretGuard)
   @Post('whatsapp')
   async whatsappIncoming(@Req() req: Request, @Res() res: Response, @Body() body: Record<string, string>) {
     const from = body?.From?.replace('whatsapp:', '') || '';
