@@ -31,7 +31,7 @@ export function StoreLayout({ children }) {
             <Breadcrumbs />
           </div>
         )}
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 min-w-0">{children}</main>
       </div>
       <Footer />
       <CartDrawer />

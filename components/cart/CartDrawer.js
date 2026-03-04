@@ -49,7 +49,7 @@ export function CartDrawer() {
             <Logo className="h-7" />
             <span className="text-sm font-medium text-neutral-500">Your cart</span>
           </div>
-          <button type="button" onClick={close} className="p-2 text-neutral-500 hover:text-neutral-900" aria-label="Close">×</button>
+          <button type="button" onClick={close} className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-neutral-500 hover:text-neutral-900 rounded-xl" aria-label="Close">×</button>
         </div>
         <div className="flex-1 overflow-y-auto p-4">
           {items.length === 0 ? (

@@ -122,17 +122,17 @@ export default function AdminOrdersPage() {
   return (
     <div>
       <h1 className="text-2xl font-semibold text-neutral-900">Orders</h1>
-      <div className="mt-4 flex flex-wrap gap-4 items-center">
+      <div className="mt-4 flex flex-wrap gap-3 sm:gap-4 items-center">
         <input
           type="text"
           placeholder="Search by order ID, customer, email"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="rounded-xl border border-neutral-200 px-4 py-2 text-sm w-64"
+          className="rounded-xl border border-neutral-200 px-4 py-2.5 text-sm w-full sm:w-64 min-w-0"
         />
-        <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="rounded-xl border border-neutral-200 px-4 py-2 text-sm" />
-        <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="rounded-xl border border-neutral-200 px-4 py-2 text-sm" />
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-xl border border-neutral-200 px-4 py-2 text-sm">
+        <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="rounded-xl border border-neutral-200 px-4 py-2.5 text-sm min-w-0" />
+        <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="rounded-xl border border-neutral-200 px-4 py-2.5 text-sm min-w-0" />
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-xl border border-neutral-200 px-4 py-2.5 text-sm min-w-0">
           <option value="all">All statuses</option>
           {STATUSES.map((s) => (
             <option key={s} value={s}>{s}</option>
@@ -142,9 +142,9 @@ export default function AdminOrdersPage() {
       <p className="mt-2 text-sm text-neutral-500">
         Showing {(pageIndex - 1) * PAGE_SIZE + 1}–{Math.min(pageIndex * PAGE_SIZE, displayTotal)} of {displayTotal.toLocaleString()}
       </p>
-      <div className="mt-4 rounded-2xl border border-neutral-200 bg-white overflow-hidden flex flex-col max-h-[calc(100vh-16rem)]">
+      <div className="mt-4 rounded-2xl border border-neutral-200 bg-white overflow-hidden flex flex-col max-h-[calc(100vh-12rem)] sm:max-h-[calc(100vh-16rem)]">
         <div className="overflow-y-auto overflow-x-auto min-h-0 flex-1">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-sm min-w-[600px]">
             <thead className="bg-neutral-50 border-b border-neutral-200 sticky top-0 z-10">
               <tr>
                 <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Order</th>

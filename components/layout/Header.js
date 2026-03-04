@@ -42,13 +42,13 @@ export function Header() {
             </nav>
 
             <div className="flex items-center gap-1">
-              <Link href="/wishlist" className="p-2.5 rounded-full text-neutral-500 hover:text-gold-600 hover:bg-gold-50 transition-colors" aria-label="Wishlist">
+              <Link href="/wishlist" className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-neutral-500 hover:text-gold-600 hover:bg-gold-50 transition-colors" aria-label="Wishlist">
                 <HeartIcon className="w-5 h-5" />
               </Link>
               <button
                 type="button"
                 onClick={() => openCart()}
-                className="relative p-2.5 rounded-full text-neutral-500 hover:text-gold-600 hover:bg-gold-50 transition-colors"
+                className="relative p-3 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-neutral-500 hover:text-gold-600 hover:bg-gold-50 transition-colors"
                 aria-label="Open cart"
               >
                 <CartIcon className="w-5 h-5" />
@@ -60,7 +60,7 @@ export function Header() {
               </button>
               <button
                 type="button"
-                className="md:hidden p-2 text-neutral-600"
+                className="md:hidden p-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-neutral-600 hover:bg-neutral-100 rounded-full"
                 onClick={() => setMenuOpen(true)}
                 aria-label="Menu"
               >

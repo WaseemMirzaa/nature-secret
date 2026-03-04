@@ -127,7 +127,7 @@ export default function CheckoutPage() {
               onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
               className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-neutral-900"
             />
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <input
                 type="text"
                 required
@@ -158,7 +158,7 @@ export default function CheckoutPage() {
         </div>
 
         <div>
-          <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6 sticky top-24">
+          <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:p-6 sticky top-20 sm:top-24">
             <h2 className="text-sm font-medium text-neutral-900 mb-4">Order summary</h2>
             <ul className="space-y-3 mb-4">
               {items.map((i) => {

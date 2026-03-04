@@ -58,7 +58,7 @@ export function AuthModal() {
   return (
     <>
       <div className="fixed inset-0 z-50 bg-black/30" aria-hidden onClick={close} />
-      <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-neutral-200 bg-white p-6 shadow-lg">
+      <div className="fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-neutral-200 bg-white p-6 shadow-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <Logo className="h-7" link={false} />
           <button type="button" onClick={close} className="p-1 text-neutral-400 hover:text-neutral-600" aria-label="Close">×</button>
@@ -103,7 +103,7 @@ export function AuthModal() {
             />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
-          <button type="submit" disabled={loading} className="w-full rounded-xl bg-neutral-900 py-3 text-sm font-medium text-white disabled:opacity-50">
+          <button type="submit" disabled={loading} className="w-full min-h-[44px] rounded-xl bg-neutral-900 py-3 text-sm font-medium text-white disabled:opacity-50">
             {loading ? 'Please wait…' : mode === 'signup' ? 'Create account' : 'Sign in'}
           </button>
         </form>

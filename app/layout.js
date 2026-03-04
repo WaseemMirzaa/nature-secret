@@ -9,6 +9,7 @@ export const metadata = {
   title: 'Nature Secret | Premium Herbal Oils & Skincare',
   description: 'Premium minimalistic online store for herbal oils and skincare. Clean, natural, luxurious.',
 };
+export const viewport = { width: 'device-width', initialScale: 1, maximumScale: 5 };
 
 export default function RootLayout({ children }) {
   return (

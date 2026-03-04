@@ -10,9 +10,13 @@
   --gold-border: rgba(203, 168, 71, 0.35);
 }
 
+html {
+  overflow-x: hidden;
+}
 body {
   @apply bg-neutral-50 text-neutral-900 antialiased;
   font-feature-settings: "rlig" 1, "calt" 1;
+  overflow-x: hidden;
 }
 
 @layer utilities {
@@ -26,15 +30,24 @@ body {
   @apply outline-none ring-2 ring-neutral-800 ring-offset-2 ring-offset-neutral-50;
 }
 
+/* Prevent horizontal overflow on small screens */
+@media (max-width: 640px) {
+  input, select, textarea, button {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+}
+
 /* Smooth scroll */
 html {
   scroll-behavior: smooth;
 }
 
-/* Blog article body — minimal prose */
+/* Blog article body — minimal prose; readable on mobile */
 .blog-prose {
-  font-size: 1.125rem;
+  font-size: clamp(1rem, 2.5vw + 0.9rem, 1.125rem);
   line-height: 1.75;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 .blog-prose p {
   margin-top: 1.25em;
