@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Logo } from '@/components/Logo';
-import { adminLogin } from '@/lib/api';
+import { adminLogin, formatApiError } from '@/lib/api';
 
 const FALLBACK_CREDENTIALS = {
   'admin@naturesecret.com': { role: 'admin', password: 'Admin123!' },
@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
           return;
         }
       }
-      setError(err?.body?.message || 'Invalid email or password.');
+      setError(formatApiError(err, 'Invalid email or password.'));
     } finally {
       setLoading(false);
     }

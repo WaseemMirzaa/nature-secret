@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
 import { IoAdapter } from '@nestjs/platform-socket.io';
@@ -30,6 +30,11 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
       transform: true,
       transformOptions: { enableImplicitConversion: true },
+      exceptionFactory: (errors) => {
+        const messages = errors.flatMap((e) => Object.values(e.constraints || {}));
+        const single = messages.length ? messages.join('. ') : 'Validation failed';
+        return new BadRequestException({ message: single });
+      },
     }),
   );
   app.enableCors({

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCustomerStore, useAuthModalStore } from '@/lib/store';
 import { Logo } from '@/components/Logo';
-import { customerLogin, customerRegister } from '@/lib/api';
+import { customerLogin, customerRegister, formatApiError } from '@/lib/api';
 
 export function AuthModal() {
   const router = useRouter();
@@ -47,7 +47,7 @@ export function AuthModal() {
       setName('');
       router.push('/account');
     } catch (err) {
-      setError(err?.body?.message || err?.message || 'Invalid email or password.');
+      setError(formatApiError(err, 'Invalid email or password.'));
     } finally {
       setLoading(false);
     }
