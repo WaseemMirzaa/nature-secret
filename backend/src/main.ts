@@ -12,10 +12,14 @@ async function bootstrap() {
     const dataSource = app.get(DataSource);
     await dataSource.synchronize();
     console.log('Database schema synced');
-    await seedAdminAndCategoriesIfEmpty(dataSource);
   } catch (e) {
     console.error('Schema sync failed:', e);
     throw e;
+  }
+  try {
+    await seedAdminAndCategoriesIfEmpty();
+  } catch (e) {
+    console.error('Seed failed:', e);
   }
   app.useWebSocketAdapter(new IoAdapter(app));
   app.setGlobalPrefix('api/v1');

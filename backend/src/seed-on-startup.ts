@@ -13,29 +13,52 @@ const DEFAULT_CATEGORIES = [
   { name: 'Skin Care', slug: 'skin-care' },
 ];
 
-export async function seedAdminAndCategoriesIfEmpty(dataSource: DataSource): Promise<void> {
-  const adminRepo = dataSource.getRepository(AdminUser);
-  const categoryRepo = dataSource.getRepository(Category);
+function createSeedDataSource(): DataSource {
+  return new DataSource({
+    type: 'mysql',
+    host: process.env.MYSQL_HOST || 'localhost',
+    port: parseInt(process.env.MYSQL_PORT || '3306', 10),
+    username: process.env.MYSQL_USER || 'nature_secret',
+    password: process.env.MYSQL_PASSWORD || 'nature_secret_dev',
+    database: process.env.MYSQL_DATABASE || 'nature_secret',
+    entities: [AdminUser, Category],
+    synchronize: false,
+    charset: 'utf8mb4',
+  });
+}
 
-  for (const a of DEFAULT_ADMINS) {
-    const existing = await adminRepo.findOne({ where: { email: a.email } });
-    if (!existing) {
-      await adminRepo.save(
-        adminRepo.create({
-          email: a.email,
-          passwordHash: await bcrypt.hash(a.password, 10),
-          role: a.role,
-        }),
-      );
-      console.log('Seeded admin:', a.email);
-    }
-  }
+export async function seedAdminAndCategoriesIfEmpty(): Promise<void> {
+  const ds = createSeedDataSource();
+  await ds.initialize();
+  try {
+    console.log('Starting seed...');
+    const adminRepo = ds.getRepository(AdminUser);
+    const categoryRepo = ds.getRepository(Category);
 
-  const categoryCount = await categoryRepo.count();
-  if (categoryCount === 0) {
-    for (const c of DEFAULT_CATEGORIES) {
-      await categoryRepo.save(categoryRepo.create(c));
+    for (const a of DEFAULT_ADMINS) {
+      const existing = await adminRepo.findOne({ where: { email: a.email } });
+      if (!existing) {
+        const hash = await bcrypt.hash(a.password, 10);
+        await adminRepo.save(
+          adminRepo.create({ email: a.email, passwordHash: hash, role: a.role }),
+        );
+        console.log('Seeded admin:', a.email);
+      } else {
+        console.log('Admin exists:', a.email);
+      }
     }
-    console.log('Seeded categories:', DEFAULT_CATEGORIES.map((c) => c.slug).join(', '));
+
+    const categoryCount = await categoryRepo.count();
+    if (categoryCount === 0) {
+      for (const c of DEFAULT_CATEGORIES) {
+        await categoryRepo.save(categoryRepo.create(c));
+      }
+      console.log('Seeded categories:', DEFAULT_CATEGORIES.map((c) => c.slug).join(', '));
+    } else {
+      console.log('Categories already exist:', categoryCount);
+    }
+    console.log('Seed completed');
+  } finally {
+    await ds.destroy();
   }
 }

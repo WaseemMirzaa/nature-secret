@@ -135,13 +135,13 @@ function ShopContent() {
                         </span>
                       )}
                       <Image
-                        src={product.images[0]}
+                        src={product.images?.[0] || '/assets/nature-secret-logo.svg'}
                         alt={product.name}
                         width={400}
                         height={533}
                         className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
                       />
-                      {product.images[1] && (
+                      {product.images?.[1] && (
                         <Image
                           src={product.images[1]}
                           alt=""

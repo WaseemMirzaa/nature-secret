@@ -2,7 +2,7 @@
   "name": "nature-secret-api",
   "version": "1.0.0",
   "scripts": {
-    "build": "node ./node_modules/@nestjs/cli/bin/nest.js build && node dist/main.js",
+    "build": "node ./node_modules/@nestjs/cli/bin/nest.js build",
     "start": "node dist/main.js",
     "start:dev": "node ./node_modules/@nestjs/cli/bin/nest.js start --watch",
     "start:debug": "node ./node_modules/@nestjs/cli/bin/nest.js start --debug --watch",
