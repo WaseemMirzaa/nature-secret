@@ -37,8 +37,18 @@ async function bootstrap() {
       },
     }),
   );
+  const allowed = new Set([
+    'https://naturesecret.pk',
+    'https://www.naturesecret.pk',
+    'http://localhost:3000',
+    ...(process.env.FRONTEND_ORIGIN || '').split(',').map((o) => o.trim().replace(/\/$/, '')).filter(Boolean),
+  ]);
   app.enableCors({
-    origin: process.env.FRONTEND_ORIGIN || 'http://localhost:3000',
+    origin: (origin, cb) => {
+      const o = (origin || '').replace(/\/$/, '');
+      if (!o || allowed.has(o)) cb(null, origin || true);
+      else cb(null, false);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
