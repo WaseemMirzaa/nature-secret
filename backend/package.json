@@ -4,7 +4,6 @@
   "scripts": {
     "build": "node ./node_modules/@nestjs/cli/bin/nest.js build",
     "start": "node dist/main.js",
-    "deploy": "node server.js",
     "start:dev": "node ./node_modules/@nestjs/cli/bin/nest.js start --watch",
     "start:debug": "node ./node_modules/@nestjs/cli/bin/nest.js start --debug --watch",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
