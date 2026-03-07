@@ -20,6 +20,10 @@ async function bootstrap() {
   }
   app.useWebSocketAdapter(new IoAdapter(app));
   app.setGlobalPrefix('api/v1');
+  app.use('/api/v1', (_req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, max-age=0, must-revalidate');
+    next();
+  });
   app.use(compression());
   app.useGlobalPipes(
     new ValidationPipe({
