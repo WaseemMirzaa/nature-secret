@@ -1,11 +1,7 @@
-# Fix 404 on admin login (naturesecret.pk)
+# Fix 404 on admin login / products (naturesecret.pk)
 
-If you see `POST https://naturesecret.pk/api/v1/auth/admin/login 404`, the frontend is calling the **frontend** domain instead of the **backend**.
+If you see `GET https://naturesecret.pk/api/v1/products 404` or login 404, the frontend was calling the frontend domain instead of the backend.
 
-**Fix:** In Hostinger, for the **frontend** app (naturesecret.pk):
+**Code fix:** When the site is loaded from `naturesecret.pk` or `www.naturesecret.pk`, the app now defaults the API base to `https://shifaefitrat.com` (see `lib/api.js` → `BACKEND_DOMAIN`). Redeploy the frontend for this to take effect.
 
-1. Open **Environment variables** (or **Settings** → **Env**).
-2. Add or set: **NEXT_PUBLIC_API_URL** = your backend URL, e.g. `https://shifaefitrat.com` (no trailing slash).
-3. **Redeploy / rebuild** the frontend so the new value is baked in.
-
-After that, login will call the correct API and work.
+**Optional:** To use a different backend URL, set **NEXT_PUBLIC_API_URL** in the frontend app’s env (e.g. `https://your-api.com`) and rebuild.

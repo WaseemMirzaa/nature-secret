@@ -10,6 +10,10 @@ import { seedAdminAndCategoriesIfEmpty } from './seed-on-startup';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  // Fast health check for proxy/load balancer (no prefix, no DB)
+  app.getHttpAdapter().get('/health', (_req: express.Request, res: express.Response) => {
+    res.status(200).json({ ok: true, ts: Date.now() });
+  });
   const dataSource = app.get(DataSource);
   try {
     await dataSource.synchronize();
