@@ -6,7 +6,7 @@
     "dev": "next dev",
     "db:reset": "bash scripts/setup-local-mysql.sh",
     "build": "next build",
-    "start": "next start",
+    "start": "NODE_ENV=production next start",
     "lint": "next lint"
   },
   "dependencies": {
