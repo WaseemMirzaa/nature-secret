@@ -2,7 +2,7 @@ import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { Public } from '../../common/decorators/public.decorator';
-import { AdminLoginDto, CustomerLoginDto, CustomerRegisterDto } from './dto/auth.dto';
+import { AdminLoginDto, AdminRegisterDto, CustomerLoginDto, CustomerRegisterDto } from './dto/auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -12,6 +12,12 @@ export class AuthController {
   @Post('admin/login')
   async adminLogin(@Body() dto: AdminLoginDto) {
     return this.authService.adminLogin(dto.email, dto.password);
+  }
+
+  @Public()
+  @Post('admin/register')
+  async adminRegister(@Body() dto: AdminRegisterDto) {
+    return this.authService.adminRegister(dto.email, dto.password);
   }
 
   @Public()

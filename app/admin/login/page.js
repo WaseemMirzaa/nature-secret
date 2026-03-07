@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Logo } from '@/components/Logo';
-import { adminLogin, formatApiError } from '@/lib/api';
+import { adminLogin, adminRegister, formatApiError } from '@/lib/api';
 
 const FALLBACK_CREDENTIALS = {
   'admin@naturesecret.com': { role: 'admin', password: 'Admin123!' },
@@ -12,6 +12,7 @@ const FALLBACK_CREDENTIALS = {
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,11 +23,15 @@ export default function AdminLoginPage() {
     setError('');
     setLoading(true);
     try {
-      await adminLogin(email, password);
+      if (mode === 'signup') {
+        await adminRegister(email, password);
+      } else {
+        await adminLogin(email, password);
+      }
       router.replace('/admin');
       return;
     } catch (err) {
-      if (err?.status === 401 || err?.body) {
+      if (mode === 'login' && err?.status === 401 && err?.body) {
         const cred = FALLBACK_CREDENTIALS[email];
         if (cred && cred.password === password) {
           localStorage.setItem('nature_secret_admin', JSON.stringify({ email, role: cred.role }));
@@ -34,7 +39,7 @@ export default function AdminLoginPage() {
           return;
         }
       }
-      setError(formatApiError(err, 'Invalid email or password.'));
+      setError(formatApiError(err, mode === 'signup' ? 'Signup failed.' : 'Invalid email or password.'));
     } finally {
       setLoading(false);
     }
@@ -46,7 +51,9 @@ export default function AdminLoginPage() {
         <div className="flex justify-center mb-6">
           <Logo className="h-10" link={false} />
         </div>
-        <h1 className="text-xl font-semibold text-neutral-900">Admin login</h1>
+        <h1 className="text-xl font-semibold text-neutral-900">
+          {mode === 'signup' ? 'Admin sign up' : 'Admin login'}
+        </h1>
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-neutral-700">Email</label>
@@ -67,15 +74,25 @@ export default function AdminLoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              minLength={mode === 'signup' ? 8 : undefined}
               className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-neutral-900"
             />
+            {mode === 'signup' && (
+              <p className="mt-1 text-xs text-neutral-500">At least 8 characters, letters and numbers</p>
+            )}
           </div>
-          {/* 2FA step: uncomment and show when step === '2fa', verify with speakeasy.totp.verify */}
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button type="submit" disabled={loading} className="w-full rounded-xl bg-neutral-900 py-3 text-sm font-medium text-white disabled:opacity-50">
-            {loading ? 'Signing in…' : 'Sign in'}
+            {loading ? (mode === 'signup' ? 'Creating account…' : 'Signing in…') : (mode === 'signup' ? 'Sign up' : 'Sign in')}
           </button>
         </form>
+        <p className="mt-6 text-center text-sm text-neutral-600">
+          {mode === 'signup' ? (
+            <>Already have an account? <button type="button" onClick={() => { setMode('login'); setError(''); }} className="font-medium text-neutral-900 underline">Sign in</button></>
+          ) : (
+            <>No account? <button type="button" onClick={() => { setMode('signup'); setError(''); }} className="font-medium text-neutral-900 underline">Sign up</button></>
+          )}
+        </p>
       </div>
     </div>
   );

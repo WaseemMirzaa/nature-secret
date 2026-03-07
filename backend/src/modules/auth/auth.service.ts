@@ -35,6 +35,22 @@ export class AuthService {
     return { access_token: this.jwtService.sign(payload), user: admin };
   }
 
+  async adminRegister(email: string, password: string) {
+    const count = await this.adminRepo.count();
+    if (count > 0) throw new UnauthorizedException('Signup is disabled. Admin already exists.');
+    const existing = await this.adminRepo.findOne({ where: { email: email.trim().toLowerCase() } });
+    if (existing) throw new UnauthorizedException('Email already registered.');
+    const hash = await bcrypt.hash(password, 10);
+    const admin = this.adminRepo.create({
+      email: email.trim().toLowerCase(),
+      passwordHash: hash,
+      role: 'admin',
+    });
+    await this.adminRepo.save(admin);
+    const payload = { sub: admin.id, email: admin.email, role: admin.role };
+    return { access_token: this.jwtService.sign(payload), user: { id: admin.id, email: admin.email, role: admin.role } };
+  }
+
   async validateCustomer(email: string, password: string): Promise<Customer | null> {
     const customer = await this.customerRepo.findOne({ where: { email: email.trim().toLowerCase() } });
     if (!customer || !(await bcrypt.compare(password, customer.passwordHash))) return null;

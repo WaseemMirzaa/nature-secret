@@ -11,6 +11,18 @@ export class AdminLoginDto {
   password: string;
 }
 
+export class AdminRegisterDto {
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  @MinLength(8, { message: 'Password must be at least 8 characters' })
+  @MaxLength(128)
+  @Matches(/^(?=.*[a-zA-Z])(?=.*[0-9])/, { message: 'Password must contain letters and numbers' })
+  password: string;
+}
+
 export class CustomerLoginDto {
   @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   @IsEmail()
