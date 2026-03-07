@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { HeroSlide } from '../../entities/hero-slide.entity';
@@ -33,7 +33,7 @@ export class SliderService {
 
   async update(id: string, dto: UpdateSlideDto): Promise<HeroSlide> {
     const slide = await this.slideRepo.findOne({ where: { id } });
-    if (!slide) return null;
+    if (!slide) throw new NotFoundException('Slide not found');
     if (dto.imageUrl !== undefined) slide.imageUrl = dto.imageUrl;
     if (dto.alt !== undefined) slide.alt = dto.alt;
     if (dto.title !== undefined) slide.title = dto.title;
