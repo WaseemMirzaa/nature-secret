@@ -13,7 +13,7 @@ import {
   Res,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { createReadStream, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { SliderService } from './slider.service';
@@ -73,14 +73,22 @@ export class SliderController {
         else cb(new BadRequestException('Invalid image type'), false);
       },
       storage: diskStorage({
-        destination: (_req, _file, cb) => {
+        destination: (
+          _req: Request,
+          _file: Express.Multer.File,
+          cb: (error: Error | null, dest: string) => void,
+        ) => {
           mkdirSync(UPLOAD_DIR, { recursive: true });
           cb(null, UPLOAD_DIR);
         },
-        filename: (req, file, cb) => {
+        filename: (
+          req: Request,
+          file: Express.Multer.File,
+          cb: (error: Error | null, filename: string) => void,
+        ) => {
           const ext = (file.originalname && file.originalname.split('.').pop()) || 'jpg';
           const safeExt = ext.replace(/[^a-z0-9]/gi, '');
-          const slug = sanitizeSlug((req as any).body?.slug);
+          const slug = sanitizeSlug((req as Request & { body?: { slug?: string } }).body?.slug);
           const name = slug ? `${slug}-${randomUUID().slice(0, 8)}` : randomUUID();
           cb(null, `${name}.${safeExt}`);
         },
