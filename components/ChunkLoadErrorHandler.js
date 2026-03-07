@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 
 const CHUNK_RELOAD_KEY = 'ns_chunk_reload';
+const MAX_RELOADS = 3;
+const WINDOW_MS = 60000;
 
 function isChunkLoadError(message) {
   if (typeof message !== 'string') return false;
@@ -11,17 +13,36 @@ function isChunkLoadError(message) {
 
 function handleChunkError() {
   try {
-    if (typeof sessionStorage === 'undefined') return;
-    if (sessionStorage.getItem(CHUNK_RELOAD_KEY)) return;
-    sessionStorage.setItem(CHUNK_RELOAD_KEY, '1');
-    window.location.reload();
+    if (typeof sessionStorage === 'undefined') {
+      window.location.reload();
+      return;
+    }
+    const raw = sessionStorage.getItem(CHUNK_RELOAD_KEY);
+    const now = Date.now();
+    let data = { count: 0, first: now };
+    if (raw) {
+      try {
+        data = JSON.parse(raw);
+        if (now - data.first > WINDOW_MS) data = { count: 0, first: now };
+      } catch (_) {}
+    }
+    if (data.count < MAX_RELOADS) {
+      data.count += 1;
+      sessionStorage.setItem(CHUNK_RELOAD_KEY, JSON.stringify(data));
+      window.location.reload();
+      return;
+    }
+    sessionStorage.setItem(CHUNK_RELOAD_KEY + '_done', '1');
   } catch {
     window.location.reload();
   }
 }
 
 export function ChunkLoadErrorHandler({ children }) {
-  const [showRefresh, setShowRefresh] = useState(false);
+  const [showRefresh, setShowRefresh] = useState(() => {
+    if (typeof window !== 'undefined' && sessionStorage.getItem(CHUNK_RELOAD_KEY + '_done')) return true;
+    return false;
+  });
 
   useEffect(() => {
     const onError = (event) => {
