@@ -20,7 +20,7 @@ async function bootstrap() {
   }
   app.useWebSocketAdapter(new IoAdapter(app));
   app.setGlobalPrefix('api/v1');
-  app.use('/api/v1', (_req, res, next) => {
+  app.use('/api/v1', (_req: express.Request, res: express.Response, next: express.NextFunction) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, max-age=0, must-revalidate');
     next();
   });
