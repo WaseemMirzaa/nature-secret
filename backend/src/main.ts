@@ -4,6 +4,8 @@ import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import * as compression from 'compression';
+import * as path from 'path';
+import * as express from 'express';
 import { seedAdminAndCategoriesIfEmpty } from './seed-on-startup';
 
 async function bootstrap() {
@@ -62,6 +64,8 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
     preflightContinue: false,
   });
+  const publicDir = path.join(process.cwd(), 'public', 'assets');
+  app.use('/assets', express.static(publicDir));
   const port = process.env.PORT || 4000;
   await app.listen(port, '0.0.0.0');
   console.log(`API running on port ${port} /api/v1`);
