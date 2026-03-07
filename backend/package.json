@@ -2,16 +2,16 @@
   "name": "nature-secret-api",
   "version": "1.0.0",
   "scripts": {
-    "build": "node ./node_modules/@nestjs/cli/bin/nest.js build && cp -r public dist/ 2>/dev/null || true",
-    "start": "NODE_ENV=production node run-with-restart.js",
+    "build": "npx nest build && (cp -r public dist/ 2>/dev/null || true)",
+    "start": "node dist/main.js",
     "start:prod": "NODE_ENV=production node run-with-restart.js",
     "start:staging": "node seed-admin.js && NODE_ENV=staging node run-with-restart.js",
-    "start:direct": "NODE_ENV=production node dist/main.js",
-    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "typeorm": "npx ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "migration:run": "npm run typeorm -- migration:run -d src/database/data-source.js",
     "migration:generate": "npm run typeorm -- migration:generate -d src/database/data-source.js",
-    "seed": "ts-node -r tsconfig-paths/register src/seed.ts",
-    "seed:admin": "node seed-admin.js"
+    "seed": "npx ts-node -r tsconfig-paths/register src/seed.ts",
+    "seed:admin": "node seed-admin.js",
+    "cron:restart-if-down": "bash scripts/check-and-restart.sh"
   },
   "dependencies": {
     "@nestjs/cli": "^10.3.0",

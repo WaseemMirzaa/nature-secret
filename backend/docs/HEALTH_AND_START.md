@@ -1,7 +1,7 @@
 # Backend start and health
 
 **Build:** `npm run build`  
-**Start:** `npm start` (runs `run-with-restart.js` → `node dist/main.js`)
+**Start:** `npm start` (runs `node dist/main.js`). Optional auto-restart: cron runs `scripts/check-and-restart.sh` (e.g. every 5 min) to restart if `/health` is down.
 
 **Health check (no auth).** Try both; use whichever your proxy forwards:
 ```bash
@@ -16,7 +16,7 @@ Response: `{"ok":true,"ts":1234567890}`. If only one works, your proxy likely fo
 
 - **Application root:** Must be the backend repo root (the folder that contains `package.json` and `run-with-restart.js`).
 - **Build command:** `npm install && npm run build` (so `dist/main.js` exists before start).
-- **Start command:** `npm start` or `node run-with-restart.js`. Alternative (no auto-restart): `node server.js` – [server.js](../server.js) checks `dist/main.js` exists then runs it; use if the host expects a single entry file.
+- **Start command:** `npm start` (runs `node dist/main.js`). To restart if down, add a cron job: `*/5 * * * * cd /path/to/backend && npm run cron:restart-if-down >> /tmp/backend-cron.log 2>&1`. Optional: `node run-with-restart.js` for in-process restart on crash; or `node server.js` if host expects a single entry file.
 
 If the server does not start, check runtime logs for:
 - `[run-with-restart] dist/main.js not found. Run: npm run build` → build step did not run or failed; fix Build command and redeploy.
