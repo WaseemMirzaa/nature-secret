@@ -6,21 +6,23 @@ import { useState, useEffect } from 'react';
 import { useProductsStore } from '@/lib/store';
 import { useProductsAndCategories } from '@/lib/useApiData';
 import { formatPrice } from '@/lib/currency';
+import { getSlider } from '@/lib/api';
 import { COLLECTIONS, TESTIMONIALS, TRUST_BADGES, PRESS } from '@/lib/dummy-data';
 
-const HERO_SLIDES = [
-  { src: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=1200', alt: 'Premium herbal oils for pain relief', title: 'Pain care oils', href: '/shop?category=herbal-oils' },
-  { src: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?w=1200', alt: 'Natural herbal blends', title: 'Herbal oils', href: '/shop?category=herbal-oils' },
-  { src: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200', alt: 'Natural ingredients for wellness', title: 'Natural relief', href: '/shop?category=herbal-oils' },
-  { src: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=1200', alt: 'Skincare serums and care', title: 'Skincare', href: '/shop?category=skin-care' },
-  { src: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=1200', alt: 'Premium skincare routine', title: 'Skin care', href: '/shop?category=skin-care' },
-  { src: 'https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?w=1200', alt: 'Clean skincare products', title: 'Coming soon', href: '/shop?category=skin-care' },
+const HERO_SLIDES_FALLBACK = [
+  { id: '1', src: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=1200', alt: 'Premium herbal oils for pain relief', title: 'Pain care oils', href: '/shop?category=herbal-oils' },
+  { id: '2', src: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?w=1200', alt: 'Natural herbal blends', title: 'Herbal oils', href: '/shop?category=herbal-oils' },
+  { id: '3', src: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200', alt: 'Natural ingredients for wellness', title: 'Natural relief', href: '/shop?category=herbal-oils' },
+  { id: '4', src: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=1200', alt: 'Skincare serums and care', title: 'Skincare', href: '/shop?category=skin-care' },
+  { id: '5', src: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=1200', alt: 'Premium skincare routine', title: 'Skin care', href: '/shop?category=skin-care' },
+  { id: '6', src: 'https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?w=1200', alt: 'Clean skincare products', title: 'Coming soon', href: '/shop?category=skin-care' },
 ];
 
 export default function HomeContent() {
   const storeProducts = useProductsStore((s) => s.products);
   const { products } = useProductsAndCategories(storeProducts);
   const [slideIndex, setSlideIndex] = useState(0);
+  const [heroSlides, setHeroSlides] = useState(HERO_SLIDES_FALLBACK);
   const bestsellers = COLLECTIONS.find((c) => c.slug === 'bestsellers');
   const bestsellerProducts = bestsellers && Array.isArray(products)
     ? products.filter((p) => bestsellers.productIds.includes(p.id)).slice(0, 4)
@@ -28,9 +30,21 @@ export default function HomeContent() {
   const featuredCollections = COLLECTIONS.filter((c) => c.slug !== 'bestsellers').slice(0, 2);
 
   useEffect(() => {
-    const t = setInterval(() => setSlideIndex((i) => (i + 1) % HERO_SLIDES.length), 5000);
-    return () => clearInterval(t);
+    getSlider()
+      .then((list) => {
+        if (Array.isArray(list) && list.length > 0) {
+          setHeroSlides(list.map((s) => ({ id: s.id, src: s.imageUrl, alt: s.alt || '', title: s.title || '', href: s.href || '/shop' })));
+        }
+      })
+      .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    const n = heroSlides.length;
+    if (n === 0) return;
+    const t = setInterval(() => setSlideIndex((i) => (i + 1) % n), 5000);
+    return () => clearInterval(t);
+  }, [heroSlides.length]);
 
   return (
     <div className="min-h-screen">
@@ -66,18 +80,18 @@ export default function HomeContent() {
         </div>
         <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-3/4 hidden lg:block">
           <div className="relative w-full h-full rounded-l-2xl overflow-hidden shadow-premium">
-            {HERO_SLIDES.map((slide, i) => (
+            {heroSlides.map((slide, i) => (
               <Link
-                key={slide.href + i}
+                key={slide.id || i}
                 href={slide.href}
                 className={`absolute inset-0 transition-opacity duration-700 ${i === slideIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
                 aria-label={slide.title}
               >
-                <Image src={slide.src} alt={slide.alt} fill className="object-cover" priority={i === 0} sizes="(max-width: 1024px) 0, 600px" />
+                <Image src={slide.src} alt={slide.alt} fill className="object-cover" priority={i === 0} sizes="(max-width: 1024px) 0, 600px" unoptimized />
               </Link>
             ))}
             <div className="absolute bottom-4 left-4 right-4 z-20 flex justify-center gap-1.5">
-              {HERO_SLIDES.map((_, i) => (
+              {heroSlides.map((_, i) => (
                 <button
                   key={i}
                   type="button"

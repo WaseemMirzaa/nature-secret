@@ -12,6 +12,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { EventsModule } from './modules/events/events.module';
+import { SliderModule } from './modules/slider/slider.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { EventsModule } from './modules/events/events.module';
     AdminModule,
     NotificationsModule,
     EventsModule,
+    SliderModule,
   ],
 })
 export class AppModule {}

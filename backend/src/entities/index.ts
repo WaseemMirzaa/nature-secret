@@ -12,3 +12,4 @@ export * from './blog-category.entity';
 export * from './blog-template.entity';
 export * from './analytics-event.entity';
 export * from './discount-code.entity';
+export * from './hero-slide.entity';
