@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useMemo, useEffect } from 'react';
-import Link from 'next/link';
+import Link from '@/components/Link';
 import Image from 'next/image';
 import { useProductsStore, useCartStore, useCartOpenStore, useWishlistStore, useCurrencyStore } from '@/lib/store';
 import { SHIPPING_POLICY, RETURN_POLICY } from '@/lib/constants';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import Link from '@/components/Link';
 import Image from 'next/image';
 import { useCartStore, useCartOpenStore, useProductsStore, useCurrencyStore } from '@/lib/store';
 import { getDiscountCodes } from '@/lib/store';

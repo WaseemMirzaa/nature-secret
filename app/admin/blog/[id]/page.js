@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import Link from '@/components/Link';
 import { useRouter, useParams } from 'next/navigation';
 import { useBlogStore } from '@/lib/store';
 import { useProductsStore } from '@/lib/store';

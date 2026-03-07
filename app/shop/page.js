@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useMemo, useState, Suspense } from 'react';
-import Link from 'next/link';
+import Link from '@/components/Link';
 import Image from 'next/image';
 import { useProductsStore } from '@/lib/store';
 import { useProductsAndCategories } from '@/lib/useApiData';

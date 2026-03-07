@@ -4,6 +4,17 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { getAdminSlides, createSlide, updateSlide, deleteSlide, formatApiError } from '@/lib/api';
 
+function hasAdminToken() {
+  if (typeof window === 'undefined') return false;
+  try {
+    const raw = localStorage.getItem('nature_secret_admin');
+    const data = raw ? JSON.parse(raw) : null;
+    return !!data?.access_token;
+  } catch {
+    return false;
+  }
+}
+
 export default function AdminSliderPage() {
   const [slides, setSlides] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,11 +29,17 @@ export default function AdminSliderPage() {
     setError('');
     getAdminSlides()
       .then((data) => setSlides(Array.isArray(data) ? data : []))
-      .catch((e) => setError(formatApiError(e)))
+      .catch((e) => {
+        if (e?.status === 401) return; // layout will redirect to login
+        setError(formatApiError(e));
+      })
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => load(), []);
+  useEffect(() => {
+    if (hasAdminToken()) load();
+    else setLoading(false);
+  }, []);
 
   const openEdit = (slide) => {
     setEditingId(slide.id);

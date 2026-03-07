@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/Link';
 
 const LOGO_SRC = '/assets/nature-secret-logo.svg';
 

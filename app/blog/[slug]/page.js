@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/Link';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { useBlogStore, useProductsStore } from '@/lib/store';

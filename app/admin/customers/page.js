@@ -2,7 +2,7 @@
 
 import { useOrdersStore } from '@/lib/store';
 import { useMemo, useState, useEffect } from 'react';
-import Link from 'next/link';
+import Link from '@/components/Link';
 import { getAdminCustomers } from '@/lib/api';
 import { TableSkeleton } from '@/components/ui/PageLoader';
 

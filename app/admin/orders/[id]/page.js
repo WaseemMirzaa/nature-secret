@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import Link from '@/components/Link';
 import { useParams } from 'next/navigation';
 import { useOrdersStore, useProductsStore, useCurrencyStore } from '@/lib/store';
 import { generateInvoicePDF } from '@/lib/invoice';
