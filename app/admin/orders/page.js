@@ -158,7 +158,7 @@ export default function AdminOrdersPage() {
               {loading ? <TableSkeleton rows={8} cols={5} /> : paginated.map((o) => (
                 <tr key={o.id} className="border-b border-neutral-100 hover:bg-neutral-50/50">
                   <td className="p-4 font-medium">
-                    <Link href={`/admin/orders/${o.id}`} className="text-neutral-900 hover:underline">{o.id}</Link>
+                    <Link href={`/admin/orders/${o.id}`} prefetch={false} className="text-neutral-900 hover:underline">{o.id}</Link>
                   </td>
                   <td className="p-4">{o.customerName}<br /><span className="text-neutral-500 text-xs">{o.email}</span></td>
                   <td className="p-4">{formatPrice(o.total, currency)}</td>
@@ -173,7 +173,7 @@ export default function AdminOrdersPage() {
                   </td>
                   <td className="p-4">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Link href={`/admin/orders/${o.id}`} className="inline-flex items-center rounded-xl bg-neutral-900 text-white px-3 py-2 text-sm font-medium hover:bg-neutral-800">View</Link>
+                      <Link href={`/admin/orders/${o.id}`} prefetch={false} className="inline-flex items-center rounded-xl bg-neutral-900 text-white px-3 py-2 text-sm font-medium hover:bg-neutral-800">View</Link>
                       {!isStaff && (
                         <button type="button" onClick={() => generateInvoicePDF(o, productsMap, currency)} className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50">Invoice</button>
                       )}

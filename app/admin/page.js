@@ -28,21 +28,29 @@ export default function AdminDashboardPage() {
   const [apiStats, setApiStats] = useState(null);
   const [apiOrders, setApiOrders] = useState([]);
   const [useApi, setUseApi] = useState(false);
+  const [apiFailed, setApiFailed] = useState(false);
 
   useEffect(() => {
     if (!getAdminToken()) {
       setUseApi(false);
+      setApiFailed(false);
       return;
     }
+    setApiFailed(false);
     Promise.all([getAdminDashboard().catch(() => null), getAdminOrders({ limit: 5 }).catch(() => null)])
       .then(([dashboard, ordersRes]) => {
         if (dashboard) {
           setApiStats({ totalSales: dashboard.totalRevenue || 0, ordersCount: dashboard.orderCount || 0, ordersToday: dashboard.todayOrders || 0, revenueToday: 0 });
           setUseApi(true);
+        } else {
+          setApiFailed(true);
         }
         if (ordersRes?.data?.length) setApiOrders(ordersRes.data);
       })
-      .catch(() => setUseApi(false));
+      .catch(() => {
+        setUseApi(false);
+        setApiFailed(true);
+      });
   }, [realtimeKey]);
 
   const orders = useApi ? apiOrders : localOrders;
@@ -59,7 +67,12 @@ export default function AdminDashboardPage() {
   return (
     <div>
       <h1 className="text-2xl font-semibold text-neutral-900">Dashboard</h1>
-      <p className="text-neutral-500 mt-1">{useApi ? 'Overview from server' : 'Overview from local cache'}</p>
+      <p className="text-neutral-500 mt-1">{useApi ? 'Overview from server' : apiFailed ? 'Unable to load from server. Showing local cache.' : 'Overview from local cache'}</p>
+      {apiFailed && (
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-2 text-sm text-amber-800">
+          API unavailable. Stats and recent orders may be from local cache.
+        </div>
+      )}
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="rounded-2xl border border-neutral-200 bg-white p-6">
           <p className="text-sm text-neutral-500">Total sales</p>
@@ -80,11 +93,14 @@ export default function AdminDashboardPage() {
       </div>
       <div className="mt-8 rounded-2xl border border-neutral-200 bg-white p-6">
         <h2 className="text-lg font-medium text-neutral-900">Recent orders</h2>
+        {orders.length === 0 && apiFailed ? (
+          <p className="mt-4 text-neutral-500 text-sm">No orders to show. API unavailable—try again later.</p>
+        ) : (
         <ul className="mt-4 space-y-0">
           {orders.slice(0, 5).map((o) => (
             <li key={o.id}>
               <Link
-                href={`/admin/orders/${o.id}`}
+                href={`/admin/orders/${o.id}`} prefetch={false}
                 className="flex justify-between items-center py-3 border-b border-neutral-100 last:border-0 text-left hover:bg-neutral-50 rounded-lg px-2 -mx-2 transition"
               >
                 <span className="font-medium text-neutral-900">{o.id}</span>
@@ -95,6 +111,7 @@ export default function AdminDashboardPage() {
             </li>
           ))}
         </ul>
+        )}
       </div>
     </div>
   );

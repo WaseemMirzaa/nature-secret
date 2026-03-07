@@ -26,3 +26,6 @@ credentials/.server.env
 *.njsproj
 *.sln
 *.sw?
+
+.next
+backend.zip

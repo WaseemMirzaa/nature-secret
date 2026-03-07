@@ -11,9 +11,10 @@ import { TRUST_BADGES } from '@/lib/constants';
 
 export default function HomeContent() {
   const storeProducts = useProductsStore((s) => s.products);
-  const { products, categories } = useProductsAndCategories(storeProducts);
+  const { products, categories, error: productsError } = useProductsAndCategories(storeProducts);
   const [slideIndex, setSlideIndex] = useState(0);
   const [heroSlides, setHeroSlides] = useState([]);
+  const [sliderError, setSliderError] = useState(false);
   const bestsellerProducts = Array.isArray(products) ? products.slice(0, 4) : [];
   const featuredCategories = Array.isArray(categories) ? categories.slice(0, 2) : [];
 
@@ -24,7 +25,7 @@ export default function HomeContent() {
           setHeroSlides(list.map((s) => ({ id: s.id, src: s.imageUrl, alt: s.alt || '', title: s.title || '', href: s.href || '/shop' })));
         }
       })
-      .catch(() => {});
+      .catch(() => setSliderError(true));
   }, []);
 
   useEffect(() => {
@@ -66,9 +67,11 @@ export default function HomeContent() {
             </div>
           </div>
         </div>
-        {heroSlides.length > 0 && (
+        {(heroSlides.length > 0 || sliderError) && (
         <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-3/4 hidden lg:block">
-          <div className="relative w-full h-full rounded-l-2xl overflow-hidden shadow-premium">
+          <div className="relative w-full h-full rounded-l-2xl overflow-hidden shadow-premium bg-neutral-100">
+            {heroSlides.length > 0 ? (
+            <>
             {heroSlides.map((slide, i) => (
               <Link
                 key={slide.id || i}
@@ -90,6 +93,12 @@ export default function HomeContent() {
                 />
               ))}
             </div>
+            </>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
+                <p className="text-sm text-neutral-500">Hero images unavailable. Try again later.</p>
+              </div>
+            )}
           </div>
         </div>
         )}
@@ -110,7 +119,16 @@ export default function HomeContent() {
       </section>
 
       {/* Bestsellers */}
-      {(bestsellerProducts.length > 0) && (
+      {productsError && bestsellerProducts.length === 0 ? (
+        <section className="py-20 lg:py-28">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="rounded-2xl border border-neutral-200 bg-neutral-50/80 p-12 text-center">
+              <p className="text-neutral-600">Unable to load products right now. Try again later.</p>
+              <Link href="/shop" className="mt-4 inline-block text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/40 pb-0.5">View shop</Link>
+            </div>
+          </div>
+        </section>
+      ) : bestsellerProducts.length > 0 ? (
         <section className="py-20 lg:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex items-end justify-between mb-12">
@@ -157,10 +175,18 @@ export default function HomeContent() {
             </div>
           </div>
         </section>
-      )}
+      ) : null}
 
       {/* Featured categories */}
-      {featuredCategories.length > 0 && (
+      {productsError && featuredCategories.length === 0 ? (
+        <section className="py-20 lg:py-28 bg-neutral-100/90">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="rounded-2xl border border-neutral-200 bg-white p-12 text-center">
+              <p className="text-neutral-600">Unable to load collections. Try again later.</p>
+            </div>
+          </div>
+        </section>
+      ) : featuredCategories.length > 0 ? (
         <section className="py-20 lg:py-28 bg-neutral-100/90">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-2">Explore</p>
@@ -195,7 +221,7 @@ export default function HomeContent() {
             </div>
           </div>
         </section>
-      )}
+      ) : null}
 
       {/* Brand story */}
       <section className="py-20 lg:py-28 bg-white">

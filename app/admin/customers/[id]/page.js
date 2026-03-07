@@ -86,7 +86,7 @@ export default function AdminCustomerDetailPage() {
         <ul className="divide-y divide-neutral-100">
           {customerOrders.map((o) => (
             <li key={o.id} className="p-4 flex items-center justify-between">
-              <Link href={`/admin/orders/${o.id}`} className="font-medium text-neutral-900 hover:underline">{o.id}</Link>
+              <Link href={`/admin/orders/${o.id}`} prefetch={false} className="font-medium text-neutral-900 hover:underline">{o.id}</Link>
               <span className="text-neutral-500">{o.createdAt ? new Date(o.createdAt).toLocaleDateString() : ''}</span>
               <span className="font-medium">{formatPrice(o.total, currency)}</span>
               <span className="capitalize text-sm text-neutral-600">{o.status}</span>

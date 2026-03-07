@@ -3,7 +3,7 @@ import './globals.css';
 import { Providers } from '@/components/Providers';
 import { StoreLayout } from '@/components/StoreLayout';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'optional' });
 
 export const metadata = {
   title: 'Nature Secret | Premium Herbal Oils & Skincare',
