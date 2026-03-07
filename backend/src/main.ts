@@ -10,12 +10,14 @@ import { seedAdminAndCategoriesIfEmpty } from './seed-on-startup';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  // Health check first – no DB, so proxy gets 200 quickly
-  app.getHttpAdapter().get('/health', (_req: express.Request, res: express.Response) => {
+  // Health check – no DB (try both in case proxy only forwards /api/v1)
+  const healthHandler = (_req: express.Request, res: express.Response) => {
     res.status(200).json({ ok: true, ts: Date.now() });
-  });
+  };
+  app.getHttpAdapter().get('/health', healthHandler);
   app.useWebSocketAdapter(new IoAdapter(app));
   app.setGlobalPrefix('api/v1');
+  app.getHttpAdapter().get('/api/v1/health', healthHandler);
   app.use('/api/v1', (_req: express.Request, res: express.Response, next: express.NextFunction) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, max-age=0, must-revalidate');
     next();
