@@ -64,7 +64,11 @@ async function bootstrap() {
     preflightContinue: false,
   });
   const publicDir = path.join(process.cwd(), 'public', 'assets');
-  app.use('/assets', express.static(publicDir));
+  app.use('/assets', express.static(publicDir, {
+    setHeaders: (res: express.Response) => {
+      res.setHeader('Cache-Control', 'no-store, no-cache, max-age=0, must-revalidate');
+    },
+  }));
   const port = process.env.PORT || 4000;
   await app.listen(port, '0.0.0.0');
   console.log(`API running on port ${port} /api/v1`);
