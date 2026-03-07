@@ -41,17 +41,26 @@ async function bootstrap() {
     'https://naturesecret.pk',
     'https://www.naturesecret.pk',
     'http://localhost:3000',
+    'http://127.0.0.1:3000',
     ...(process.env.FRONTEND_ORIGIN || '').split(',').map((o) => o.trim().replace(/\/$/, '')).filter(Boolean),
   ]);
+  const allowOrigin = (origin: string | undefined): string | boolean => {
+    const o = (origin || '').replace(/\/$/, '').toLowerCase();
+    if (!o) return true;
+    if (allowed.has(o)) return origin!;
+    if (o.includes('naturesecret.pk')) return origin!;
+    return false;
+  };
   app.enableCors({
     origin: (origin, cb) => {
-      const o = (origin || '').replace(/\/$/, '');
-      if (!o || allowed.has(o)) cb(null, origin || true);
-      else cb(null, false);
+      const result = allowOrigin(origin);
+      cb(null, result === false ? false : (result === true ? true : result));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Content-Disposition'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Content-Disposition', 'Accept'],
+    optionsSuccessStatus: 204,
+    preflightContinue: false,
   });
   const port = process.env.PORT || 4000;
   await app.listen(port, '0.0.0.0');
