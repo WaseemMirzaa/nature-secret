@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "scripts": {
     "build": "npx nest build && (cp -r public dist/ 2>/dev/null || true)",
-    "start": "node server.js",
-    "start:prod": "NODE_ENV=production node run-with-restart.js",
-    "start:staging": "node seed-admin.js && NODE_ENV=staging node run-with-restart.js",
+   "start": "node dist/main.js",
+    "start:prod": "node dist/main.js",
+   "start:staging": "NODE_ENV=production node server.js",
     "typeorm": "npx ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "migration:run": "npm run typeorm -- migration:run -d src/database/data-source.js",
     "migration:generate": "npm run typeorm -- migration:generate -d src/database/data-source.js",
