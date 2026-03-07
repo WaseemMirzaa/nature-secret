@@ -30,8 +30,12 @@ const chunkReloadScript = `
 `;
 
 export default function RootLayout({ children }) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
   return (
     <html lang="en" className={inter.variable}>
+      <head>
+        <meta name="api-url" content={apiUrl} />
+      </head>
       <body className="min-h-screen flex flex-col">
         <script dangerouslySetInnerHTML={{ __html: chunkReloadScript }} />
         <Providers>
