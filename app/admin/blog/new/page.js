@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useBlogStore } from '@/lib/store';
-import { BLOG_TEMPLATES, BLOG_CATEGORIES } from '@/lib/dummy-data';
+import { BLOG_TEMPLATES, BLOG_CATEGORIES } from '@/lib/constants';
 import { useProductsStore } from '@/lib/store';
 
 export default function NewBlogPage() {

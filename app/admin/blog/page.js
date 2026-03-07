@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useBlogStore } from '@/lib/store';
-import { BLOG_TEMPLATES, BLOG_CATEGORIES } from '@/lib/dummy-data';
+import { BLOG_TEMPLATES, BLOG_CATEGORIES } from '@/lib/constants';
 import { format } from 'date-fns';
 import { CardListSkeleton } from '@/components/ui/PageLoader';
 

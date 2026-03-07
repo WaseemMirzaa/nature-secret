@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useProductsStore } from '@/lib/store';
-import { CATEGORIES } from '@/lib/dummy-data';
+import { getCategories } from '@/lib/api';
 
 const emptyVariant = () => ({ id: `v-${Date.now()}`, name: '', volume: '', price: 0, image: '' });
 const emptyFaq = () => ({ q: '', a: '' });
@@ -12,9 +12,17 @@ const emptyFaq = () => ({ q: '', a: '' });
 export default function NewProductPage() {
   const router = useRouter();
   const addProduct = useProductsStore((s) => s.addProduct);
+  const [categories, setCategories] = useState([]);
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
-  const [categoryId, setCategoryId] = useState('herbal-oils');
+  const [categoryId, setCategoryId] = useState('');
+  useEffect(() => {
+    getCategories().then((list) => {
+      const arr = Array.isArray(list) ? list : [];
+      setCategories(arr);
+      setCategoryId((prev) => (prev === '' && arr.length ? arr[0].id : prev));
+    }).catch(() => setCategories([]));
+  }, []);
   const [price, setPrice] = useState('');
   const [compareAtPrice, setCompareAtPrice] = useState('');
   const [description, setDescription] = useState('');
@@ -90,7 +98,7 @@ export default function NewProductPage() {
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-1">Category *</label>
           <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900">
-            {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
         <div className="grid grid-cols-2 gap-4">

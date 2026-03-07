@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useBlogStore } from '@/lib/store';
 import { useBlogPosts } from '@/lib/useApiData';
-import { BLOG_TEMPLATES } from '@/lib/dummy-data';
+import { BLOG_TEMPLATES } from '@/lib/constants';
 import { format } from 'date-fns';
 
 function getTemplateLabel(templateSlug) {

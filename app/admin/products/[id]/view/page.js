@@ -1,10 +1,11 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { useProductsStore, useCurrencyStore } from '@/lib/store';
-import { CATEGORIES } from '@/lib/dummy-data';
+import { getCategories } from '@/lib/api';
 import { formatPrice } from '@/lib/currency';
 
 export default function AdminProductDetailPage() {
@@ -13,6 +14,11 @@ export default function AdminProductDetailPage() {
   const updateProduct = useProductsStore((s) => s.updateProduct);
   const currency = useCurrencyStore((s) => s.currency);
   const product = products.find((p) => p.id === params.id);
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    getCategories().then((list) => setCategories(Array.isArray(list) ? list : [])).catch(() => setCategories([]));
+  }, []);
 
   if (!product) {
     return (
@@ -23,7 +29,7 @@ export default function AdminProductDetailPage() {
     );
   }
 
-  const categoryName = CATEGORIES.find((c) => c.id === product.categoryId)?.name ?? product.categoryId;
+  const categoryName = categories.find((c) => c.id === product.categoryId)?.name ?? product.categoryId;
 
   return (
     <div className="max-w-3xl">

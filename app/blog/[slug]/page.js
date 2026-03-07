@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { useBlogStore, useProductsStore } from '@/lib/store';
-import { BLOG_TEMPLATES } from '@/lib/dummy-data';
+import { BLOG_TEMPLATES } from '@/lib/constants';
 import { format } from 'date-fns';
 import { useMemo, useState, useEffect } from 'react';
 import { getBlogPostBySlug } from '@/lib/api';

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useBlogStore } from '@/lib/store';
 import { useProductsStore } from '@/lib/store';
-import { BLOG_TEMPLATES, BLOG_CATEGORIES } from '@/lib/dummy-data';
+import { BLOG_TEMPLATES, BLOG_CATEGORIES } from '@/lib/constants';
 
 export default function EditBlogPage() {
   const router = useRouter();

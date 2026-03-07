@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useProductsStore } from '@/lib/store';
-import { CATEGORIES } from '@/lib/dummy-data';
+import { getCategories } from '@/lib/api';
 
 const emptyVariant = () => ({ id: `v-${Date.now()}`, name: '', volume: '', price: 0, image: '' });
 const emptyFaq = () => ({ q: '', a: '' });
@@ -15,6 +15,7 @@ export default function EditProductPage() {
   const products = useProductsStore((s) => s.products);
   const updateProduct = useProductsStore((s) => s.updateProduct);
   const product = products.find((p) => p.id === params.id);
+  const [categories, setCategories] = useState([]);
 
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
@@ -32,6 +33,9 @@ export default function EditProductPage() {
   const [rating, setRating] = useState(4.5);
   const [reviewCount, setReviewCount] = useState(0);
 
+  useEffect(() => {
+    getCategories().then((list) => setCategories(Array.isArray(list) ? list : [])).catch(() => setCategories([]));
+  }, []);
   useEffect(() => {
     if (!product) return;
     setName(product.name || '');
@@ -123,7 +127,7 @@ export default function EditProductPage() {
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-1">Category *</label>
           <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900">
-            {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
         <div className="grid grid-cols-2 gap-4">

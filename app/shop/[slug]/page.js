@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useProductsStore, useCartStore, useCartOpenStore, useWishlistStore, useCurrencyStore } from '@/lib/store';
-import { SHIPPING_POLICY, RETURN_POLICY } from '@/lib/dummy-data';
+import { SHIPPING_POLICY, RETURN_POLICY } from '@/lib/constants';
 import { trackViewContent, trackAddToCart, trackOutOfStockView } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
 import { getProductBySlug } from '@/lib/api';

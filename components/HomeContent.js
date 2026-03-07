@@ -7,27 +7,15 @@ import { useProductsStore } from '@/lib/store';
 import { useProductsAndCategories } from '@/lib/useApiData';
 import { formatPrice } from '@/lib/currency';
 import { getSlider } from '@/lib/api';
-import { COLLECTIONS, TESTIMONIALS, TRUST_BADGES, PRESS } from '@/lib/dummy-data';
-
-const HERO_SLIDES_FALLBACK = [
-  { id: '1', src: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=1200', alt: 'Premium herbal oils for pain relief', title: 'Pain care oils', href: '/shop?category=herbal-oils' },
-  { id: '2', src: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?w=1200', alt: 'Natural herbal blends', title: 'Herbal oils', href: '/shop?category=herbal-oils' },
-  { id: '3', src: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200', alt: 'Natural ingredients for wellness', title: 'Natural relief', href: '/shop?category=herbal-oils' },
-  { id: '4', src: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=1200', alt: 'Skincare serums and care', title: 'Skincare', href: '/shop?category=skin-care' },
-  { id: '5', src: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=1200', alt: 'Premium skincare routine', title: 'Skin care', href: '/shop?category=skin-care' },
-  { id: '6', src: 'https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?w=1200', alt: 'Clean skincare products', title: 'Coming soon', href: '/shop?category=skin-care' },
-];
+import { TRUST_BADGES } from '@/lib/constants';
 
 export default function HomeContent() {
   const storeProducts = useProductsStore((s) => s.products);
-  const { products } = useProductsAndCategories(storeProducts);
+  const { products, categories } = useProductsAndCategories(storeProducts);
   const [slideIndex, setSlideIndex] = useState(0);
-  const [heroSlides, setHeroSlides] = useState(HERO_SLIDES_FALLBACK);
-  const bestsellers = COLLECTIONS.find((c) => c.slug === 'bestsellers');
-  const bestsellerProducts = bestsellers && Array.isArray(products)
-    ? products.filter((p) => bestsellers.productIds.includes(p.id)).slice(0, 4)
-    : (Array.isArray(products) ? products.slice(0, 4) : []);
-  const featuredCollections = COLLECTIONS.filter((c) => c.slug !== 'bestsellers').slice(0, 2);
+  const [heroSlides, setHeroSlides] = useState([]);
+  const bestsellerProducts = Array.isArray(products) ? products.slice(0, 4) : [];
+  const featuredCategories = Array.isArray(categories) ? categories.slice(0, 2) : [];
 
   useEffect(() => {
     getSlider()
@@ -78,6 +66,7 @@ export default function HomeContent() {
             </div>
           </div>
         </div>
+        {heroSlides.length > 0 && (
         <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-3/4 hidden lg:block">
           <div className="relative w-full h-full rounded-l-2xl overflow-hidden shadow-premium">
             {heroSlides.map((slide, i) => (
@@ -103,6 +92,7 @@ export default function HomeContent() {
             </div>
           </div>
         </div>
+        )}
       </section>
 
       {/* Trust badges */}
@@ -120,77 +110,92 @@ export default function HomeContent() {
       </section>
 
       {/* Bestsellers */}
-      <section className="py-20 lg:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-12">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Curated</p>
-              <h2 className="text-2xl sm:text-3xl font-semibold text-neutral-900 mt-1">Bestsellers</h2>
-              <p className="mt-1 text-neutral-500">Herbal oils and skincare—most loved by our community</p>
-            </div>
-            <Link href="/shop" className="text-sm font-medium text-neutral-900 border-b-2 border-gold-500/40 pb-0.5 hover:border-gold-500 transition-colors">
-              View all
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {bestsellerProducts.map((product) => (
-              <Link key={product.id} href={`/shop/${product.slug}`} className="group group/card">
-                <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100 relative ring-1 ring-neutral-200/80 group-hover/card:ring-gold-400/40 transition-all duration-300 shadow-soft group-hover/card:shadow-gold-sm">
-                  <Image
-                    src={product.images[0]}
-                    alt={product.name}
-                    width={400}
-                    height={533}
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                  />
-                  {product.badge && (
-                    <span className="absolute top-3 left-3 rounded-full bg-neutral-900 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white ring-1 ring-gold-500/60 shadow-gold-sm">
-                      {product.badge}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-4">
-                  <p className="font-medium text-neutral-900 group-hover/card:text-gold-700 transition-colors">{product.name}</p>
-                  <p className="mt-1 text-sm font-medium text-gold-700/90">{formatPrice(product.price, 'PKR')}</p>
-                </div>
+      {(bestsellerProducts.length > 0) && (
+        <section className="py-20 lg:py-28">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex items-end justify-between mb-12">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Curated</p>
+                <h2 className="text-2xl sm:text-3xl font-semibold text-neutral-900 mt-1">Bestsellers</h2>
+                <p className="mt-1 text-neutral-500">Herbal oils and skincare—most loved by our community</p>
+              </div>
+              <Link href="/shop" className="text-sm font-medium text-neutral-900 border-b-2 border-gold-500/40 pb-0.5 hover:border-gold-500 transition-colors">
+                View all
               </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Featured collections */}
-      <section className="py-20 lg:py-28 bg-neutral-100/90">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-2">Explore</p>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-neutral-900 mb-12">Collections</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {featuredCollections.map((col) => {
-              const firstProduct = products.find((p) => p.id === col.productIds[0]);
-              return (
-                <Link key={col.id} href={`/shop?category=${col.slug}`} className="group block rounded-2xl overflow-hidden bg-white shadow-premium ring-1 ring-neutral-200/60 hover:ring-gold-400/30 transition-all duration-300">
-                  <div className="aspect-[4/3] relative">
-                    {firstProduct?.images?.[0] && (
-                      <Image
-                        src={firstProduct.images[0]}
-                        alt={col.name}
-                        fill
-                        className="object-cover transition duration-500 group-hover:scale-105"
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                      />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent group-hover:from-black/70 transition" />
-                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                      <h3 className="text-xl font-semibold">{col.name}</h3>
-                      <span className="text-sm text-gold-200 mt-1 inline-flex items-center gap-1">Explore <span className="group-hover:translate-x-0.5 transition-transform">→</span></span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {bestsellerProducts.map((product) => {
+                const img = (product.images && product.images[0]) || product.image || '';
+                return (
+                  <Link key={product.id} href={`/shop/${product.slug}`} className="group group/card">
+                    <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100 relative ring-1 ring-neutral-200/80 group-hover/card:ring-gold-400/40 transition-all duration-300 shadow-soft group-hover/card:shadow-gold-sm">
+                      {img ? (
+                        <Image
+                          src={img}
+                          alt={product.name}
+                          width={400}
+                          height={533}
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-neutral-200" />
+                      )}
+                      {product.badge && (
+                        <span className="absolute top-3 left-3 rounded-full bg-neutral-900 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white ring-1 ring-gold-500/60 shadow-gold-sm">
+                          {product.badge}
+                        </span>
+                      )}
                     </div>
-                  </div>
-                </Link>
-              );
-            })}
+                    <div className="mt-4">
+                      <p className="font-medium text-neutral-900 group-hover/card:text-gold-700 transition-colors">{product.name}</p>
+                      <p className="mt-1 text-sm font-medium text-gold-700/90">{formatPrice(product.price, 'PKR')}</p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* Featured categories */}
+      {featuredCategories.length > 0 && (
+        <section className="py-20 lg:py-28 bg-neutral-100/90">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-2">Explore</p>
+            <h2 className="text-2xl sm:text-3xl font-semibold text-neutral-900 mb-12">Collections</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {featuredCategories.map((cat) => {
+                const firstProduct = Array.isArray(products) ? products.find((p) => p.categoryId === cat.id) : null;
+                return (
+                  <Link key={cat.id} href={`/shop?category=${cat.id}`} className="group block rounded-2xl overflow-hidden bg-white shadow-premium ring-1 ring-neutral-200/60 hover:ring-gold-400/30 transition-all duration-300">
+                    <div className="aspect-[4/3] relative">
+                      {firstProduct?.images?.[0] ? (
+                        <Image
+                          src={firstProduct.images[0]}
+                          alt={cat.name}
+                          fill
+                          className="object-cover transition duration-500 group-hover:scale-105"
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="absolute inset-0 bg-neutral-200" />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent group-hover:from-black/70 transition" />
+                      <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                        <h3 className="text-xl font-semibold">{cat.name}</h3>
+                        <span className="text-sm text-gold-200 mt-1 inline-flex items-center gap-1">Explore <span className="group-hover:translate-x-0.5 transition-transform">→</span></span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Brand story */}
       <section className="py-20 lg:py-28 bg-white">
@@ -211,40 +216,6 @@ export default function HomeContent() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-20 lg:py-28 bg-neutral-100/90">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-2 text-center">Testimonials</p>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-neutral-900 mb-12 text-center">What people say</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {TESTIMONIALS.map((t) => (
-              <blockquote key={t.id} className="rounded-2xl bg-white p-8 shadow-premium ring-1 ring-neutral-200/50">
-                <p className="text-neutral-600 italic leading-relaxed">&ldquo;{t.text}&rdquo;</p>
-                <footer className="mt-5 pt-4 border-t border-neutral-100">
-                  <p className="font-medium text-neutral-900">{t.name}</p>
-                  <p className="text-sm text-gold-500 mt-1" aria-label={`${t.rating} stars`}>{'★'.repeat(t.rating)}</p>
-                </footer>
-              </blockquote>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Press */}
-      <section className="py-12 border-t border-neutral-200">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-xs font-medium uppercase tracking-wider text-neutral-400 mb-6">As seen in</p>
-          <div className="flex flex-wrap justify-center gap-12 items-center">
-            {PRESS.map((p) => (
-              <div key={p.id} className="text-neutral-500 text-sm">
-                <span className="font-medium text-neutral-700">{p.name}</span>
-                <span className="mx-2">—</span>
-                <span className="italic">&ldquo;{p.quote}&rdquo;</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* CTA */}
       <section className="py-20 lg:py-28">

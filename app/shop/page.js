@@ -7,7 +7,6 @@ import Image from 'next/image';
 import { useProductsStore } from '@/lib/store';
 import { useProductsAndCategories } from '@/lib/useApiData';
 import { useCartStore, useCartOpenStore } from '@/lib/store';
-import { CATEGORIES as FALLBACK_CATEGORIES } from '@/lib/dummy-data';
 import { useWishlistStore } from '@/lib/store';
 import { CartIcon } from '@/components/icons/CartIcon';
 import { HeartIcon } from '@/components/icons/HeartIcon';
@@ -88,7 +87,7 @@ function ShopContent() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div>
               <h1 className="text-2xl font-semibold text-neutral-900">
-                {categorySlug ? (categories || FALLBACK_CATEGORIES).find((c) => c.slug === categorySlug)?.name || 'Shop' : 'Shop'}
+                {categorySlug ? (categories || []).find((c) => c.slug === categorySlug)?.name || 'Shop' : 'Shop'}
               </h1>
               <p className="mt-1 text-sm text-neutral-500">
                 {filtered.length} {filtered.length === 1 ? 'product' : 'products'}

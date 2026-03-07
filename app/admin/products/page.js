@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useProductsStore, useCurrencyStore } from '@/lib/store';
-import { CATEGORIES } from '@/lib/dummy-data';
+import { getCategories } from '@/lib/api';
 import { formatPrice } from '@/lib/currency';
 import { TableSkeleton } from '@/components/ui/PageLoader';
 
@@ -17,12 +17,16 @@ export default function AdminProductsPage() {
   const deleteProduct = useProductsStore((s) => s.deleteProduct);
   const currency = useCurrencyStore((s) => s.currency);
   const [mounted, setMounted] = useState(false);
+  const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [stockFilter, setStockFilter] = useState('all');
   const [page, setPage] = useState(1);
 
   useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    getCategories().then((list) => setCategories(Array.isArray(list) ? list : [])).catch(() => setCategories([]));
+  }, []);
 
   const filtered = useMemo(() => {
     let list = products;
@@ -61,7 +65,7 @@ export default function AdminProductsPage() {
         />
         <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="rounded-xl border border-neutral-200 px-4 py-2 text-sm">
           <option value="all">All categories</option>
-          {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
         <select value={stockFilter} onChange={(e) => setStockFilter(e.target.value)} className="rounded-xl border border-neutral-200 px-4 py-2 text-sm">
           <option value="all">All stock</option>
@@ -95,7 +99,7 @@ export default function AdminProductsPage() {
                     <span className="font-medium text-neutral-900">{p.name}</span>
                   </div>
                 </td>
-                <td className="p-4 text-neutral-600">{CATEGORIES.find((c) => c.id === p.categoryId)?.name ?? p.categoryId}</td>
+                <td className="p-4 text-neutral-600">{categories.find((c) => c.id === p.categoryId)?.name ?? p.categoryId}</td>
                 <td className="p-4">{formatPrice(p.price, currency)}</td>
                 <td className="p-4">{p.inventory ?? 0}</td>
                 <td className="p-4">
