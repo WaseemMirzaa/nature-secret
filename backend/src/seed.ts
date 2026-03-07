@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { AdminUser } from './entities/admin-user.entity';
 import { Category } from './entities/category.entity';
 import { Product } from './entities/product.entity';
