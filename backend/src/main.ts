@@ -10,8 +10,8 @@ import { seedAdminAndCategoriesIfEmpty } from './seed-on-startup';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const dataSource = app.get(DataSource);
   try {
-    const dataSource = app.get(DataSource);
     await dataSource.synchronize();
     console.log('Database schema synced');
   } catch (e) {
@@ -19,7 +19,7 @@ async function bootstrap() {
     throw e;
   }
   try {
-    await seedAdminAndCategoriesIfEmpty();
+    await seedAdminAndCategoriesIfEmpty(dataSource);
   } catch (e) {
     console.error('Seed failed:', e);
   }

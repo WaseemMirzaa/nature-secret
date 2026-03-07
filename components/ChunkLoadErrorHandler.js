@@ -2,9 +2,22 @@
 
 import { useEffect, useState } from 'react';
 
+const CHUNK_RELOAD_KEY = 'ns_chunk_reload';
+
 function isChunkLoadError(message) {
   if (typeof message !== 'string') return false;
   return message.includes('ChunkLoadError') || message.includes('Loading chunk') || message.includes('Failed to fetch dynamically imported module');
+}
+
+function handleChunkError() {
+  try {
+    if (typeof sessionStorage === 'undefined') return;
+    if (sessionStorage.getItem(CHUNK_RELOAD_KEY)) return;
+    sessionStorage.setItem(CHUNK_RELOAD_KEY, '1');
+    window.location.reload();
+  } catch {
+    window.location.reload();
+  }
 }
 
 export function ChunkLoadErrorHandler({ children }) {
@@ -14,12 +27,14 @@ export function ChunkLoadErrorHandler({ children }) {
     const onError = (event) => {
       const msg = event?.message || event?.reason?.message || String(event.reason || event);
       if (isChunkLoadError(msg)) {
+        handleChunkError();
         setShowRefresh(true);
       }
     };
     const onReject = (event) => {
       const msg = event?.reason?.message || String(event.reason || '');
       if (isChunkLoadError(msg)) {
+        handleChunkError();
         setShowRefresh(true);
       }
     };
