@@ -18,11 +18,6 @@ async function bootstrap() {
     console.error('Schema sync failed:', e);
     throw e;
   }
-  try {
-    await seedAdminAndCategoriesIfEmpty(dataSource);
-  } catch (e) {
-    console.error('Seed failed:', e);
-  }
   app.useWebSocketAdapter(new IoAdapter(app));
   app.setGlobalPrefix('api/v1');
   app.use(compression());
@@ -69,5 +64,11 @@ async function bootstrap() {
   const port = process.env.PORT || 4000;
   await app.listen(port, '0.0.0.0');
   console.log(`API running on port ${port} /api/v1`);
+
+  try {
+    await seedAdminAndCategoriesIfEmpty(dataSource);
+  } catch (e) {
+    console.error('Seed failed:', e?.message || e);
+  }
 }
 bootstrap();

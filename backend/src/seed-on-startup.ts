@@ -29,24 +29,50 @@ export async function seedAdminAndCategoriesIfEmpty(dataSource: DataSource): Pro
   const adminRepo = dataSource.getRepository(AdminUser);
   const categoryRepo = dataSource.getRepository(Category);
 
-  const adminCount = await adminRepo.count();
+  let adminCount = 0;
+  try {
+    adminCount = await adminRepo.count();
+  } catch (e) {
+    console.error('Seed: admin count failed', e?.message || e);
+    return;
+  }
+  console.log('Seed: admin_users count =', adminCount);
+
   if (adminCount === 0) {
     for (const a of DEFAULT_ADMINS) {
-      const hash = await bcrypt.hash(a.password, 10);
-      await adminRepo.save(
-        adminRepo.create({ email: a.email, passwordHash: hash, role: a.role }),
-      );
-      console.log('Seeded admin:', a.email, `(${a.role})`);
-    }
-  } else {
-    for (const a of DEFAULT_ADMINS) {
-      const existing = await adminRepo.findOne({ where: { email: a.email } });
-      if (!existing) {
+      try {
         const hash = await bcrypt.hash(a.password, 10);
         await adminRepo.save(
           adminRepo.create({ email: a.email, passwordHash: hash, role: a.role }),
         );
         console.log('Seeded admin:', a.email, `(${a.role})`);
+      } catch (e) {
+        console.error('Seed: repo save failed for', a.email, e?.message || e);
+        try {
+          const hash = await bcrypt.hash(a.password, 10);
+          await dataSource.query(
+            'INSERT INTO admin_users (id, email, passwordHash, role, twoFactorEnabled) VALUES (UUID(), ?, ?, ?, 0)',
+            [a.email, hash, a.role],
+          );
+          console.log('Seeded admin (raw):', a.email, `(${a.role})`);
+        } catch (rawE) {
+          console.error('Seed: raw insert failed for', a.email, rawE?.message || rawE);
+        }
+      }
+    }
+  } else {
+    for (const a of DEFAULT_ADMINS) {
+      const existing = await adminRepo.findOne({ where: { email: a.email } });
+      if (!existing) {
+        try {
+          const hash = await bcrypt.hash(a.password, 10);
+          await adminRepo.save(
+            adminRepo.create({ email: a.email, passwordHash: hash, role: a.role }),
+          );
+          console.log('Seeded admin:', a.email, `(${a.role})`);
+        } catch (e) {
+          console.error('Seed: save failed for', a.email, e?.message || e);
+        }
       }
     }
   }
