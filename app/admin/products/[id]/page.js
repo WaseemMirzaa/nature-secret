@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from '@/components/Link';
 import { useRouter, useParams } from 'next/navigation';
 import { useProductsStore } from '@/lib/store';
-import { getCategories } from '@/lib/api';
+import { getCategories, uploadProductImage, formatApiError } from '@/lib/api';
 
 const emptyVariant = () => ({ id: `v-${Date.now()}`, name: '', volume: '', price: 0, image: '' });
 const emptyFaq = () => ({ q: '', a: '' });
@@ -25,6 +25,8 @@ export default function EditProductPage() {
   const [description, setDescription] = useState('');
   const [benefits, setBenefits] = useState(['']);
   const [images, setImages] = useState(['']);
+  const [imageAlts, setImageAlts] = useState(['']);
+  const [uploadSlug, setUploadSlug] = useState('');
   const [inventory, setInventory] = useState(0);
   const [badge, setBadge] = useState('');
   const [badgeSub, setBadgeSub] = useState('');
@@ -32,6 +34,43 @@ export default function EditProductPage() {
   const [faq, setFaq] = useState([emptyFaq()]);
   const [rating, setRating] = useState(4.5);
   const [reviewCount, setReviewCount] = useState(0);
+  const [uploadingIndex, setUploadingIndex] = useState(null);
+  const [uploadError, setUploadError] = useState('');
+
+  const apiBase = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') : '';
+  async function handleImageUpload(e, index) {
+    const file = e?.target?.files?.[0];
+    if (!file) return;
+    setUploadingIndex(index);
+    setUploadError('');
+    try {
+      const res = await uploadProductImage(file, { slug: uploadSlug, alt: imageAlts[index] });
+      const url = res.url?.startsWith('http') ? res.url : apiBase + (res.url || '');
+      updateImage(index, url);
+      if (res.alt) updateImageAlt(index, res.alt);
+    } catch (err) {
+      setUploadError(formatApiError(err));
+    } finally {
+      setUploadingIndex(null);
+      e.target.value = '';
+    }
+  }
+  async function handleVariantImageUpload(e, variantIndex) {
+    const file = e?.target?.files?.[0];
+    if (!file) return;
+    setUploadingIndex(`v-${variantIndex}`);
+    setUploadError('');
+    try {
+      const res = await uploadProductImage(file);
+      const url = res.url?.startsWith('http') ? res.url : apiBase + (res.url || '');
+      updateVariant(variantIndex, 'image', url);
+    } catch (err) {
+      setUploadError(formatApiError(err));
+    } finally {
+      setUploadingIndex(null);
+      e.target.value = '';
+    }
+  }
 
   useEffect(() => {
     getCategories().then((list) => setCategories(Array.isArray(list) ? list : [])).catch(() => setCategories([]));
@@ -46,6 +85,7 @@ export default function EditProductPage() {
     setDescription(product.description || '');
     setBenefits(product.benefits?.length ? product.benefits : ['']);
     setImages(product.images?.length ? product.images : ['']);
+    setImageAlts(Array.from({ length: (product.images?.length || 0) || 1 }, (_, i) => product.imageAlts?.[i] || ''));
     setInventory(product.inventory ?? 0);
     setBadge(product.badge || '');
     setBadgeSub(product.badgeSub || '');
@@ -58,8 +98,13 @@ export default function EditProductPage() {
   function addBenefit() { setBenefits((b) => [...b, '']); }
   function updateBenefit(i, v) { setBenefits((b) => { const n = [...b]; n[i] = v; return n; }); }
   function removeBenefit(i) { setBenefits((b) => b.filter((_, j) => j !== i)); }
-  function addImage() { setImages((i) => [...i, '']); }
+  function addImage() { setImages((i) => [...i, '']); setImageAlts((a) => [...a, '']); }
   function updateImage(i, v) { setImages((im) => { const n = [...im]; n[i] = v; return n; }); }
+  function updateImageAlt(i, v) { setImageAlts((a) => { const n = [...a]; n[i] = v; return n; }); }
+  function removeImageAt(i) {
+    setImages((im) => im.filter((_, j) => j !== i));
+    setImageAlts((a) => a.filter((_, j) => j !== i));
+  }
   function addVariant() { setVariants((v) => [...v, emptyVariant()]); }
   function updateVariant(i, field, value) {
     setVariants((v) => { const n = v.map((x, j) => j === i ? { ...x, [field]: field === 'price' ? Number(value) || 0 : value } : x); return n; });
@@ -83,6 +128,7 @@ export default function EditProductPage() {
       description,
       benefits: benefits.filter(Boolean),
       images: images.filter(Boolean),
+      imageAlts: imageAlts.slice(0, images.length).map((a, i) => images[i] ? (a || '') : '').filter((_, i) => images[i]),
       inventory: Number(inventory) || 0,
       rating: Number(rating) || 0,
       reviewCount: Number(reviewCount) || 0,
@@ -155,11 +201,16 @@ export default function EditProductPage() {
           <button type="button" onClick={addBenefit} className="text-sm text-neutral-600 hover:text-neutral-900">+ Add benefit</button>
         </div>
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-1">Image URLs</label>
+          <label className="block text-sm font-medium text-neutral-700 mb-1">Images (slug optional)</label>
+          {uploadError && <p className="text-sm text-red-600 mb-2">{uploadError}</p>}
+          <input type="text" value={uploadSlug} onChange={(e) => setUploadSlug(e.target.value)} placeholder="Slug for next upload (optional)" className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-sm mb-2" />
           {images.map((url, i) => (
-            <div key={i} className="flex gap-2 mb-2">
-              <input type="text" value={url} onChange={(e) => updateImage(i, e.target.value)} className="flex-1 rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900" />
-              <button type="button" onClick={() => setImages((im) => im.filter((_, j) => j !== i))} className="text-neutral-500 hover:text-red-600">×</button>
+            <div key={i} className="flex flex-wrap gap-2 mb-2 items-center">
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(e) => handleImageUpload(e, i)} disabled={uploadingIndex !== null} className="text-sm file:rounded file:border-0 file:bg-neutral-100 file:px-2 file:py-1 file:text-xs" />
+              {uploadingIndex === i && <span className="text-xs text-neutral-500">Uploading…</span>}
+              <input type="text" value={url} onChange={(e) => updateImage(i, e.target.value)} placeholder="Or paste URL" className="flex-1 min-w-[180px] rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900" />
+              <input type="text" value={imageAlts[i] || ''} onChange={(e) => updateImageAlt(i, e.target.value)} placeholder="Alt (SEO)" className="w-28 rounded-lg border border-neutral-200 px-2 py-1.5 text-sm" />
+              <button type="button" onClick={() => removeImageAt(i)} className="text-neutral-500 hover:text-red-600">×</button>
             </div>
           ))}
           <button type="button" onClick={addImage} className="text-sm text-neutral-600 hover:text-neutral-900">+ Add image</button>
@@ -179,13 +230,15 @@ export default function EditProductPage() {
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">Variants (name, volume, price ₹, image URL)</label>
+          <label className="block text-sm font-medium text-neutral-700 mb-2">Variants (name, volume, price ₹, image)</label>
           {variants.map((v, i) => (
             <div key={i} className="flex flex-wrap gap-2 mb-2 items-center">
               <input type="text" value={v.name} onChange={(e) => updateVariant(i, 'name', e.target.value)} className="w-24 rounded-lg border border-neutral-200 px-2 py-1.5 text-sm" />
               <input type="text" value={v.volume} onChange={(e) => updateVariant(i, 'volume', e.target.value)} className="w-20 rounded-lg border border-neutral-200 px-2 py-1.5 text-sm" />
               <input type="number" step="0.01" value={v.price || ''} onChange={(e) => updateVariant(i, 'price', e.target.value)} className="w-24 rounded-lg border border-neutral-200 px-2 py-1.5 text-sm" />
-              <input type="text" value={v.image || ''} onChange={(e) => updateVariant(i, 'image', e.target.value)} className="flex-1 min-w-[120px] rounded-lg border border-neutral-200 px-2 py-1.5 text-sm" />
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(e) => handleVariantImageUpload(e, i)} disabled={uploadingIndex !== null} className="text-xs file:rounded file:border-0 file:bg-neutral-100 file:px-2 file:py-1" />
+              {uploadingIndex === `v-${i}` && <span className="text-xs text-neutral-500">Uploading…</span>}
+              <input type="text" value={v.image || ''} onChange={(e) => updateVariant(i, 'image', e.target.value)} placeholder="Or URL" className="flex-1 min-w-[100px] rounded-lg border border-neutral-200 px-2 py-1.5 text-sm" />
               <button type="button" onClick={() => removeVariant(i)} className="text-neutral-500 hover:text-red-600">×</button>
             </div>
           ))}

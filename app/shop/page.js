@@ -140,7 +140,7 @@ function ShopContent() {
                       )}
                       <Image
                         src={product.images?.[0] || '/assets/nature-secret-logo.svg'}
-                        alt={product.name}
+                        alt={product.imageAlts?.[0] || product.name || ''}
                         width={400}
                         height={533}
                         className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
@@ -148,7 +148,7 @@ function ShopContent() {
                       {product.images?.[1] && (
                         <Image
                           src={product.images[1]}
-                          alt=""
+                          alt={product.imageAlts?.[1] || product.name || ''}
                           width={400}
                           height={533}
                           className="absolute inset-0 h-full w-full object-cover opacity-0 transition duration-300 group-hover:opacity-100"

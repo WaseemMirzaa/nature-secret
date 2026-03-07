@@ -40,15 +40,15 @@ async function seed() {
 
   if ((await categoryRepo.count()) === 0) {
     await categoryRepo.save([
-      categoryRepo.create({ name: 'Herbal Oils', slug: 'herbal-oils' }),
-      categoryRepo.create({ name: 'Skin Care', slug: 'skin-care' }),
+      categoryRepo.create({ name: 'Skin care', slug: 'skin-care' }),
+      categoryRepo.create({ name: 'Herbal oil', slug: 'herbal-oil' }),
     ]);
     console.log('Seeded categories.');
   }
 
   if ((await productRepo.count()) === 0) {
     const cats = await categoryRepo.find();
-    const herbalId = cats.find((c) => c.slug === 'herbal-oils')?.id;
+    const herbalId = cats.find((c) => c.slug === 'herbal-oil')?.id;
     const skinId = cats.find((c) => c.slug === 'skin-care')?.id;
     if (herbalId) {
       const p = productRepo.create({

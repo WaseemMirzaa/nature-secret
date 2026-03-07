@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { getAdminSlides, createSlide, updateSlide, deleteSlide, formatApiError } from '@/lib/api';
+import { getAdminSlides, createSlide, updateSlide, deleteSlide, uploadSlideImage, formatApiError } from '@/lib/api';
 
 function hasAdminToken() {
   if (typeof window === 'undefined') return false;
@@ -22,7 +22,25 @@ export default function AdminSliderPage() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ imageUrl: '', alt: '', title: '', href: '' });
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+
+  const apiBase = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') : '';
+
+  const [uploadSlug, setUploadSlug] = useState('');
+  const handleUpload = (e) => {
+    const file = e?.target?.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError('');
+    uploadSlideImage(file, { slug: uploadSlug, alt: form.alt })
+      .then((res) => {
+        const url = res.url?.startsWith('http') ? res.url : apiBase + (res.url || '');
+        setForm((f) => ({ ...f, imageUrl: url, alt: res.alt || f.alt }));
+      })
+      .catch((err) => setError(formatApiError(err)))
+      .finally(() => { setUploading(false); e.target.value = ''; });
+  };
 
   const load = () => {
     setLoading(true);
@@ -129,17 +147,29 @@ export default function AdminSliderPage() {
           <h2 className="text-lg font-medium text-neutral-900 mb-4">New slide</h2>
           <div className="grid gap-4 max-w-xl">
             <label className="block">
-              <span className="text-sm font-medium text-neutral-700">Image URL</span>
-              <input
-                type="url"
-                value={form.imageUrl}
-                onChange={(e) => setForm((f) => ({ ...f, imageUrl: e.target.value }))}
-                className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-2 text-sm"
-                placeholder="https://..."
-              />
+              <span className="text-sm font-medium text-neutral-700">Image</span>
+              <div className="mt-1 flex flex-col gap-2">
+                <input type="text" value={uploadSlug} onChange={(e) => setUploadSlug(e.target.value)} placeholder="Slug for filename (optional)" className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-sm" />
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={handleUpload}
+                  disabled={uploading}
+                  className="text-sm text-neutral-600 file:mr-2 file:rounded-lg file:border-0 file:bg-neutral-100 file:px-3 file:py-1.5 file:text-sm file:font-medium"
+                />
+                {uploading && <span className="text-sm text-neutral-500">Uploading…</span>}
+                <span className="text-xs text-neutral-500">Or paste URL:</span>
+                <input
+                  type="url"
+                  value={form.imageUrl}
+                  onChange={(e) => setForm((f) => ({ ...f, imageUrl: e.target.value }))}
+                  className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-sm"
+                  placeholder="https://..."
+                />
+              </div>
             </label>
             <label className="block">
-              <span className="text-sm font-medium text-neutral-700">Alt text</span>
+              <span className="text-sm font-medium text-neutral-700">Alt text (SEO)</span>
               <input
                 type="text"
                 value={form.alt}
@@ -187,7 +217,11 @@ export default function AdminSliderPage() {
             <div className="flex-1 p-4 min-w-0">
               {editingId === slide.id ? (
                 <div className="space-y-3">
-                  <input type="url" value={form.imageUrl} onChange={(e) => setForm((f) => ({ ...f, imageUrl: e.target.value }))} placeholder="Image URL" className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm" />
+                  <div>
+                    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleUpload} disabled={uploading} className="text-sm mb-2 file:rounded file:border-0 file:bg-neutral-100 file:px-2 file:py-1 file:text-xs" />
+                    {uploading && <span className="text-xs text-neutral-500 ml-2">Uploading…</span>}
+                    <input type="url" value={form.imageUrl} onChange={(e) => setForm((f) => ({ ...f, imageUrl: e.target.value }))} placeholder="Image URL" className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm mt-1" />
+                  </div>
                   <input type="text" value={form.alt} onChange={(e) => setForm((f) => ({ ...f, alt: e.target.value }))} placeholder="Alt text" className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm" />
                   <input type="text" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Title" className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm" />
                   <input type="text" value={form.href} onChange={(e) => setForm((f) => ({ ...f, href: e.target.value }))} placeholder="Link" className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm" />

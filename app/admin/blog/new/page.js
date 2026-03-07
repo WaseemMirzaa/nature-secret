@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from '@/components/Link';
 import { useRouter } from 'next/navigation';
 import { useBlogStore } from '@/lib/store';
 import { BLOG_TEMPLATES, BLOG_CATEGORIES } from '@/lib/constants';
 import { useProductsStore } from '@/lib/store';
+import { getBlogImages, uploadBlogImage, formatApiError } from '@/lib/api';
 
 export default function NewBlogPage() {
   const router = useRouter();
@@ -20,11 +21,40 @@ export default function NewBlogPage() {
   const [authorName, setAuthorName] = useState('Nature Secret Team');
   const [authorRole, setAuthorRole] = useState('Editor');
   const [image, setImage] = useState('');
+  const [imageAlt, setImageAlt] = useState('');
+  const [existingImages, setExistingImages] = useState([]);
+  const [uploadSlug, setUploadSlug] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
   const [readTimeMinutes, setReadTimeMinutes] = useState(4);
   const [publishedAt, setPublishedAt] = useState('');
   const [relatedProductIds, setRelatedProductIds] = useState([]);
   const [seoTitle, setSeoTitle] = useState('');
   const [seoDescription, setSeoDescription] = useState('');
+
+  useEffect(() => {
+    getBlogImages().then((r) => setExistingImages(r.images || [])).catch(() => setExistingImages([]));
+  }, []);
+
+  const apiBase = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') : '';
+  async function handleBlogImageUpload(e) {
+    const file = e?.target?.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadError('');
+    try {
+      const res = await uploadBlogImage(file, { slug: uploadSlug, alt: imageAlt });
+      const url = res.url?.startsWith('http') ? res.url : apiBase + (res.url || '');
+      setImage(url);
+      if (res.alt) setImageAlt(res.alt);
+      setExistingImages((prev) => [...prev, { url, filename: url.split('/').pop() }]);
+    } catch (err) {
+      setUploadError(formatApiError(err));
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  }
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -37,6 +67,7 @@ export default function NewBlogPage() {
       categoryId,
       author: { name: authorName, role: authorRole },
       image: image || 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=1200',
+      imageAlt: imageAlt || undefined,
       readTimeMinutes: Number(readTimeMinutes) || 4,
       publishedAt: publishedAt ? new Date(publishedAt).toISOString() : new Date().toISOString(),
       relatedProductIds,
@@ -97,8 +128,23 @@ export default function NewBlogPage() {
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-1">Featured image URL</label>
-          <input type="text" value={image} onChange={(e) => setImage(e.target.value)} placeholder="https://..." className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900" />
+          <label className="block text-sm font-medium text-neutral-700 mb-1">Featured image (SEO)</label>
+          <label className="block text-xs text-neutral-500 mb-1">Select existing or upload new</label>
+          <select value={image} onChange={(e) => setImage(e.target.value)} className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900 mb-2">
+            <option value="">— Choose or paste URL below —</option>
+            {existingImages.map((img) => (
+              <option key={img.url} value={img.url}>{img.filename || img.url}</option>
+            ))}
+          </select>
+          <input type="text" value={image} onChange={(e) => setImage(e.target.value)} placeholder="Or paste image URL" className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900 mb-2" />
+          <div className="flex flex-wrap gap-2 items-center mb-2">
+            <input type="text" value={uploadSlug} onChange={(e) => setUploadSlug(e.target.value)} placeholder="Slug for upload (optional)" className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm w-40" />
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleBlogImageUpload} disabled={uploading} className="text-sm file:rounded file:border-0 file:bg-neutral-100 file:px-2 file:py-1" />
+            {uploading && <span className="text-xs text-neutral-500">Uploading…</span>}
+          </div>
+          {uploadError && <p className="text-sm text-red-600 mb-2">{uploadError}</p>}
+          <label className="block text-xs text-neutral-600 mt-1">Image alt text (SEO)</label>
+          <input type="text" value={imageAlt} onChange={(e) => setImageAlt(e.target.value)} placeholder="Describe image for accessibility" className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900 mt-0.5" />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>

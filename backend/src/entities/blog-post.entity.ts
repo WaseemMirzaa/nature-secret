@@ -31,6 +31,9 @@ export class BlogPost {
   @Column({ type: 'varchar', length: 500, nullable: true })
   image: string | null;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  imageAlt: string | null;
+
   @Column({ type: 'int', nullable: true })
   readTimeMinutes: number | null;
 

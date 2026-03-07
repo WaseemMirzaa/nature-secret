@@ -114,7 +114,7 @@ export default function ProductPage() {
                 onClick={() => setSelectedVariant(product.variants?.find((v) => v.image === url) ?? null)}
                 className="relative h-20 w-20 flex-shrink-0 rounded-xl overflow-hidden border-2 border-neutral-300"
               >
-                <Image src={url} alt="" fill className="object-cover" sizes="80px" />
+                <Image src={url} alt={product.imageAlts?.[i] ?? product.name ?? ''} fill className="object-cover" sizes="80px" />
               </button>
             ))}
           </div>

@@ -42,6 +42,9 @@ export class Product {
   @Column({ type: 'json', nullable: true })
   images: string[] | null;
 
+  @Column({ type: 'json', nullable: true })
+  imageAlts: string[] | null;
+
   @Column({ type: 'decimal', precision: 3, scale: 2, default: 0 })
   rating: number;
 

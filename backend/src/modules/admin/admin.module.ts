@@ -5,6 +5,8 @@ import { Product } from '../../entities/product.entity';
 import { Customer } from '../../entities/customer.entity';
 import { BlogPost } from '../../entities/blog-post.entity';
 import { AdminController } from './admin.controller';
+import { AdminProductUploadController } from './admin-product-upload.controller';
+import { AdminBlogUploadController } from './admin-blog-upload.controller';
 import { AdminService } from './admin.service';
 import { OrdersModule } from '../orders/orders.module';
 import { ProductsModule } from '../products/products.module';
@@ -15,7 +17,7 @@ import { ProductsModule } from '../products/products.module';
     OrdersModule,
     ProductsModule,
   ],
-  controllers: [AdminController],
+  controllers: [AdminController, AdminProductUploadController, AdminBlogUploadController],
   providers: [AdminService],
 })
 export class AdminModule {}

@@ -2,64 +2,44 @@ import {
   Controller,
   Get,
   Post,
-  Patch,
-  Delete,
-  Body,
   Param,
+  Body,
   UseGuards,
   UseInterceptors,
   UploadedFile,
   BadRequestException,
   Res,
 } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { createReadStream, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { SliderService } from './slider.service';
-import { CreateSlideDto, UpdateSlideDto } from './dto/slide.dto';
-import { Public } from '../../common/decorators/public.decorator';
+import { diskStorage } from 'multer';
 import { AdminJwtAuthGuard } from '../../common/guards/admin-jwt.guard';
 import { AdminRoleGuard } from '../../common/guards/admin-role.guard';
 import { StaffOrAdmin } from '../../common/decorators/admin.decorator';
-import { diskStorage } from 'multer';
-import { randomUUID } from 'crypto';
+import { Public } from '../../common/decorators/public.decorator';
 
-const UPLOAD_DIR = join(process.cwd(), 'uploads', 'slider');
+const ASSETS_PRODUCTS = join(process.cwd(), 'assets', 'products');
 const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 function sanitizeSlug(s: string): string {
   return (s || '').replace(/[^a-z0-9-]/gi, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 80) || '';
 }
 
-@Controller('slider')
-export class SliderController {
-  constructor(private service: SliderService) {}
-
-  @Public()
-  @Get()
-  async getSlides() {
-    return this.service.findAll();
-  }
-
+@Controller('admin/products')
+export class AdminProductUploadController {
   @Public()
   @Get('upload/:filename')
   serveUpload(@Param('filename') filename: string, @Res() res: Response) {
     const safe = filename.replace(/[^a-zA-Z0-9._-]/g, '');
-    const path = join(UPLOAD_DIR, safe);
-    if (!existsSync(path)) {
+    const filePath = join(ASSETS_PRODUCTS, safe);
+    if (!existsSync(filePath)) {
       res.status(404).end();
       return;
     }
-    const stream = createReadStream(path);
-    stream.pipe(res);
-  }
-
-  @UseGuards(AdminJwtAuthGuard, AdminRoleGuard)
-  @StaffOrAdmin()
-  @Get('admin')
-  async adminGetSlides() {
-    return this.service.findAll();
+    createReadStream(filePath).pipe(res);
   }
 
   @UseGuards(AdminJwtAuthGuard, AdminRoleGuard)
@@ -74,8 +54,8 @@ export class SliderController {
       },
       storage: diskStorage({
         destination: (_req, _file, cb) => {
-          mkdirSync(UPLOAD_DIR, { recursive: true });
-          cb(null, UPLOAD_DIR);
+          mkdirSync(ASSETS_PRODUCTS, { recursive: true });
+          cb(null, ASSETS_PRODUCTS);
         },
         filename: (req, file, cb) => {
           const ext = (file.originalname && file.originalname.split('.').pop()) || 'jpg';
@@ -90,29 +70,7 @@ export class SliderController {
   uploadImage(@UploadedFile() file: Express.Multer.File, @Body() body: { slug?: string; alt?: string }) {
     if (!file) throw new BadRequestException('No image file');
     const base = (process.env.API_PUBLIC_URL || '').replace(/\/$/, '');
-    const path = `/api/v1/slider/upload/${file.filename}`;
+    const path = `/api/v1/admin/products/upload/${file.filename}`;
     return { url: base ? `${base}${path}` : path, alt: body?.alt || '' };
-  }
-
-  @UseGuards(AdminJwtAuthGuard, AdminRoleGuard)
-  @StaffOrAdmin()
-  @Post()
-  async create(@Body() dto: CreateSlideDto) {
-    return this.service.create(dto);
-  }
-
-  @UseGuards(AdminJwtAuthGuard, AdminRoleGuard)
-  @StaffOrAdmin()
-  @Patch(':id')
-  async update(@Param('id') id: string, @Body() dto: UpdateSlideDto) {
-    return this.service.update(id, dto);
-  }
-
-  @UseGuards(AdminJwtAuthGuard, AdminRoleGuard)
-  @StaffOrAdmin()
-  @Delete(':id')
-  async remove(@Param('id') id: string) {
-    const ok = await this.service.remove(id);
-    return { deleted: ok };
   }
 }
