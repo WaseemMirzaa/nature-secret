@@ -119,6 +119,11 @@ function ShopContent() {
                   </div>
                 </div>
               ))
+            ) : filtered.length === 0 ? (
+              <div className="col-span-full rounded-2xl border border-neutral-200 bg-neutral-50/80 p-12 text-center">
+                <p className="text-neutral-600">No products to show right now. The catalog may be updating—please try again later.</p>
+                <Link href="/" className="mt-4 inline-block text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/40 pb-0.5">Back to home</Link>
+              </div>
             ) : (
             filtered.map((product) => {
               const variant = product.variants?.[0];

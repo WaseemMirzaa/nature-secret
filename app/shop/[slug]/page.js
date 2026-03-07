@@ -68,8 +68,8 @@ export default function ProductPage() {
   if (!product) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-16 text-center">
-        <p className="text-neutral-500">Product not found.</p>
-        <Link href="/shop" className="mt-4 inline-block text-neutral-900 font-medium">Back to shop</Link>
+        <p className="text-neutral-600">This product isn&apos;t available or the catalog is updating. Try again later or browse the shop.</p>
+        <Link href="/shop" className="mt-4 inline-block text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/40 pb-0.5">Back to shop</Link>
       </div>
     );
   }

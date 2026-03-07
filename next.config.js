@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
+const assetPrefix = siteUrl ? siteUrl.replace(/\/$/, '') : '';
+
 const nextConfig = {
+  assetPrefix: assetPrefix || undefined,
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },

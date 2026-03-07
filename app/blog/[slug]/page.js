@@ -52,10 +52,10 @@ export default function BlogPostPage() {
     return (
       <div className="min-h-screen bg-neutral-50/40">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-16">
-          <Link href="/blog" className="text-sm font-medium text-neutral-500 hover:text-gold-600 transition-colors inline-flex items-center gap-1">
+          <Link href="/blog" className="text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/40 pb-0.5 inline-flex items-center gap-1">
             ← Journal
           </Link>
-          <p className="mt-8 text-neutral-500">Post not found.</p>
+          <p className="mt-8 text-neutral-600">This post isn&apos;t available or the content is updating. Try again later or browse the journal.</p>
         </div>
       </div>
     );

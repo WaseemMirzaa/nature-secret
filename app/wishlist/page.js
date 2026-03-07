@@ -26,6 +26,15 @@ export default function WishlistPage() {
     );
   }
 
+  if (products.length === 0) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-20 text-center">
+        <p className="text-neutral-600">We couldn&apos;t load your wishlist items right now. Try again later.</p>
+        <Link href="/shop" className="mt-4 inline-block font-medium text-neutral-900">Browse shop</Link>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-2xl font-semibold text-neutral-900 mb-8">Wishlist</h1>

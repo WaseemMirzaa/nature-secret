@@ -47,7 +47,7 @@ export default function BlogPage() {
             </div>
           ) : sortedPosts.length === 0 ? (
             <div className="rounded-2xl border border-neutral-200 bg-white p-12 text-center">
-              <p className="text-neutral-500">No posts yet. Check back soon.</p>
+              <p className="text-neutral-600">No posts to show right now. Check back soon or try again later.</p>
               <Link href="/" className="mt-4 inline-block text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/40 pb-0.5">Back to home</Link>
             </div>
           ) : (
