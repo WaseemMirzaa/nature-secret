@@ -14,10 +14,11 @@ let restartCount = 0;
 let windowStart = Date.now();
 
 function run() {
+  const env = { ...process.env, NODE_ENV: process.env.NODE_ENV || 'production' };
   const child = spawn(process.execPath, [path.join(__dirname, 'dist', 'main.js')], {
     stdio: 'inherit',
     cwd: __dirname,
-    env: process.env,
+    env,
   });
 
   child.on('exit', (code, signal) => {

@@ -10,18 +10,10 @@ import { seedAdminAndCategoriesIfEmpty } from './seed-on-startup';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  // Fast health check for proxy/load balancer (no prefix, no DB)
+  // Health check first – no DB, so proxy gets 200 quickly
   app.getHttpAdapter().get('/health', (_req: express.Request, res: express.Response) => {
     res.status(200).json({ ok: true, ts: Date.now() });
   });
-  const dataSource = app.get(DataSource);
-  try {
-    await dataSource.synchronize();
-    console.log('Database schema synced');
-  } catch (e) {
-    console.error('Schema sync failed:', e);
-    throw e;
-  }
   app.useWebSocketAdapter(new IoAdapter(app));
   app.setGlobalPrefix('api/v1');
   app.use('/api/v1', (_req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -75,8 +67,16 @@ async function bootstrap() {
   }));
   const port = process.env.PORT || 4000;
   await app.listen(port, '0.0.0.0');
-  console.log(`API running on port ${port} /api/v1`);
+  console.log(`API running on port ${port} /api/v1 GET /health`);
 
+  // DB sync and seed after listen so /health responds immediately
+  const dataSource = app.get(DataSource);
+  try {
+    await dataSource.synchronize();
+    console.log('Database schema synced');
+  } catch (e) {
+    console.error('Schema sync failed:', e?.message || e);
+  }
   try {
     await seedAdminAndCategoriesIfEmpty(dataSource);
   } catch (e) {

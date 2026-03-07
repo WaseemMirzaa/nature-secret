@@ -13,4 +13,12 @@ export class SetupController {
     if (!expected || secret !== expected) throw new UnauthorizedException('Invalid setup secret');
     return this.setupService.seedAdminIfEmpty();
   }
+
+  @Public()
+  @Post('seed-categories')
+  async seedCategories(@Headers('x-setup-secret') secret: string) {
+    const expected = process.env.SETUP_SECRET;
+    if (!expected || secret !== expected) throw new UnauthorizedException('Invalid setup secret');
+    return this.setupService.seedCategoriesAndSlidesIfEmpty();
+  }
 }
