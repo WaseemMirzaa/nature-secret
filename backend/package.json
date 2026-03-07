@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "npx nest build && (cp -r public dist/ 2>/dev/null || true)",
-    "start": "node dist/main.js",
+    "start": "node server.js",
     "start:prod": "NODE_ENV=production node run-with-restart.js",
     "start:staging": "node seed-admin.js && NODE_ENV=staging node run-with-restart.js",
     "typeorm": "npx ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
