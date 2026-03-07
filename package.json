@@ -5,9 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "db:reset": "bash scripts/setup-local-mysql.sh",
-    "build": "next build && node scripts/copy-standalone.js",
-    "start": "NODE_ENV=production node .next/standalone/server.js",
-    "start:next": "NODE_ENV=production next start",
+    "build": "next build",
+    "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
