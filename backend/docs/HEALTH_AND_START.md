@@ -23,9 +23,10 @@ Response: `{"ok":true,"ts":1234567890}`. If only one works, your proxy likely fo
 - **Build command:** `npm install && npm run build` (so `dist/main.js` exists before start).
 - **Start command:** `npm start` (runs `node server.js`). To restart if down, add a cron job: `*/5 * * * * cd /path/to/backend && npm run cron:restart-if-down >> /tmp/backend-cron.log 2>&1`. Optional: `node run-with-restart.js` for in-process restart on crash.
 
-**APIs not working, no error logs**
-- Start the server with `npm start` (from backend folder). You should see `[API] ... Listening on http://0.0.0.0:4000` and then `Database schema synced` or `Schema sync failed`. If you see nothing, the process may be exiting before listen (e.g. DB connection failed during app create). Set DB env vars: `MYSQL_HOST`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`.
-- Each request logs as `[API] ... GET /api/v1/slider 200 5ms`. If you get no such lines when calling the API, requests are not reaching this Node process (check proxy and port).
+**APIs not working / no logs (including health)**
+- Start with `npm start` from the **backend** folder (so `node dist/main.js` runs). You should see in order: `[API] ... Bootstrap started` → `[API] ... Nest app created` → `[API] ... Listening on http://0.0.0.0:4000` → `Database schema synced` or `Schema sync failed`. If you see **none** of these, the Node process is not running or stdout is not captured (check Hostinger “Start command” is `npm start` and “Application root” is the backend directory; check “Logs” or “Runtime logs” in the panel).
+- Each health hit logs `[API] ... Health check GET /health` or `... Health check GET /api/v1/health`. If you see “Listening” but no “Health check” when you curl or open the health URL, the request is not reaching this Node app (wrong port, proxy not forwarding, or proxy answering itself).
+- Set DB env vars: `MYSQL_HOST`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`; missing/wrong values can cause exit after “Bootstrap started” with “Failed to create app”.
 
 If the server does not start, check runtime logs for:
 - `[run-with-restart] dist/main.js not found. Run: npm run build` → build step did not run or failed; fix Build command and redeploy.

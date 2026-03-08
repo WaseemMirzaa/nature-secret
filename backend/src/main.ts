@@ -14,15 +14,18 @@ const logErr = (msg: string, err?: unknown) =>
   console.error(`[API] ${new Date().toISOString()} ${msg}`, err instanceof Error ? err.message : err ?? '');
 
 async function bootstrap() {
+  log('Bootstrap started');
   let app;
   try {
     app = await NestFactory.create(AppModule);
+    log('Nest app created');
   } catch (e) {
     logErr('Failed to create app (check DB env: MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE)', e);
     throw e;
   }
   // Health check – no DB (try both in case proxy only forwards /api/v1)
-  const healthHandler = (_req: express.Request, res: express.Response) => {
+  const healthHandler = (req: express.Request, res: express.Response) => {
+    log(`Health check ${req.method} ${req.path || req.url}`);
     res.status(200).json({ ok: true, ts: Date.now() });
   };
   app.getHttpAdapter().get('/health', healthHandler);
