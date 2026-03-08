@@ -23,16 +23,23 @@ export default function AdminProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [stockFilter, setStockFilter] = useState('all');
   const [page, setPage] = useState(1);
+  const [listError, setListError] = useState('');
 
   useEffect(() => setMounted(true), []);
   useEffect(() => {
     getCategories().then((list) => setCategories(Array.isArray(list) ? list : [])).catch(() => setCategories([]));
   }, []);
   useEffect(() => {
-    getAdminProducts({ limit: 500 }).then((res) => {
-      const list = Array.isArray(res?.data) ? res.data : [];
-      setProducts(list);
-    }).catch(() => {});
+    setListError('');
+    getAdminProducts({ limit: 500 })
+      .then((res) => {
+        const list = Array.isArray(res?.data) ? res.data : [];
+        setProducts(list);
+      })
+      .catch(() => {
+        setProducts([]);
+        setListError('Could not load products from server. List is empty.');
+      });
   }, [setProducts]);
 
   const filtered = useMemo(() => {
@@ -62,6 +69,7 @@ export default function AdminProductsPage() {
         <h1 className="text-2xl font-semibold text-neutral-900">Products</h1>
         <Link href="/admin/products/new" className="rounded-xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium">Add product</Link>
       </div>
+      {listError && <p className="mt-2 text-sm text-amber-700 bg-amber-50 px-4 py-2 rounded-xl">{listError}</p>}
       <div className="mt-4 flex flex-wrap gap-4">
         <input
           type="text"

@@ -177,6 +177,30 @@ curl -s http://localhost:4000/api/v1/admin/products \
   -H "Authorization: Bearer ADMIN_JWT"
 ```
 
+**Create product** (verify add-product API; use token from admin login):
+
+```bash
+# 1) Get token (use your admin email/password)
+TOKEN=$(curl -s -X POST http://localhost:4000/api/v1/auth/admin/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@naturesecret.com","password":"Admin123!"}' | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
+
+# 2) Create product (saved to DB)
+curl -s -X POST http://localhost:4000/api/v1/admin/products \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test Pain Care Oil",
+    "slug": "test-pain-care-oil",
+    "categoryId": "REPLACE_WITH_REAL_CATEGORY_UUID",
+    "price": 1999,
+    "description": "Test product for API check.",
+    "variants": [{"name": "50ml", "volume": "50ml", "price": 1999}]
+  }'
+```
+
+Use a real `categoryId` from `GET /api/v1/categories`. Response should be the created product with `id`. If you get 401, the token is missing or wrong; if 400, check the body (e.g. slug unique, categoryId valid).
+
 **Customers list**:
 
 ```bash

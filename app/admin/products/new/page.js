@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from '@/components/Link';
 import { useRouter } from 'next/navigation';
 import { useProductsStore } from '@/lib/store';
-import { getCategories, uploadProductImage, createProduct, formatApiError } from '@/lib/api';
+import { getCategories, uploadProductImage, createProduct, formatApiError, formatApiErrorFull } from '@/lib/api';
 
 const emptyVariant = () => ({ id: `v-${Date.now()}`, name: '', volume: '', price: 0, image: '' });
 const emptyFaq = () => ({ q: '', a: '' });
@@ -138,7 +138,7 @@ export default function NewProductPage() {
       setProducts([created, ...(products || [])]);
       router.push('/admin/products');
     } catch (err) {
-      setSubmitError(formatApiError(err));
+      setSubmitError(formatApiErrorFull(err, err?.message || 'Request failed. Check network and login.'));
     } finally {
       setSubmitting(false);
     }
@@ -148,7 +148,13 @@ export default function NewProductPage() {
     <div className="max-w-2xl">
       <Link href="/admin/products" className="text-sm text-neutral-500 hover:text-neutral-900 mb-6 inline-block">← Products</Link>
       <h1 className="text-2xl font-semibold text-neutral-900">Add product</h1>
-      {submitError && <p className="mt-4 text-sm text-red-600">{submitError}</p>}
+      {submitError && (
+        <div className="mt-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm" role="alert">
+          <p className="font-medium">Product was not saved to the database.</p>
+          <p className="mt-1">{submitError}</p>
+          <p className="mt-2 text-red-600">Fix the error above and submit again. If it says 401, log out and log back in.</p>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="mt-6 space-y-6">
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-1">Name *</label>
