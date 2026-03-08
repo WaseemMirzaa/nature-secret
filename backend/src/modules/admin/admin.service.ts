@@ -5,6 +5,7 @@ import { Order } from '../../entities/order.entity';
 import { Product } from '../../entities/product.entity';
 import { Customer } from '../../entities/customer.entity';
 import { BlogPost } from '../../entities/blog-post.entity';
+import { BlogCategory } from '../../entities/blog-category.entity';
 import { OrdersService } from '../orders/orders.service';
 
 @Injectable()
@@ -16,6 +17,7 @@ export class AdminService {
     @InjectRepository(Product) private productRepo: Repository<Product>,
     @InjectRepository(Customer) private customerRepo: Repository<Customer>,
     @InjectRepository(BlogPost) private blogRepo: Repository<BlogPost>,
+    @InjectRepository(BlogCategory) private blogCategoryRepo: Repository<BlogCategory>,
     private ordersService: OrdersService,
   ) {}
 
@@ -97,11 +99,20 @@ export class AdminService {
     seoTitle?: string;
     seoDescription?: string;
   }) {
+    const categoryId = await this.normalizeBlogCategoryId(dto.categoryId);
     const post = this.blogRepo.create({
       ...dto,
+      categoryId,
       publishedAt: dto.publishedAt ? new Date(dto.publishedAt) : null,
     });
     return this.blogRepo.save(post);
+  }
+
+  private async normalizeBlogCategoryId(categoryId?: string | null): Promise<string | null> {
+    if (!categoryId || typeof categoryId !== 'string' || !categoryId.trim()) return null;
+    const id = categoryId.trim();
+    const exists = await this.blogCategoryRepo.findOne({ where: { id } });
+    return exists ? id : null;
   }
 
   async updateBlogPost(id: string, dto: Partial<{
@@ -123,6 +134,7 @@ export class AdminService {
     if (!post) throw new NotFoundException('Post not found');
     const updates = { ...dto } as any;
     if (updates.publishedAt !== undefined) updates.publishedAt = updates.publishedAt ? new Date(updates.publishedAt) : null;
+    if (updates.categoryId !== undefined) updates.categoryId = await this.normalizeBlogCategoryId(updates.categoryId);
     Object.assign(post, updates);
     return this.blogRepo.save(post);
   }
