@@ -106,39 +106,45 @@ export default function NewProductPage() {
     e.preventDefault();
     setSubmitError('');
     setSubmitting(true);
-    const basePrice = Math.round(parseFloat(price) * 100) || 0;
-    const compare = compareAtPrice ? Math.round(parseFloat(compareAtPrice) * 100) : null;
-    const product = {
-      name,
-      slug: slug || name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-      categoryId,
-      price: basePrice,
-      compareAtPrice: compare,
-      description,
-      benefits: benefits.filter(Boolean),
-      images: images.filter(Boolean),
-      imageAlts: imageAlts.slice(0, images.length).map((a, i) => images[i] ? (a || '') : '').filter((_, i) => images[i]),
-      inventory: Number(inventory) || 0,
-      rating: Number(rating) || 0,
-      reviewCount: Number(reviewCount) || 0,
-      badge: badge || undefined,
-      badgeSub: badgeSub || undefined,
-      variants: variants.filter((v) => v.name && v.volume).map((v, i) => ({
-        id: v.id || `v-${Date.now()}-${i}`,
-        name: v.name,
-        volume: v.volume,
-        price: Math.round((v.price || 0) * 100) || basePrice,
-        image: v.image || images[0] || '',
-      })),
-      faq: faq.filter((f) => f.q && f.a),
-    };
-    if (!product.variants.length) product.variants = [{ id: `v-${Date.now()}`, name: 'Default', volume: '-', price: basePrice, image: images[0] || '' }];
     try {
+      if (!categoryId || !name?.trim()) {
+        setSubmitError('Please enter name and select a category.');
+        return;
+      }
+      const basePrice = Math.round(parseFloat(price) * 100) || 0;
+      const compare = compareAtPrice ? Math.round(parseFloat(compareAtPrice) * 100) : null;
+      const safeVariants = Array.isArray(variants) ? variants : [{ id: `v-${Date.now()}`, name: 'Default', volume: '-', price: 0, image: '' }];
+      const product = {
+        name: name.trim(),
+        slug: (slug || name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')).trim() || 'product',
+        categoryId,
+        price: basePrice,
+        compareAtPrice: compare,
+        description: description || undefined,
+        benefits: Array.isArray(benefits) ? benefits.filter(Boolean) : [],
+        images: Array.isArray(images) ? images.filter(Boolean) : [],
+        imageAlts: Array.isArray(imageAlts) && Array.isArray(images) ? imageAlts.slice(0, images.length).map((a, i) => images[i] ? (a || '') : '').filter((_, i) => images[i]) : [],
+        inventory: Number(inventory) || 0,
+        rating: Number(rating) || 0,
+        reviewCount: Number(reviewCount) || 0,
+        badge: badge || undefined,
+        badgeSub: badgeSub || undefined,
+        variants: safeVariants.filter((v) => v && v.name && v.volume).map((v, i) => ({
+          id: v.id || `v-${Date.now()}-${i}`,
+          name: v.name,
+          volume: v.volume,
+          price: Math.round((v.price || 0) * 100) || basePrice,
+          image: v.image || (Array.isArray(images) ? images[0] : '') || '',
+        })),
+        faq: Array.isArray(faq) ? faq.filter((f) => f && f.q && f.a) : [],
+      };
+      if (!product.variants.length) product.variants = [{ id: `v-${Date.now()}`, name: 'Default', volume: '-', price: basePrice, image: product.images[0] || '' }];
       const created = await createProduct(product);
       setProducts([created, ...(products || [])]);
       router.push('/admin/products');
     } catch (err) {
       setSubmitError(formatApiErrorFull(err, err?.message || 'Request failed. Check network and login.'));
+      if (typeof console !== 'undefined' && console.error) console.error('Create product error:', err);
     } finally {
       setSubmitting(false);
     }

@@ -37,8 +37,8 @@ export default function AdminProductsPage() {
         setProducts(list);
       })
       .catch(() => {
-        setProducts([]);
-        setListError('Could not load products from server. List is empty.');
+        // Do not clear store on failure – keeps e.g. just-added product visible until refetch works
+        setListError('Could not load products from server. Showing cached list if any.');
       });
   }, [setProducts]);
 

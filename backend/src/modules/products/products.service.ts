@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere, In } from 'typeorm';
 import { Product } from '../../entities/product.entity';
@@ -7,6 +7,8 @@ import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 
 @Injectable()
 export class ProductsService {
+  private readonly logger = new Logger(ProductsService.name);
+
   constructor(
     @InjectRepository(Product) private repo: Repository<Product>,
     @InjectRepository(ProductVariant) private variantRepo: Repository<ProductVariant>,
@@ -40,9 +42,11 @@ export class ProductsService {
   }
 
   async create(dto: CreateProductDto): Promise<Product> {
+    this.logger.log(`Product create requested: name=${dto.name} slug=${dto.slug} categoryId=${dto.categoryId}`);
     const { variants, ...productData } = dto;
     const product = this.repo.create(productData);
     const saved = await this.repo.save(product);
+    this.logger.log(`Product saved to DB id=${saved.id}`);
     if (variants?.length) {
       const variantEntities = variants.map((v) =>
         this.variantRepo.create({ ...v, productId: saved.id }),

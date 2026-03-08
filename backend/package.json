@@ -9,8 +9,11 @@
     "typeorm": "npx ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "migration:run": "npm run typeorm -- migration:run -d src/database/data-source.js",
     "migration:generate": "npm run typeorm -- migration:generate -d src/database/data-source.js",
-    "seed": "npx ts-node -r tsconfig-paths/register src/seed.ts",
-    "seeds": "npx ts-node -r tsconfig-paths/register src/seed.ts",
+    "db:setup": "npx ts-node -r tsconfig-paths/register src/db-sync-and-seed.ts",
+    "db:setup:prod": "node dist/db-sync-and-seed.js",
+    "db:sync-seed": "npm run db:setup",
+    "seed": "npm run db:setup",
+    "seeds": "npm run db:setup",
     "seed:admin": "node seed-admin.js",
     "seed:admin-categories": "node seed-admin-and-categories.js",
     "cron:restart-if-down": "bash scripts/check-and-restart.sh"

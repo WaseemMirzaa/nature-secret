@@ -3,6 +3,11 @@
 **Build:** `npm run build`  
 **Start:** `npm start` (runs `node server.js` → `dist/main.js`). Optional auto-restart: cron runs `scripts/check-and-restart.sh` (e.g. every 5 min) to restart if `/health` is down.
 
+**DB structure + seeding (admin, categories, hero slides):**
+- **Local / with ts-node:** `npm run db:setup` — runs TypeORM `synchronize` (updates tables/columns to match entities) then seeds admin users, categories, and hero slides.
+- **After build (e.g. Hostinger):** `npm run db:setup:prod` — runs `node dist/db-sync-and-seed.js` (no ts-node). Run once after deploy if you need a fresh schema or seed (e.g. empty DB).
+- **Scripts in package.json:** `db:setup`, `db:setup:prod`, `db:sync-seed`, `seed`, `seeds` all point to this flow. Legacy: `seed:admin`, `seed:admin-categories` (plain Node, no schema update).
+
 **Health check (no auth).** Try both; use whichever your proxy forwards:
 ```bash
 curl -s https://shafaefitrat.com/health
@@ -36,3 +41,11 @@ Example for **shifaefitrat.com** (home: `u493740372`):
 4. Restart the app. Product, blog, and slider images will be stored in that folder and will survive redeploys.
 
 If your domain path is different, use the path you see in File Manager (e.g. `/home/u493740372/domains/shifaefitrat.com/uploads`). Do **not** put `uploads` inside the application root (e.g. not inside `public_node`), or it may be removed on deploy.
+
+**No products in DB after adding in admin**  
+- Backend does **not** drop or clear the `products` table. Seed only touches admin_users, categories, hero_slides.
+- In Hostinger **runtime logs**, after you click “Add product” in the admin panel, look for:
+  - `Product create requested: name=... slug=...` → request reached the backend.
+  - `Product saved to DB id=...` → row was inserted.
+- If you **never** see those lines: the create request is not reaching this backend (wrong API URL or 401). Set the frontend’s API base to this backend (e.g. `NEXT_PUBLIC_API_URL` or meta `api-url` = `https://shifaefitrat.com`), and log in again in the admin panel.
+- If you **do** see those lines but the DB has no rows: confirm you’re checking the same database as in this app’s env (`MYSQL_DATABASE`, `MYSQL_HOST`, etc.).

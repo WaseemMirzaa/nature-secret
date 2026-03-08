@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from '../../entities/order.entity';
@@ -9,6 +9,8 @@ import { OrdersService } from '../orders/orders.service';
 
 @Injectable()
 export class AdminService {
+  private readonly logger = new Logger(AdminService.name);
+
   constructor(
     @InjectRepository(Order) private orderRepo: Repository<Order>,
     @InjectRepository(Product) private productRepo: Repository<Product>,
@@ -67,12 +69,17 @@ export class AdminService {
   async getBlogPosts(params: { page?: number; limit?: number }) {
     const page = Math.max(1, params.page || 1);
     const limit = Math.min(100, Math.max(1, params.limit || 50));
-    const [data, total] = await this.blogRepo.findAndCount({
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
-    return { data, total, page, limit };
+    try {
+      const [data, total] = await this.blogRepo.findAndCount({
+        order: { createdAt: 'DESC' },
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+      return { data, total, page, limit };
+    } catch (e) {
+      this.logger.error(`getBlogPosts failed: ${e?.message || e}. Check that blog_posts table exists and schema matches BlogPost entity.`);
+      return { data: [], total: 0, page, limit };
+    }
   }
 
   async createBlogPost(dto: {
