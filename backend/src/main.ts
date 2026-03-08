@@ -47,13 +47,30 @@ async function bootstrap() {
     'https://www.naturesecret.pk',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
-    ...(process.env.FRONTEND_ORIGIN || '').split(',').map((o) => o.trim().replace(/\/$/, '')).filter(Boolean),
+    ...(process.env.FRONTEND_ORIGIN || '').split(',').map((o) => o.trim().replace(/\/$/, '').toLowerCase()).filter(Boolean),
   ]);
+  const allowedHosts = new Set(
+    (process.env.FRONTEND_ORIGIN || '')
+      .split(',')
+      .map((u) => {
+        try {
+          return new URL(u.trim()).hostname.toLowerCase();
+        } catch {
+          return '';
+        }
+      })
+      .filter(Boolean),
+  );
   const allowOrigin = (origin: string | undefined): string | boolean => {
     const o = (origin || '').replace(/\/$/, '').toLowerCase();
     if (!o) return true;
     if (allowed.has(o)) return origin!;
     if (o.includes('naturesecret.pk')) return origin!;
+    try {
+      if (allowedHosts.has(new URL(o).hostname.toLowerCase())) return origin!;
+    } catch {
+      /* ignore */
+    }
     return false;
   };
 

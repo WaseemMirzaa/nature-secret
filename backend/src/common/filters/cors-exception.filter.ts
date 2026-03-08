@@ -15,15 +15,33 @@ const ALLOWED_ORIGINS = new Set([
   'http://127.0.0.1:3000',
   ...(process.env.FRONTEND_ORIGIN || '')
     .split(',')
-    .map((o) => o.trim().replace(/\/$/, ''))
+    .map((o) => o.trim().replace(/\/$/, '').toLowerCase())
     .filter(Boolean),
 ]);
+
+const ALLOWED_HOSTS = new Set(
+  (process.env.FRONTEND_ORIGIN || '')
+    .split(',')
+    .map((u) => {
+      try {
+        return new URL(u.trim()).hostname.toLowerCase();
+      } catch {
+        return '';
+      }
+    })
+    .filter(Boolean),
+);
 
 function getAllowedOrigin(origin: string | undefined): string | null {
   if (!origin) return null;
   const o = origin.replace(/\/$/, '').toLowerCase();
   if (ALLOWED_ORIGINS.has(o)) return origin;
   if (o.includes('naturesecret.pk')) return origin;
+  try {
+    if (ALLOWED_HOSTS.has(new URL(o).hostname.toLowerCase())) return origin;
+  } catch {
+    /* ignore */
+  }
   return null;
 }
 
