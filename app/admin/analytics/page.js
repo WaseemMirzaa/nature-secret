@@ -8,7 +8,8 @@ import { TableSkeleton } from '@/components/ui/PageLoader';
 const PAGE_SIZE = 50;
 
 export default function AdminAnalyticsPage() {
-  const events = useAnalyticsStore((s) => s.events);
+  const rawEvents = useAnalyticsStore((s) => s.events);
+  const events = Array.isArray(rawEvents) ? rawEvents : [];
   const products = useProductsStore((s) => s.products);
   const [mounted, setMounted] = useState(false);
   const [dateFrom, setDateFrom] = useState('');
