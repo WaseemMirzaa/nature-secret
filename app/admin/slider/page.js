@@ -23,6 +23,7 @@ export default function AdminSliderPage() {
   const [form, setForm] = useState({ imageUrl: '', alt: '', title: '', href: '' });
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [showAdd, setShowAdd] = useState(false);
 
   const apiBase = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') : '';
@@ -32,14 +33,15 @@ export default function AdminSliderPage() {
     const file = e?.target?.files?.[0];
     if (!file) return;
     setUploading(true);
+    setUploadProgress(0);
     setError('');
-    uploadSlideImage(file, { slug: uploadSlug, alt: form.alt })
+    uploadSlideImage(file, { slug: uploadSlug, alt: form.alt, onProgress: setUploadProgress })
       .then((res) => {
         const url = res.url?.startsWith('http') ? res.url : apiBase + (res.url || '');
         setForm((f) => ({ ...f, imageUrl: url, alt: res.alt || f.alt }));
       })
       .catch((err) => setError(formatApiError(err)))
-      .finally(() => { setUploading(false); e.target.value = ''; });
+      .finally(() => { setUploading(false); setUploadProgress(0); e.target.value = ''; });
   };
 
   const load = () => {
@@ -92,7 +94,7 @@ export default function AdminSliderPage() {
 
   const saveNew = async () => {
     if (!form.imageUrl?.trim()) {
-      setError('Image URL is required.');
+      setError('Upload an image first (required).');
       return;
     }
     setSaving(true);
@@ -147,7 +149,7 @@ export default function AdminSliderPage() {
           <h2 className="text-lg font-medium text-neutral-900 mb-4">New slide</h2>
           <div className="grid gap-4 max-w-xl">
             <label className="block">
-              <span className="text-sm font-medium text-neutral-700">Image</span>
+              <span className="text-sm font-medium text-neutral-700">Image (required)</span>
               <div className="mt-1 flex flex-col gap-2">
                 <input type="text" value={uploadSlug} onChange={(e) => setUploadSlug(e.target.value)} placeholder="Slug for filename (optional)" className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-sm" />
                 <input
@@ -155,17 +157,18 @@ export default function AdminSliderPage() {
                   accept="image/jpeg,image/png,image/webp,image/gif"
                   onChange={handleUpload}
                   disabled={uploading}
+                  required={!form.imageUrl}
                   className="text-sm text-neutral-600 file:mr-2 file:rounded-lg file:border-0 file:bg-neutral-100 file:px-3 file:py-1.5 file:text-sm file:font-medium"
                 />
-                {uploading && <span className="text-sm text-neutral-500">Uploading…</span>}
-                <span className="text-xs text-neutral-500">Or paste URL:</span>
-                <input
-                  type="url"
-                  value={form.imageUrl}
-                  onChange={(e) => setForm((f) => ({ ...f, imageUrl: e.target.value }))}
-                  className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-sm"
-                  placeholder="https://..."
-                />
+                {uploading && (
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-2 rounded-full bg-neutral-200 overflow-hidden">
+                      <div className="h-full bg-neutral-900 rounded-full transition-all duration-200" style={{ width: `${uploadProgress}%` }} />
+                    </div>
+                    <span className="text-sm text-neutral-600 whitespace-nowrap">{uploadProgress}%</span>
+                  </div>
+                )}
+                {form.imageUrl && <span className="text-xs text-green-600">Image uploaded.</span>}
               </div>
             </label>
             <label className="block">
@@ -219,7 +222,14 @@ export default function AdminSliderPage() {
                 <div className="space-y-3">
                   <div>
                     <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleUpload} disabled={uploading} className="text-sm mb-2 file:rounded file:border-0 file:bg-neutral-100 file:px-2 file:py-1 file:text-xs" />
-                    {uploading && <span className="text-xs text-neutral-500 ml-2">Uploading…</span>}
+                    {uploading && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="flex-1 h-1.5 rounded-full bg-neutral-200 overflow-hidden max-w-[120px]">
+                          <div className="h-full bg-neutral-700 rounded-full transition-all duration-200" style={{ width: `${uploadProgress}%` }} />
+                        </div>
+                        <span className="text-xs text-neutral-600">{uploadProgress}%</span>
+                      </div>
+                    )}
                     <input type="url" value={form.imageUrl} onChange={(e) => setForm((f) => ({ ...f, imageUrl: e.target.value }))} placeholder="Image URL" className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm mt-1" />
                   </div>
                   <input type="text" value={form.alt} onChange={(e) => setForm((f) => ({ ...f, alt: e.target.value }))} placeholder="Alt text" className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm" />

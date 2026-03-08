@@ -55,15 +55,16 @@ export default function AdminOrdersPage() {
       return;
     }
     let cancelled = false;
+    setLoading(true);
     Promise.all([
-        getAdminOrders({ page, limit: PAGE_SIZE, status: statusFilter !== 'all' ? statusFilter : undefined, search: search || undefined, dateFrom: dateFrom || undefined, dateTo: dateTo || undefined }),
+        getAdminOrders({ page, limit: PAGE_SIZE, status: statusFilter !== 'all' ? statusFilter : undefined, search: search || undefined, dateFrom: dateFrom || undefined, dateTo: dateTo || undefined }).catch(() => ({ data: [], total: 0 })),
         getAdminProducts({ limit: 500 }).catch(() => ({ data: [] })),
       ])
       .then(([ordersRes, productsRes]) => {
         if (!cancelled) {
-          setApiOrders(ordersRes?.data || []);
-          setApiTotal(ordersRes?.total ?? 0);
-          setApiProducts(productsRes?.data || []);
+          setApiOrders(Array.isArray(ordersRes?.data) ? ordersRes.data : []);
+          setApiTotal(typeof ordersRes?.total === 'number' ? ordersRes.total : 0);
+          setApiProducts(Array.isArray(productsRes?.data) ? productsRes.data : []);
           setUseApi(true);
         }
       })
@@ -111,9 +112,10 @@ export default function AdminOrdersPage() {
     return list;
   }, [useApi, apiOrders, localOrders, search, statusFilter, dateFrom, dateTo]);
 
+  const ordersList = useApi ? (Array.isArray(apiOrders) ? apiOrders : []) : filtered;
   const totalPages = useApi ? Math.max(1, Math.ceil(totalCount / PAGE_SIZE)) : Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageIndex = Math.min(page, totalPages);
-  const paginated = useApi ? apiOrders : useMemo(() => filtered.slice((pageIndex - 1) * PAGE_SIZE, pageIndex * PAGE_SIZE), [filtered, pageIndex]);
+  const paginated = useApi ? ordersList : useMemo(() => filtered.slice((pageIndex - 1) * PAGE_SIZE, pageIndex * PAGE_SIZE), [filtered, pageIndex]);
   const displayTotal = useApi ? totalCount : filtered.length;
   const productsForMap = useApi ? apiProducts : products;
   const productsMap = useMemo(() => (productsForMap || []).reduce((acc, p) => ({ ...acc, [p.id]: { name: p.name } }), {}), [productsForMap]);
@@ -155,7 +157,7 @@ export default function AdminOrdersPage() {
               </tr>
             </thead>
             <tbody>
-              {loading ? <TableSkeleton rows={8} cols={5} /> : paginated.map((o) => (
+              {loading ? <TableSkeleton rows={8} cols={5} /> : (Array.isArray(paginated) ? paginated : []).map((o) => (
                 <tr key={o.id} className="border-b border-neutral-100 hover:bg-neutral-50/50">
                   <td className="p-4 font-medium">
                     <Link href={`/admin/orders/${o.id}`} prefetch={false} className="text-neutral-900 hover:underline">{o.id}</Link>

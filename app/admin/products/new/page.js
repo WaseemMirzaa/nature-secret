@@ -41,6 +41,7 @@ export default function NewProductPage() {
   const [rating, setRating] = useState(4.5);
   const [reviewCount, setReviewCount] = useState(0);
   const [uploadingIndex, setUploadingIndex] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState('');
 
   const apiBase = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') : '';
@@ -48,9 +49,10 @@ export default function NewProductPage() {
     const file = e?.target?.files?.[0];
     if (!file) return;
     setUploadingIndex(index);
+    setUploadProgress(0);
     setUploadError('');
     try {
-      const res = await uploadProductImage(file, { slug: uploadSlug, alt: imageAlts[index] });
+      const res = await uploadProductImage(file, { slug: uploadSlug, alt: imageAlts[index], onProgress: setUploadProgress });
       const url = res.url?.startsWith('http') ? res.url : apiBase + (res.url || '');
       updateImage(index, url);
       if (res.alt) updateImageAlt(index, res.alt);
@@ -58,6 +60,7 @@ export default function NewProductPage() {
       setUploadError(formatApiError(err));
     } finally {
       setUploadingIndex(null);
+      setUploadProgress(0);
       e.target.value = '';
     }
   }
@@ -65,15 +68,17 @@ export default function NewProductPage() {
     const file = e?.target?.files?.[0];
     if (!file) return;
     setUploadingIndex(`v-${variantIndex}`);
+    setUploadProgress(0);
     setUploadError('');
     try {
-      const res = await uploadProductImage(file);
+      const res = await uploadProductImage(file, { onProgress: setUploadProgress });
       const url = res.url?.startsWith('http') ? res.url : apiBase + (res.url || '');
       updateVariant(variantIndex, 'image', url);
     } catch (err) {
       setUploadError(formatApiError(err));
     } finally {
       setUploadingIndex(null);
+      setUploadProgress(0);
       e.target.value = '';
     }
   }
@@ -190,7 +195,14 @@ export default function NewProductPage() {
           {images.map((url, i) => (
             <div key={i} className="flex flex-wrap gap-2 mb-2 items-center">
               <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(e) => handleImageUpload(e, i)} disabled={uploadingIndex !== null} className="text-sm file:rounded file:border-0 file:bg-neutral-100 file:px-2 file:py-1 file:text-xs" />
-              {uploadingIndex === i && <span className="text-xs text-neutral-500">Uploading…</span>}
+              {uploadingIndex === i && (
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-1.5 rounded-full bg-neutral-200 overflow-hidden max-w-[100px]">
+                    <div className="h-full bg-neutral-700 rounded-full transition-all duration-200" style={{ width: `${uploadProgress}%` }} />
+                  </div>
+                  <span className="text-xs text-neutral-600">{uploadProgress}%</span>
+                </div>
+              )}
               <input type="text" value={url} onChange={(e) => updateImage(i, e.target.value)} placeholder="Or paste URL" className="flex-1 min-w-[180px] rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900" />
               <input type="text" value={imageAlts[i] || ''} onChange={(e) => updateImageAlt(i, e.target.value)} placeholder="Alt (SEO)" className="w-28 rounded-lg border border-neutral-200 px-2 py-1.5 text-sm" />
               <button type="button" onClick={() => removeImageAt(i)} className="text-neutral-500 hover:text-red-600">×</button>
@@ -220,7 +232,9 @@ export default function NewProductPage() {
               <input type="text" value={v.volume} onChange={(e) => updateVariant(i, 'volume', e.target.value)} placeholder="50ml" className="w-20 rounded-lg border border-neutral-200 px-2 py-1.5 text-sm" />
               <input type="number" step="0.01" value={v.price || ''} onChange={(e) => updateVariant(i, 'price', e.target.value)} placeholder="499" className="w-24 rounded-lg border border-neutral-200 px-2 py-1.5 text-sm" />
               <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(e) => handleVariantImageUpload(e, i)} disabled={uploadingIndex !== null} className="text-xs file:rounded file:border-0 file:bg-neutral-100 file:px-2 file:py-1" />
-              {uploadingIndex === `v-${i}` && <span className="text-xs text-neutral-500">Uploading…</span>}
+              {uploadingIndex === `v-${i}` && (
+                <span className="text-xs text-neutral-600">{uploadProgress}%</span>
+              )}
               <input type="text" value={v.image || ''} onChange={(e) => updateVariant(i, 'image', e.target.value)} placeholder="Or URL" className="flex-1 min-w-[100px] rounded-lg border border-neutral-200 px-2 py-1.5 text-sm" />
               <button type="button" onClick={() => removeVariant(i)} className="text-neutral-500 hover:text-red-600">×</button>
             </div>

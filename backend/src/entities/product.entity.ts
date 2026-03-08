@@ -1,14 +1,14 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { Category } from './category.entity';
 import { ProductVariant } from './product-variant.entity';
-import { encryptedTransformer } from '../common/encryption/encryption.util';
 
 @Entity('products')
 export class Product {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'varchar', length: 2000, transformer: encryptedTransformer })
+  /** Plain text for SEO (meta title, headings). */
+  @Column({ type: 'varchar', length: 2000 })
   name: string;
 
   @Column({ type: 'varchar', length: 255, unique: true })
@@ -33,7 +33,8 @@ export class Product {
   @Column({ type: 'int', nullable: true })
   compareAtPrice: number | null;
 
-  @Column({ type: 'text', transformer: encryptedTransformer, nullable: true })
+  /** Plain text for SEO (meta description, content). */
+  @Column({ type: 'text', nullable: true })
   description: string | null;
 
   @Column({ type: 'json', nullable: true })
