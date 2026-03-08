@@ -62,7 +62,6 @@ export class AdminBlogUploadController {
   @Post('upload')
   @UseInterceptors(
     FileInterceptor('image', {
-      limits: { fileSize: 5 * 1024 * 1024 },
       fileFilter: (_req, file, cb) => {
         if (ALLOWED_MIMES.includes(file.mimetype)) cb(null, true);
         else cb(new BadRequestException('Invalid image type'), false);
@@ -73,9 +72,13 @@ export class AdminBlogUploadController {
           _file: Express.Multer.File,
           cb: (error: Error | null, dest: string) => void,
         ) => {
-          const dir = UPLOAD_PATHS.blog();
-          mkdirSync(dir, { recursive: true });
-          cb(null, dir);
+          try {
+            const dir = UPLOAD_PATHS.blog();
+            mkdirSync(dir, { recursive: true });
+            cb(null, dir);
+          } catch (e) {
+            cb(e instanceof Error ? e : new Error(String(e)), '');
+          }
         },
         filename: (
           req: Request,
