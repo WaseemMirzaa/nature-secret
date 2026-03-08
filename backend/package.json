@@ -1,6 +1,9 @@
 {
   "name": "nature-secret-api",
   "version": "1.0.0",
+  "engines": {
+    "node": ">=18.0.0 <21"
+  },
   "scripts": {
     "build": "npx nest build && (cp -r public dist/ 2>/dev/null || true)",
     "start": "node dist/main.js",

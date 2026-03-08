@@ -19,6 +19,7 @@ Response: `{"ok":true,"ts":1234567890}`. If only one works, your proxy likely fo
 
 # Hostinger
 
+- **Node version:** Use **Node 18** (or 20). The backend `package.json` specifies `engines.node >=18 <21`. If the app fails at startup with Node 20, switch the host to Node 18.
 - **Application root:** Backend folder (contains `package.json`, `server.js`, `dist/` after build).
 - **Build command:** `npm install && npm run build` (produces `dist/main.js`).
 - **Entry file:** Use `server.js` or leave empty and use Start command. **Do not use `main.ts`** — Node cannot run TypeScript at runtime; the app runs the compiled `dist/main.js`.
