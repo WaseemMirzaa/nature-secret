@@ -22,7 +22,27 @@ Response: `{"ok":true,"ts":1234567890}`. If only one works, your proxy likely fo
 - **Application root:** Backend folder (contains `package.json`, `server.js`, `dist/` after build).
 - **Build command:** `npm install && npm run build` (produces `dist/main.js`).
 - **Entry file:** Use `server.js` or leave empty and use Start command. **Do not use `main.ts`** — Node cannot run TypeScript at runtime; the app runs the compiled `dist/main.js`.
-- **Start command:** `npm start` or `node server.js` or `node dist/main.js`. To restart if down, add a cron job: `*/5 * * * * cd /path/to/backend && npm run cron:restart-if-down >> /tmp/backend-cron.log 2>&1`. Optional: `node run-with-restart.js` for in-process restart on crash.
+- **Start command:** `npm start` or `node server.js` or `node dist/main.js`.
+
+**Keeping the server alive when it crashes (Hostinger)**
+
+1. **Run with in-process restart (simplest)**  
+   Set Start command to: `node run-with-restart.js`  
+   The wrapper runs `dist/main.js` and restarts it after a crash (3s delay, no restart limit). No cron or PM2 needed. Works within Hostinger’s single-process Node app.
+
+2. **Cron: health check + restart**  
+   If the process dies and is not restarted by the host, a cron job can restart it when `/health` fails:  
+   `*/5 * * * * cd /path/to/backend && npm run cron:restart-if-down >> /tmp/backend-cron.log 2>&1`  
+   Replace `/path/to/backend` with the real path. Requires cron access (e.g. Hostinger cron in panel). The script `scripts/check-and-restart.sh` curls `/health` and runs `node server.js` if it fails.
+
+3. **PM2 (if you have SSH and can install it)**  
+   Install PM2, then start the API with: `pm2 start ecosystem.config.cjs --only nature-secret-api`. PM2 restarts the process on crash. Use `pm2 startup` and `pm2 save` so it survives reboots. See [docs/PM2_HOSTINGER.md](../../docs/PM2_HOSTINGER.md) in the repo root.
+
+4. **Hostinger “Restart on failure”**  
+   If the Node.js app in the panel has an option like “Restart application on failure” or “Auto-restart”, enable it so the host restarts the app when it exits.
+
+5. **systemd (VPS with root)**  
+   If you have a VPS and SSH, you can add a systemd unit that runs `node dist/main.js` (or `run-with-restart.js`) with `Restart=on-failure`. Then the OS keeps it alive and restarts on crash/reboot.
 
 **APIs not working / no logs (including health)**
 - Start with `npm start` from the **backend** folder (so `node dist/main.js` runs). You should see in order: `[API] ... Bootstrap started` → `[API] ... Nest app created` → `[API] ... Listening on http://0.0.0.0:4000` → `Database schema synced` or `Schema sync failed`. If you see **none** of these, the Node process is not running or stdout is not captured (check Hostinger “Start command” is `npm start` and “Application root” is the backend directory; check “Logs” or “Runtime logs” in the panel).
