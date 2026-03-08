@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import Link from '@/components/Link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Logo } from '@/components/Logo';
 import { customerResetPassword, formatApiError } from '@/lib/api';
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token') || '';
@@ -90,5 +90,13 @@ export default function ResetPasswordPage() {
         <Link href="/login" className="text-neutral-900 font-medium">Back to login</Link>
       </p>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-sm px-4 py-16 text-center text-neutral-500">Loading…</div>}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
