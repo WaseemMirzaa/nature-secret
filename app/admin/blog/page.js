@@ -5,6 +5,7 @@ import Link from '@/components/Link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useBlogStore } from '@/lib/store';
+import { getAdminBlog, deleteBlogPost as deleteBlogPostApi } from '@/lib/api';
 import { BLOG_TEMPLATES, BLOG_CATEGORIES } from '@/lib/constants';
 import { format } from 'date-fns';
 import { CardListSkeleton } from '@/components/ui/PageLoader';
@@ -14,6 +15,7 @@ const PAGE_SIZE = 50;
 export default function AdminBlogPage() {
   const router = useRouter();
   const posts = useBlogStore((s) => s.posts);
+  const setPosts = useBlogStore((s) => s.setPosts);
   const deletePost = useBlogStore((s) => s.deletePost);
   const [mounted, setMounted] = useState(false);
   const [search, setSearch] = useState('');
@@ -21,6 +23,13 @@ export default function AdminBlogPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    getAdminBlog({ limit: 500 }).then((res) => {
+      const list = Array.isArray(res?.data) ? res.data : [];
+      setPosts(list);
+    }).catch(() => {});
+  }, [setPosts]);
 
   const filtered = useMemo(() => {
     let list = posts;
@@ -80,7 +89,7 @@ export default function AdminBlogPage() {
               <p className="text-xs text-neutral-500">{post.template} · {post.publishedAt ? format(new Date(post.publishedAt), 'MMM d, yyyy') : 'Draft'}</p>
             </div>
             <Link href={`/admin/blog/${post.id}`} className="text-sm font-medium text-neutral-600 hover:text-neutral-900 mr-3">Edit</Link>
-            <button type="button" onClick={() => { if (confirm('Delete this post?')) { deletePost(post.id); router.refresh(); } }} className="text-sm text-red-600 hover:text-red-700">Delete</button>
+            <button type="button" onClick={async () => { if (confirm('Delete this post?')) { try { await deleteBlogPostApi(post.id); deletePost(post.id); router.refresh(); } catch { } } }} className="text-sm text-red-600 hover:text-red-700">Delete</button>
           </div>
         ))}
       </div>

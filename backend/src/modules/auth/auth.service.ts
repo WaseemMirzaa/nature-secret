@@ -1,10 +1,12 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
+import { randomBytes } from 'crypto';
 import { AdminUser } from '../../entities/admin-user.entity';
 import { Customer } from '../../entities/customer.entity';
+import { EmailService } from '../notifications/email.service';
 
 @Injectable()
 export class AuthService {
@@ -12,6 +14,7 @@ export class AuthService {
     @InjectRepository(AdminUser) private adminRepo: Repository<AdminUser>,
     @InjectRepository(Customer) private customerRepo: Repository<Customer>,
     private jwtService: JwtService,
+    private emailService: EmailService,
   ) {}
 
   async findAdminById(id: string): Promise<AdminUser | null> {
@@ -82,5 +85,27 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
       customer: { id: customer.id, email: customer.email, name: customer.name, phone: customer.phone, address: customer.address },
     };
+  }
+
+  async customerForgotPassword(email: string, resetBaseUrl: string) {
+    const customer = await this.customerRepo.findOne({ where: { email: email.trim().toLowerCase() } });
+    if (!customer) return { ok: true };
+    const token = randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 60 * 60 * 1000);
+    await this.customerRepo.update(customer.id, { resetToken: token, resetTokenExpires: expires });
+    const link = `${resetBaseUrl.replace(/\/$/, '')}?token=${token}`;
+    await this.emailService.sendPasswordReset(customer.email, link);
+    return { ok: true };
+  }
+
+  async customerResetPassword(token: string, newPassword: string) {
+    const customer = await this.customerRepo.findOne({
+      where: { resetToken: token },
+    });
+    if (!customer || !customer.resetTokenExpires || customer.resetTokenExpires < new Date())
+      throw new BadRequestException('Invalid or expired reset link.');
+    const hash = await bcrypt.hash(newPassword, 10);
+    await this.customerRepo.update(customer.id, { passwordHash: hash, resetToken: null, resetTokenExpires: null });
+    return { ok: true };
   }
 }

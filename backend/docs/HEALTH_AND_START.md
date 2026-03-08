@@ -21,3 +21,18 @@ Response: `{"ok":true,"ts":1234567890}`. If only one works, your proxy likely fo
 If the server does not start, check runtime logs for:
 - `[run-with-restart] dist/main.js not found. Run: npm run build` → build step did not run or failed; fix Build command and redeploy.
 - `Schema sync failed` → DB env vars (`MYSQL_HOST`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`) missing or wrong.
+
+**Persistent uploads (images not deleted on deploy)**  
+Set `UPLOAD_ROOT` to a path that Hostinger does **not** overwrite when you redeploy.
+
+Example for **shifaefitrat.com** (home: `u493740372`):
+
+1. In File Manager go to `domains/shifaefitrat.com` (same level as your Node app folder, not inside it).
+2. Create a folder named `uploads` there.
+3. In the Node app’s **Environment variables** add:
+   ```bash
+   UPLOAD_ROOT=/home/u493740372/domains/shifaefitrat.com/uploads
+   ```
+4. Restart the app. Product, blog, and slider images will be stored in that folder and will survive redeploys.
+
+If your domain path is different, use the path you see in File Manager (e.g. `/home/u493740372/domains/shifaefitrat.com/uploads`). Do **not** put `uploads` inside the application root (e.g. not inside `public_node`), or it may be removed on deploy.

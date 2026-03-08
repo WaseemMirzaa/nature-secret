@@ -16,12 +16,12 @@ import { Request, Response } from 'express';
 import { createReadStream, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { diskStorage } from 'multer';
+import { UPLOAD_PATHS } from '../../common/upload-paths';
 import { AdminJwtAuthGuard } from '../../common/guards/admin-jwt.guard';
 import { AdminRoleGuard } from '../../common/guards/admin-role.guard';
 import { StaffOrAdmin } from '../../common/decorators/admin.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 
-const ASSETS_PRODUCTS = join(process.cwd(), 'assets', 'products');
 const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 function sanitizeSlug(s: string): string {
@@ -34,7 +34,7 @@ export class AdminProductUploadController {
   @Get('upload/:filename')
   serveUpload(@Param('filename') filename: string, @Res() res: Response) {
     const safe = filename.replace(/[^a-zA-Z0-9._-]/g, '');
-    const filePath = join(ASSETS_PRODUCTS, safe);
+    const filePath = join(UPLOAD_PATHS.products(), safe);
     if (!existsSync(filePath)) {
       res.status(404).end();
       return;
@@ -58,8 +58,9 @@ export class AdminProductUploadController {
           _file: Express.Multer.File,
           cb: (error: Error | null, dest: string) => void,
         ) => {
-          mkdirSync(ASSETS_PRODUCTS, { recursive: true });
-          cb(null, ASSETS_PRODUCTS);
+          const dir = UPLOAD_PATHS.products();
+          mkdirSync(dir, { recursive: true });
+          cb(null, dir);
         },
         filename: (
           req: Request,

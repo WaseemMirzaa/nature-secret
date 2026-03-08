@@ -16,12 +16,12 @@ import { createReadStream, existsSync, mkdirSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { randomUUID } from 'crypto';
 import { diskStorage } from 'multer';
+import { UPLOAD_PATHS } from '../../common/upload-paths';
 import { AdminJwtAuthGuard } from '../../common/guards/admin-jwt.guard';
 import { AdminRoleGuard } from '../../common/guards/admin-role.guard';
 import { StaffOrAdmin } from '../../common/decorators/admin.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 
-const ASSETS_BLOG = join(process.cwd(), 'assets', 'blog');
 const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 function sanitizeSlug(s: string): string {
@@ -34,7 +34,7 @@ export class AdminBlogUploadController {
   @Get('upload/:filename')
   serveUpload(@Param('filename') filename: string, @Res() res: Response) {
     const safe = filename.replace(/[^a-zA-Z0-9._-]/g, '');
-    const filePath = join(ASSETS_BLOG, safe);
+    const filePath = join(UPLOAD_PATHS.blog(), safe);
     if (!existsSync(filePath)) {
       res.status(404).end();
       return;
@@ -49,8 +49,9 @@ export class AdminBlogUploadController {
     const base = (process.env.API_PUBLIC_URL || '').replace(/\/$/, '');
     const path = '/api/v1/admin/blog/upload';
     const prefix = base ? `${base}${path}` : path;
-    if (!existsSync(ASSETS_BLOG)) return { images: [] };
-    const files = readdirSync(ASSETS_BLOG).filter((f) => /\.(jpe?g|png|webp|gif)$/i.test(f));
+    const blogDir = UPLOAD_PATHS.blog();
+    if (!existsSync(blogDir)) return { images: [] };
+    const files = readdirSync(blogDir).filter((f) => /\.(jpe?g|png|webp|gif)$/i.test(f));
     return {
       images: files.map((filename) => ({ url: `${prefix}/${filename}`, filename })),
     };
@@ -72,8 +73,9 @@ export class AdminBlogUploadController {
           _file: Express.Multer.File,
           cb: (error: Error | null, dest: string) => void,
         ) => {
-          mkdirSync(ASSETS_BLOG, { recursive: true });
-          cb(null, ASSETS_BLOG);
+          const dir = UPLOAD_PATHS.blog();
+          mkdirSync(dir, { recursive: true });
+          cb(null, dir);
         },
         filename: (
           req: Request,

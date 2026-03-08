@@ -1,5 +1,8 @@
-import { Controller, Get, Param, Patch, Body, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Param, Patch, Delete, Body, Query, Req, UseGuards } from '@nestjs/common';
 import { AdminService } from './admin.service';
+import { ProductsService } from '../products/products.service';
+import { CreateProductDto, UpdateProductDto } from '../products/dto/product.dto';
+import { CreateBlogPostDto, UpdateBlogPostDto } from './dto/blog.dto';
 import { AdminJwtAuthGuard } from '../../common/guards/admin-jwt.guard';
 import { AdminRoleGuard } from '../../common/guards/admin-role.guard';
 import { StaffOrAdmin } from '../../common/decorators/admin.decorator';
@@ -7,7 +10,10 @@ import { StaffOrAdmin } from '../../common/decorators/admin.decorator';
 @Controller('admin')
 @UseGuards(AdminJwtAuthGuard, AdminRoleGuard)
 export class AdminController {
-  constructor(private service: AdminService) {}
+  constructor(
+    private service: AdminService,
+    private productsService: ProductsService,
+  ) {}
 
   @Get('dashboard')
   async dashboard() {
@@ -82,6 +88,22 @@ export class AdminController {
     return this.service.getCustomer(id);
   }
 
+  @Post('products')
+  async createProduct(@Body() dto: CreateProductDto) {
+    return this.productsService.create(dto);
+  }
+
+  @Patch('products/:id')
+  async updateProduct(@Param('id') id: string, @Body() dto: UpdateProductDto) {
+    return this.productsService.update(id, dto);
+  }
+
+  @Delete('products/:id')
+  async deleteProduct(@Param('id') id: string) {
+    await this.productsService.remove(id);
+    return { deleted: true };
+  }
+
   @Get('blog')
   async blog(
     @Query('page') page?: number,
@@ -91,5 +113,20 @@ export class AdminController {
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
     });
+  }
+
+  @Post('blog')
+  async createBlogPost(@Body() dto: CreateBlogPostDto) {
+    return this.service.createBlogPost(dto);
+  }
+
+  @Patch('blog/:id')
+  async updateBlogPost(@Param('id') id: string, @Body() dto: UpdateBlogPostDto) {
+    return this.service.updateBlogPost(id, dto);
+  }
+
+  @Delete('blog/:id')
+  async deleteBlogPost(@Param('id') id: string) {
+    return this.service.deleteBlogPost(id);
   }
 }

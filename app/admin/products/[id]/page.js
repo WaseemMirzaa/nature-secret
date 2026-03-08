@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from '@/components/Link';
 import { useRouter, useParams } from 'next/navigation';
 import { useProductsStore } from '@/lib/store';
-import { getCategories, uploadProductImage, formatApiError } from '@/lib/api';
+import { getCategories, uploadProductImage, updateProduct as updateProductApi, formatApiError } from '@/lib/api';
 
 const emptyVariant = () => ({ id: `v-${Date.now()}`, name: '', volume: '', price: 0, image: '' });
 const emptyFaq = () => ({ q: '', a: '' });
@@ -36,6 +36,8 @@ export default function EditProductPage() {
   const [reviewCount, setReviewCount] = useState(0);
   const [uploadingIndex, setUploadingIndex] = useState(null);
   const [uploadError, setUploadError] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const apiBase = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') : '';
   async function handleImageUpload(e, index) {
@@ -114,7 +116,7 @@ export default function EditProductPage() {
   function updateFaq(i, field, value) { setFaq((f) => { const n = [...f]; n[i] = { ...n[i], [field]: value }; return n; }); }
   function removeFaq(i) { setFaq((f) => f.filter((_, j) => j !== i)); }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!product) return;
     const basePrice = Math.round(parseFloat(price) * 100) || 0;
@@ -144,8 +146,17 @@ export default function EditProductPage() {
       faq: faq.filter((f) => f.q && f.a),
     };
     if (!updates.variants.length) updates.variants = [{ id: `v-${Date.now()}`, name: 'Default', volume: '-', price: basePrice, image: images[0] || '' }];
-    updateProduct(product.id, updates);
-    router.push('/admin/products');
+    setSubmitError('');
+    setSubmitting(true);
+    try {
+      const updated = await updateProductApi(product.id, updates);
+      updateProduct(product.id, updated);
+      router.push('/admin/products');
+    } catch (err) {
+      setSubmitError(formatApiError(err));
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (!product) {
@@ -161,6 +172,7 @@ export default function EditProductPage() {
     <div className="max-w-2xl">
       <Link href="/admin/products" className="text-sm text-neutral-500 hover:text-neutral-900 mb-6 inline-block">← Products</Link>
       <h1 className="text-2xl font-semibold text-neutral-900">Edit product</h1>
+      {submitError && <p className="mt-4 text-sm text-red-600">{submitError}</p>}
       <form onSubmit={handleSubmit} className="mt-6 space-y-6">
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-1">Name *</label>
@@ -256,7 +268,7 @@ export default function EditProductPage() {
           <button type="button" onClick={addFaq} className="text-sm text-neutral-600 hover:text-neutral-900">+ Add FAQ</button>
         </div>
         <div className="flex gap-4">
-          <button type="submit" className="rounded-xl bg-neutral-900 text-white px-6 py-2.5 text-sm font-medium">Save changes</button>
+          <button type="submit" disabled={submitting} className="rounded-xl bg-neutral-900 text-white px-6 py-2.5 text-sm font-medium disabled:opacity-50">Save changes</button>
           <Link href="/admin/products" className="rounded-xl border border-neutral-300 px-6 py-2.5 text-sm font-medium text-neutral-900">Cancel</Link>
         </div>
       </form>

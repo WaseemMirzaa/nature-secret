@@ -1,8 +1,7 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from '../../common/decorators/public.decorator';
-import { AdminLoginDto, AdminRegisterDto, CustomerLoginDto, CustomerRegisterDto } from './dto/auth.dto';
+import { AdminLoginDto, AdminRegisterDto, CustomerLoginDto, CustomerRegisterDto, ForgotPasswordDto, ResetPasswordDto } from './dto/auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -30,5 +29,18 @@ export class AuthController {
   @Post('customer/login')
   async customerLogin(@Body() dto: CustomerLoginDto) {
     return this.authService.customerLogin(dto.email, dto.password);
+  }
+
+  @Public()
+  @Post('customer/forgot-password')
+  async customerForgotPassword(@Body() dto: ForgotPasswordDto) {
+    const baseUrl = dto.resetBaseUrl || process.env.FRONTEND_ORIGIN || 'http://localhost:3000';
+    return this.authService.customerForgotPassword(dto.email, baseUrl);
+  }
+
+  @Public()
+  @Post('customer/reset-password')
+  async customerResetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.customerResetPassword(dto.token, dto.newPassword);
   }
 }

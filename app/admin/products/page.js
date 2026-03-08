@@ -5,7 +5,7 @@ import Link from '@/components/Link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useProductsStore, useCurrencyStore } from '@/lib/store';
-import { getCategories } from '@/lib/api';
+import { getCategories, getAdminProducts, deleteProduct as deleteProductApi } from '@/lib/api';
 import { formatPrice } from '@/lib/currency';
 import { TableSkeleton } from '@/components/ui/PageLoader';
 
@@ -14,6 +14,7 @@ const PAGE_SIZE = 50;
 export default function AdminProductsPage() {
   const router = useRouter();
   const products = useProductsStore((s) => s.products);
+  const setProducts = useProductsStore((s) => s.setProducts);
   const deleteProduct = useProductsStore((s) => s.deleteProduct);
   const currency = useCurrencyStore((s) => s.currency);
   const [mounted, setMounted] = useState(false);
@@ -27,6 +28,12 @@ export default function AdminProductsPage() {
   useEffect(() => {
     getCategories().then((list) => setCategories(Array.isArray(list) ? list : [])).catch(() => setCategories([]));
   }, []);
+  useEffect(() => {
+    getAdminProducts({ limit: 500 }).then((res) => {
+      const list = Array.isArray(res?.data) ? res.data : [];
+      setProducts(list);
+    }).catch(() => {});
+  }, [setProducts]);
 
   const filtered = useMemo(() => {
     let list = products;
@@ -105,7 +112,7 @@ export default function AdminProductsPage() {
                 <td className="p-4">
                   <Link href={`/admin/products/${p.id}/view`} className="text-neutral-600 hover:text-neutral-900 mr-3">View</Link>
                   <Link href={`/admin/products/${p.id}`} className="text-neutral-600 hover:text-neutral-900 mr-3">Edit</Link>
-                  <button type="button" onClick={() => { if (confirm('Delete this product?')) { deleteProduct(p.id); router.refresh(); } }} className="text-red-600 hover:text-red-700 text-sm">Delete</button>
+                  <button type="button" onClick={async () => { if (confirm('Delete this product?')) { try { await deleteProductApi(p.id); deleteProduct(p.id); router.refresh(); } catch { } } }} className="text-red-600 hover:text-red-700 text-sm">Delete</button>
                 </td>
               </tr>
             ))}

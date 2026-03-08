@@ -32,6 +32,7 @@
 | `PORT` | Server port (default `4000`). |
 | `FRONTEND_ORIGIN` | Allowed CORS origin(s), comma-separated (e.g. `https://naturesecret.pk,https://www.naturesecret.pk`). |
 | `API_PUBLIC_URL` | Public base URL of this API (e.g. `https://shifaefitrat.com`). Used in upload/image URLs. |
+| `UPLOAD_ROOT` | **Persistent uploads:** absolute path to a directory outside the app (e.g. `/var/data/nature-secret`). Product, blog, and slider images are stored under this path so they are not deleted on server update/redeploy. If unset, uploads go under the app directory. |
 
 ### Optional / security
 

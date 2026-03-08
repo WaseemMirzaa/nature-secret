@@ -101,6 +101,11 @@ export function AuthModal() {
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-neutral-900"
             />
+            {mode === 'login' && (
+              <p className="mt-1 text-xs text-neutral-500">
+                <a href="/forgot-password" className="text-neutral-600 hover:text-neutral-900">Forgot password?</a>
+              </p>
+            )}
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button type="submit" disabled={loading} className="w-full min-h-[44px] rounded-xl bg-neutral-900 py-3 text-sm font-medium text-white disabled:opacity-50">

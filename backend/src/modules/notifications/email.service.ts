@@ -30,4 +30,19 @@ export class EmailService {
       console.error('Email send failed:', e);
     }
   }
+
+  async sendPasswordReset(to: string, resetLink: string) {
+    if (!this.transporter || !to) return;
+    try {
+      await this.transporter.sendMail({
+        from: process.env.GMAIL_USER,
+        to,
+        subject: 'Reset your password – Nature Secret',
+        text: `Use this link to reset your password (valid 1 hour):\n\n${resetLink}`,
+        html: `<p>Use this link to reset your password (valid 1 hour):</p><p><a href="${resetLink}">${resetLink}</a></p>`,
+      });
+    } catch (e) {
+      console.error('Password reset email failed:', e);
+    }
+  }
 }

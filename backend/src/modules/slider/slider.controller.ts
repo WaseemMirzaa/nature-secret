@@ -18,6 +18,7 @@ import { createReadStream, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { SliderService } from './slider.service';
 import { CreateSlideDto, UpdateSlideDto } from './dto/slide.dto';
+import { UPLOAD_PATHS } from '../../common/upload-paths';
 import { Public } from '../../common/decorators/public.decorator';
 import { AdminJwtAuthGuard } from '../../common/guards/admin-jwt.guard';
 import { AdminRoleGuard } from '../../common/guards/admin-role.guard';
@@ -25,7 +26,6 @@ import { StaffOrAdmin } from '../../common/decorators/admin.decorator';
 import { diskStorage } from 'multer';
 import { randomUUID } from 'crypto';
 
-const UPLOAD_DIR = join(process.cwd(), 'uploads', 'slider');
 const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 function sanitizeSlug(s: string): string {
@@ -46,7 +46,7 @@ export class SliderController {
   @Get('upload/:filename')
   serveUpload(@Param('filename') filename: string, @Res() res: Response) {
     const safe = filename.replace(/[^a-zA-Z0-9._-]/g, '');
-    const path = join(UPLOAD_DIR, safe);
+    const path = join(UPLOAD_PATHS.slider(), safe);
     if (!existsSync(path)) {
       res.status(404).end();
       return;
@@ -78,8 +78,9 @@ export class SliderController {
           _file: Express.Multer.File,
           cb: (error: Error | null, dest: string) => void,
         ) => {
-          mkdirSync(UPLOAD_DIR, { recursive: true });
-          cb(null, UPLOAD_DIR);
+          const dir = UPLOAD_PATHS.slider();
+          mkdirSync(dir, { recursive: true });
+          cb(null, dir);
         },
         filename: (
           req: Request,

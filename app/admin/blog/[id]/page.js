@@ -6,7 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useBlogStore } from '@/lib/store';
 import { useProductsStore } from '@/lib/store';
 import { BLOG_TEMPLATES, BLOG_CATEGORIES } from '@/lib/constants';
-import { getBlogImages, uploadBlogImage, formatApiError } from '@/lib/api';
+import { getBlogImages, uploadBlogImage, updateBlogPost, formatApiError } from '@/lib/api';
 
 export default function EditBlogPage() {
   const router = useRouter();
@@ -30,6 +30,8 @@ export default function EditBlogPage() {
   const [uploadSlug, setUploadSlug] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [readTimeMinutes, setReadTimeMinutes] = useState(4);
   const [publishedAt, setPublishedAt] = useState('');
   const [relatedProductIds, setRelatedProductIds] = useState([]);
@@ -79,9 +81,11 @@ export default function EditBlogPage() {
     }
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!post) return;
+    setSubmitError('');
+    setSubmitting(true);
     const updates = {
       title,
       slug: slug || title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
@@ -89,7 +93,6 @@ export default function EditBlogPage() {
       body,
       template,
       categoryId,
-      author: { name: authorName, role: authorRole },
       image: image || 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=1200',
       imageAlt: imageAlt || undefined,
       readTimeMinutes: Number(readTimeMinutes) || 4,
@@ -98,8 +101,15 @@ export default function EditBlogPage() {
       seoTitle: seoTitle || title,
       seoDescription: seoDescription || excerpt,
     };
-    updatePost(post.id, updates);
-    router.push('/admin/blog');
+    try {
+      const updated = await updateBlogPost(post.id, updates);
+      updatePost(post.id, updated);
+      router.push('/admin/blog');
+    } catch (err) {
+      setSubmitError(formatApiError(err));
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function toggleProduct(id) {
@@ -119,6 +129,7 @@ export default function EditBlogPage() {
     <div className="max-w-2xl">
       <Link href="/admin/blog" className="text-sm text-neutral-500 hover:text-neutral-900 mb-6 inline-block">← Blog</Link>
       <h1 className="text-2xl font-semibold text-neutral-900">Edit blog post</h1>
+      {submitError && <p className="mt-4 text-sm text-red-600">{submitError}</p>}
       <form onSubmit={handleSubmit} className="mt-6 space-y-6">
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-1">Title *</label>
@@ -209,7 +220,7 @@ export default function EditBlogPage() {
           <textarea value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} rows={2} className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900" />
         </div>
         <div className="flex gap-4">
-          <button type="submit" className="rounded-xl bg-neutral-900 text-white px-6 py-2.5 text-sm font-medium">Save changes</button>
+          <button type="submit" disabled={submitting} className="rounded-xl bg-neutral-900 text-white px-6 py-2.5 text-sm font-medium disabled:opacity-50">Save changes</button>
           <Link href="/admin/blog" className="rounded-xl border border-neutral-300 px-6 py-2.5 text-sm font-medium text-neutral-900">Cancel</Link>
         </div>
       </form>

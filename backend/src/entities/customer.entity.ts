@@ -23,6 +23,12 @@ export class Customer {
   @Column({ type: 'varchar', length: 255 })
   passwordHash: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  resetToken: string | null;
+
+  @Column({ type: 'datetime', nullable: true })
+  resetTokenExpires: Date | null;
+
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 

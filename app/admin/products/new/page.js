@@ -4,15 +4,18 @@ import { useState, useEffect } from 'react';
 import Link from '@/components/Link';
 import { useRouter } from 'next/navigation';
 import { useProductsStore } from '@/lib/store';
-import { getCategories, uploadProductImage, formatApiError } from '@/lib/api';
+import { getCategories, uploadProductImage, createProduct, formatApiError } from '@/lib/api';
 
 const emptyVariant = () => ({ id: `v-${Date.now()}`, name: '', volume: '', price: 0, image: '' });
 const emptyFaq = () => ({ q: '', a: '' });
 
 export default function NewProductPage() {
   const router = useRouter();
-  const addProduct = useProductsStore((s) => s.addProduct);
+  const products = useProductsStore((s) => s.products);
+  const setProducts = useProductsStore((s) => s.setProducts);
   const [categories, setCategories] = useState([]);
+  const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -94,8 +97,10 @@ export default function NewProductPage() {
   function updateFaq(i, field, value) { setFaq((f) => { const n = [...f]; n[i] = { ...n[i], [field]: value }; return n; }); }
   function removeFaq(i) { setFaq((f) => f.filter((_, j) => j !== i)); }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
+    setSubmitError('');
+    setSubmitting(true);
     const basePrice = Math.round(parseFloat(price) * 100) || 0;
     const compare = compareAtPrice ? Math.round(parseFloat(compareAtPrice) * 100) : null;
     const product = {
@@ -123,14 +128,22 @@ export default function NewProductPage() {
       faq: faq.filter((f) => f.q && f.a),
     };
     if (!product.variants.length) product.variants = [{ id: `v-${Date.now()}`, name: 'Default', volume: '-', price: basePrice, image: images[0] || '' }];
-    addProduct(product);
-    router.push('/admin/products');
+    try {
+      const created = await createProduct(product);
+      setProducts([created, ...(products || [])]);
+      router.push('/admin/products');
+    } catch (err) {
+      setSubmitError(formatApiError(err));
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
     <div className="max-w-2xl">
       <Link href="/admin/products" className="text-sm text-neutral-500 hover:text-neutral-900 mb-6 inline-block">← Products</Link>
       <h1 className="text-2xl font-semibold text-neutral-900">Add product</h1>
+      {submitError && <p className="mt-4 text-sm text-red-600">{submitError}</p>}
       <form onSubmit={handleSubmit} className="mt-6 space-y-6">
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-1">Name *</label>
@@ -226,7 +239,7 @@ export default function NewProductPage() {
           <button type="button" onClick={addFaq} className="text-sm text-neutral-600 hover:text-neutral-900">+ Add FAQ</button>
         </div>
         <div className="flex gap-4">
-          <button type="submit" className="rounded-xl bg-neutral-900 text-white px-6 py-2.5 text-sm font-medium">Save product</button>
+          <button type="submit" disabled={submitting} className="rounded-xl bg-neutral-900 text-white px-6 py-2.5 text-sm font-medium disabled:opacity-50">Save product</button>
           <Link href="/admin/products" className="rounded-xl border border-neutral-300 px-6 py-2.5 text-sm font-medium text-neutral-900">Cancel</Link>
         </div>
       </form>

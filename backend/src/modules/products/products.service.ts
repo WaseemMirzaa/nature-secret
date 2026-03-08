@@ -1,11 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindOptionsWhere } from 'typeorm';
+import { Repository, FindOptionsWhere, In } from 'typeorm';
 import { Product } from '../../entities/product.entity';
+import { ProductVariant } from '../../entities/product-variant.entity';
+import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 
 @Injectable()
 export class ProductsService {
-  constructor(@InjectRepository(Product) private repo: Repository<Product>) {}
+  constructor(
+    @InjectRepository(Product) private repo: Repository<Product>,
+    @InjectRepository(ProductVariant) private variantRepo: Repository<ProductVariant>,
+  ) {}
 
   async findAll(params: { categoryId?: string; page?: number; limit?: number }): Promise<{ data: Product[]; total: number }> {
     const page = Math.max(1, params.page || 1);
@@ -32,5 +37,43 @@ export class ProductsService {
     const product = await this.repo.findOne({ where: { id }, relations: ['variants', 'category'] });
     if (!product) throw new NotFoundException('Product not found');
     return product;
+  }
+
+  async create(dto: CreateProductDto): Promise<Product> {
+    const { variants, ...productData } = dto;
+    const product = this.repo.create(productData);
+    const saved = await this.repo.save(product);
+    if (variants?.length) {
+      const variantEntities = variants.map((v) =>
+        this.variantRepo.create({ ...v, productId: saved.id }),
+      );
+      await this.variantRepo.save(variantEntities);
+    }
+    return this.findOne(saved.id);
+  }
+
+  async update(id: string, dto: UpdateProductDto): Promise<Product> {
+    const product = await this.repo.findOne({ where: { id } });
+    if (!product) throw new NotFoundException('Product not found');
+    const { variants, ...updates } = dto;
+    Object.assign(product, updates);
+    await this.repo.save(product);
+    if (variants !== undefined) {
+      await this.variantRepo.delete({ productId: id });
+      if (variants.length) {
+        const variantEntities = variants.map((v) =>
+          this.variantRepo.create({ ...v, productId: id }),
+        );
+        await this.variantRepo.save(variantEntities);
+      }
+    }
+    return this.findOne(id);
+  }
+
+  async remove(id: string): Promise<void> {
+    const product = await this.repo.findOne({ where: { id } });
+    if (!product) throw new NotFoundException('Product not found');
+    await this.variantRepo.delete({ productId: id });
+    await this.repo.remove(product);
   }
 }

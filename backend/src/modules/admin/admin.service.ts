@@ -75,6 +75,58 @@ export class AdminService {
     return { data, total, page, limit };
   }
 
+  async createBlogPost(dto: {
+    title: string;
+    slug: string;
+    excerpt?: string;
+    body?: string;
+    template?: string;
+    categoryId?: string;
+    image?: string;
+    imageAlt?: string;
+    readTimeMinutes?: number;
+    publishedAt?: string;
+    relatedProductIds?: string[];
+    seoTitle?: string;
+    seoDescription?: string;
+  }) {
+    const post = this.blogRepo.create({
+      ...dto,
+      publishedAt: dto.publishedAt ? new Date(dto.publishedAt) : null,
+    });
+    return this.blogRepo.save(post);
+  }
+
+  async updateBlogPost(id: string, dto: Partial<{
+    title: string;
+    slug: string;
+    excerpt: string;
+    body: string;
+    template: string;
+    categoryId: string;
+    image: string;
+    imageAlt: string;
+    readTimeMinutes: number;
+    publishedAt: string;
+    relatedProductIds: string[];
+    seoTitle: string;
+    seoDescription: string;
+  }>) {
+    const post = await this.blogRepo.findOne({ where: { id } });
+    if (!post) throw new NotFoundException('Post not found');
+    const updates = { ...dto } as any;
+    if (updates.publishedAt !== undefined) updates.publishedAt = updates.publishedAt ? new Date(updates.publishedAt) : null;
+    Object.assign(post, updates);
+    return this.blogRepo.save(post);
+  }
+
+  async deleteBlogPost(id: string) {
+    const post = await this.blogRepo.findOne({ where: { id } });
+    if (!post) throw new NotFoundException('Post not found');
+    await this.blogRepo.remove(post);
+    return { deleted: true };
+  }
+
   async getDashboard() {
     const r = await this.orderRepo.createQueryBuilder('o').select('COUNT(o.id)', 'count').addSelect('COALESCE(SUM(o.total), 0)', 'sum').getRawOne();
     const orderCount = Number(r?.count || 0);
