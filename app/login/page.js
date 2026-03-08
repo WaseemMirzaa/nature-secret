@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from '@/components/Link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCustomerStore, useAuthModalStore } from '@/lib/store';
 import { Logo } from '@/components/Logo';
 import { customerLogin, formatApiError } from '@/lib/api';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const login = useCustomerStore((s) => s.login);
@@ -80,5 +80,13 @@ export default function LoginPage() {
         New here? <button type="button" onClick={() => useAuthModalStore.getState().openSignup()} className="text-neutral-900 font-medium">Create an account</button>
       </p>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-sm px-4 py-16 text-center text-neutral-500">Loading…</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }
