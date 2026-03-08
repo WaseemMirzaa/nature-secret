@@ -23,9 +23,14 @@ Response: `{"ok":true,"ts":1234567890}`. If only one works, your proxy likely fo
 - **Build command:** `npm install && npm run build` (so `dist/main.js` exists before start).
 - **Start command:** `npm start` (runs `node server.js`). To restart if down, add a cron job: `*/5 * * * * cd /path/to/backend && npm run cron:restart-if-down >> /tmp/backend-cron.log 2>&1`. Optional: `node run-with-restart.js` for in-process restart on crash.
 
+**APIs not working, no error logs**
+- Start the server with `npm start` (from backend folder). You should see `[API] ... Listening on http://0.0.0.0:4000` and then `Database schema synced` or `Schema sync failed`. If you see nothing, the process may be exiting before listen (e.g. DB connection failed during app create). Set DB env vars: `MYSQL_HOST`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`.
+- Each request logs as `[API] ... GET /api/v1/slider 200 5ms`. If you get no such lines when calling the API, requests are not reaching this Node process (check proxy and port).
+
 If the server does not start, check runtime logs for:
 - `[run-with-restart] dist/main.js not found. Run: npm run build` → build step did not run or failed; fix Build command and redeploy.
-- `Schema sync failed` → DB env vars (`MYSQL_HOST`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`) missing or wrong.
+- `[API] Bootstrap failed` or `Failed to create app` → DB env vars (`MYSQL_HOST`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`) missing or wrong.
+- `Schema sync failed` → same DB env vars or DB server unreachable.
 
 **Persistent uploads (images not deleted on deploy)**  
 Set `UPLOAD_ROOT` to a path that Hostinger does **not** overwrite when you redeploy.
