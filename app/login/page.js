@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import Link from '@/components/Link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCustomerStore, useAuthModalStore } from '@/lib/store';
 import { Logo } from '@/components/Logo';
 import { customerLogin, formatApiError } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const login = useCustomerStore((s) => s.login);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,7 +29,8 @@ export default function LoginPage() {
       const raw = typeof window !== 'undefined' ? localStorage.getItem('nature_secret_customer') : null;
       const customer = raw ? JSON.parse(raw) : { email: email.trim(), name: email.trim().split('@')[0] };
       login(customer);
-      router.push('/account');
+      const returnUrl = searchParams?.get('returnUrl') || '/account';
+      router.push(returnUrl.startsWith('/') ? returnUrl : '/account');
     } catch (err) {
       setError(formatApiError(err, 'Invalid email or password.'));
     } finally {

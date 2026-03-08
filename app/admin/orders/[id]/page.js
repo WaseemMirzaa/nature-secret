@@ -45,7 +45,9 @@ export default function AdminOrderDetailPage() {
   const [apiProducts, setApiProducts] = useState([]);
   const currency = useCurrencyStore((s) => s.currency);
   const orderId = params?.id ? (Array.isArray(params.id) ? params.id[0] : params.id) : null;
-  const products = getAdminToken() ? (apiProducts.length ? apiProducts : storeProducts) : storeProducts;
+  const products = getAdminToken()
+    ? (Array.isArray(apiProducts) && apiProducts.length ? apiProducts : (storeProducts || []))
+    : (storeProducts || []);
 
   useEffect(() => setMounted(true), []);
 

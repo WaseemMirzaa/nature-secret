@@ -80,8 +80,8 @@ export default function AdminOrdersPage() {
     } catch { return null; }
   }
 
-  const orders = useApi ? apiOrders : localOrders;
-  const totalCount = useApi ? apiTotal : localOrders.length;
+  const orders = useApi ? apiOrders : (localOrders || []);
+  const totalCount = useApi ? apiTotal : (localOrders || []).length;
 
   async function handleStatusChange(orderId, status) {
     if (useApi) {
@@ -95,8 +95,8 @@ export default function AdminOrdersPage() {
   }
 
   const filtered = useMemo(() => {
-    if (useApi) return apiOrders;
-    let list = localOrders;
+    if (useApi) return Array.isArray(apiOrders) ? apiOrders : [];
+    let list = localOrders || [];
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter(

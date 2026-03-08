@@ -1,14 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from '@/components/Link';
 import Image from 'next/image';
-import { useCartStore, useOrdersStore, useProductsStore, useCurrencyStore } from '@/lib/store';
+import { useCartStore, useOrdersStore, useProductsStore, useCurrencyStore, useCustomerStore } from '@/lib/store';
 import { getDiscountCodes } from '@/lib/store';
 import { trackPurchase } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
-import { createOrder as apiCreateOrder, trackAnalytics } from '@/lib/api';
+import { createOrder as apiCreateOrder, trackAnalytics, getCustomerToken } from '@/lib/api';
 import { useProductsAndCategories } from '@/lib/useApiData';
 
 export default function CheckoutPage() {
@@ -16,8 +16,10 @@ export default function CheckoutPage() {
   const { items, clear } = useCartStore();
   const addOrder = useOrdersStore((s) => s.addOrder);
   const storeProducts = useProductsStore((s) => s.products);
+  const customer = useCustomerStore((s) => s.customer);
   const { products } = useProductsAndCategories(storeProducts);
   const currency = useCurrencyStore((s) => s.currency);
+  const [mounted, setMounted] = useState(false);
   const [discountCode, setDiscountCode] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState(null);
   const [form, setForm] = useState({
@@ -30,6 +32,25 @@ export default function CheckoutPage() {
     pincode: '',
   });
   const [placing, setPlacing] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    if (!mounted) return;
+    if (!getCustomerToken()) {
+      router.replace(`/login?returnUrl=${encodeURIComponent('/checkout')}`);
+      return;
+    }
+  }, [mounted, router]);
+  useEffect(() => {
+    if (!mounted || !customer) return;
+    setForm((f) => ({
+      ...f,
+      email: customer.email || f.email,
+      name: customer.name || f.name,
+      phone: customer.phone || f.phone,
+      address: customer.address || f.address,
+    }));
+  }, [mounted, customer?.id]);
 
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
   const codes = getDiscountCodes();
@@ -49,6 +70,10 @@ export default function CheckoutPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     if (items.length === 0) return;
+    if (!getCustomerToken()) {
+      router.replace('/login?returnUrl=' + encodeURIComponent('/checkout'));
+      return;
+    }
     setPlacing(true);
     const addressStr = `${form.address}, ${form.city}, ${form.state} ${form.pincode}`;
     const orderPayload = {
@@ -74,6 +99,14 @@ export default function CheckoutPage() {
     clear();
     setPlacing(false);
     router.push(`/checkout/confirmation?order=${orderId}`);
+  }
+
+  if (!mounted || (mounted && !getCustomerToken())) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-16 text-center">
+        <p className="text-neutral-600">Checking login…</p>
+      </div>
+    );
   }
 
   if (items.length === 0 && !placing) {
