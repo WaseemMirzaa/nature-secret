@@ -1,7 +1,7 @@
 # Backend start and health
 
-**Build:** `npm run build`  
-**Start:** `npm start` (runs `node server.js` → `dist/main.js`). Optional auto-restart: cron runs `scripts/check-and-restart.sh` (e.g. every 5 min) to restart if `/health` is down.
+**Build:** `npm run build` (output: `dist/main.js`).  
+**Start:** `npm start` (runs `node dist/main.js`). For hosts that want a single entry file, use `server.js` (it runs `dist/main.js`). **Do not** set Entry File to `main.ts` — that is source; Node runs the compiled `dist/main.js` (or `server.js` which launches it).
 
 **DB structure + seeding (admin, categories, hero slides):**
 - **Local / with ts-node:** `npm run db:setup` — runs TypeORM `synchronize` (updates tables/columns to match entities) then seeds admin users, categories, and hero slides.
@@ -19,9 +19,10 @@ Response: `{"ok":true,"ts":1234567890}`. If only one works, your proxy likely fo
 
 # Hostinger
 
-- **Application root:** Must be the backend repo root (the folder that contains `package.json` and `run-with-restart.js`).
-- **Build command:** `npm install && npm run build` (so `dist/main.js` exists before start).
-- **Start command:** `npm start` (runs `node server.js`). To restart if down, add a cron job: `*/5 * * * * cd /path/to/backend && npm run cron:restart-if-down >> /tmp/backend-cron.log 2>&1`. Optional: `node run-with-restart.js` for in-process restart on crash.
+- **Application root:** Backend folder (contains `package.json`, `server.js`, `dist/` after build).
+- **Build command:** `npm install && npm run build` (produces `dist/main.js`).
+- **Entry file:** Use `server.js` or leave empty and use Start command. **Do not use `main.ts`** — Node cannot run TypeScript at runtime; the app runs the compiled `dist/main.js`.
+- **Start command:** `npm start` or `node server.js` or `node dist/main.js`. To restart if down, add a cron job: `*/5 * * * * cd /path/to/backend && npm run cron:restart-if-down >> /tmp/backend-cron.log 2>&1`. Optional: `node run-with-restart.js` for in-process restart on crash.
 
 **APIs not working / no logs (including health)**
 - Start with `npm start` from the **backend** folder (so `node dist/main.js` runs). You should see in order: `[API] ... Bootstrap started` → `[API] ... Nest app created` → `[API] ... Listening on http://0.0.0.0:4000` → `Database schema synced` or `Schema sync failed`. If you see **none** of these, the Node process is not running or stdout is not captured (check Hostinger “Start command” is `npm start` and “Application root” is the backend directory; check “Logs” or “Runtime logs” in the panel).
