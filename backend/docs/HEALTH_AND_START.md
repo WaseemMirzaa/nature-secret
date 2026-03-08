@@ -19,11 +19,12 @@ Response: `{"ok":true,"ts":1234567890}`. If only one works, your proxy likely fo
 
 # Hostinger
 
-- **Node version:** Use **Node 18** (or 20). The backend `package.json` specifies `engines.node >=18 <21`. If the app fails at startup with Node 20, switch the host to Node 18.
+- **Node version:** Use **Node 20** (LTS). The backend `package.json` specifies `engines.node >=18 <23`. Prefer Node 20 for security updates.
 - **Application root:** Backend folder (contains `package.json`, `server.js`, `dist/` after build).
 - **Build command:** `npm install && npm run build` (produces `dist/main.js`).
-- **Entry file:** Use `server.js` or leave empty and use Start command. **Do not use `main.ts`** — Node cannot run TypeScript at runtime; the app runs the compiled `dist/main.js`.
-- **Start command:** `npm start` or `node server.js` or `node dist/main.js`.
+- **Entry file:** If the host **requires** a value and won’t accept empty: use **`dist/main.js`** (the built app). If the host allows a custom start script, use **`run-with-restart.js`** or **`server.js`** for restart-on-crash.
+- **Output directory:** Set to **`dist`** (required by many hosts so they know where the build output is).
+- **Start command:** If you have this field, set it to **`node run-with-restart.js`** or **`npm start`**. If the host runs the Entry file automatically, leave Start command empty when Entry file is `dist/main.js`. **Do not use `main.ts`** — Node runs the compiled JS.
 
 **Keeping the server alive when it crashes (Hostinger)**
 
@@ -32,9 +33,9 @@ Response: `{"ok":true,"ts":1234567890}`. If only one works, your proxy likely fo
    The wrapper runs `dist/main.js` and restarts it after a crash (3s delay, no restart limit). No cron or PM2 needed. Works within Hostinger’s single-process Node app.
 
 2. **Cron: health check + restart**  
-   If the process dies and is not restarted by the host, a cron job can restart it when `/health` fails:  
-   `*/5 * * * * cd /path/to/backend && npm run cron:restart-if-down >> /tmp/backend-cron.log 2>&1`  
-   Replace `/path/to/backend` with the real path. Requires cron access (e.g. Hostinger cron in panel). The script `scripts/check-and-restart.sh` curls `/health` and runs `node server.js` if it fails.
+   If the process dies, a cron job can restart it when `/health` fails. The script starts the app with `node run-with-restart.js` (so it also restarts on crash). In Hostinger (or your host) add a cron job:  
+   `*/5 * * * * cd /path/to/backend && ./scripts/check-and-restart.sh >> /tmp/backend-cron.log 2>&1`  
+   Replace `/path/to/backend` with the real backend directory (e.g. `/home/u493740372/domains/shifaefitrat.com/nodejs` or the path shown in your Node app). Run: `npm run cron:restart-if-down` from the backend folder, or call the script directly as above. Ensure the script is executable: `chmod +x scripts/check-and-restart.sh`.
 
 3. **PM2 (if you have SSH and can install it)**  
    Install PM2, then start the API with: `pm2 start ecosystem.config.cjs --only nature-secret-api`. PM2 restarts the process on crash. Use `pm2 startup` and `pm2 save` so it survives reboots. See [docs/PM2_HOSTINGER.md](../../docs/PM2_HOSTINGER.md) in the repo root.

@@ -32,9 +32,10 @@ module.exports = {
     {
       name: 'nature-secret-web',
       cwd: repoRoot,
-      script: 'node_modules/.bin/next',
-      args: 'start -p ' + (process.env.WEB_PORT || 3000),
+      script: './node_modules/next/dist/bin/next',
+      args: ['start', '-p', process.env.WEB_PORT || 3000],
       interpreter: 'node',
+      exec_mode: 'fork',
       env: {
         NODE_ENV: 'production',
       },

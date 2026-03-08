@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cron script: restart backend if /health is down. Uses node server.js.
+# Cron script: restart backend if /health is down. Starts with node run-with-restart.js (restarts on crash).
 # Example cron: */5 * * * * cd /path/to/backend && ./scripts/check-and-restart.sh >> /tmp/backend-cron.log 2>&1
 
 set -e
@@ -24,7 +24,7 @@ if curl -sf --max-time 5 "$URL" >/dev/null 2>&1; then
   exit 0
 fi
 
-nohup node server.js >> /tmp/backend-start.log 2>&1 &
+nohup node run-with-restart.js >> /tmp/backend-start.log 2>&1 &
 disown
 echo "$(date -Iseconds) restarted backend (port $PORT)"
 rm -f "$LOCK"
