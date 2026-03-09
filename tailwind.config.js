@@ -54,6 +54,8 @@ module.exports = {
         'cta-shimmer': 'ctaShimmer 2.5s ease-in-out infinite',
         'cta-glow': 'ctaGlow 2s ease-in-out infinite',
         'cta-lift': 'ctaLift 2s ease-in-out infinite',
+        'vibrate': 'vibrate 0.4s ease-out',
+        'stagger-in': 'staggerIn 0.5s ease-out forwards',
       },
       keyframes: {
         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
@@ -63,8 +65,22 @@ module.exports = {
         ctaShimmer: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.92' } },
         ctaGlow: { '0%, 100%': { boxShadow: '0 0 0 0 rgba(28, 25, 23, 0.3)' }, '50%': { boxShadow: '0 0 20px 2px rgba(212, 168, 74, 0.25)' } },
         ctaLift: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-2px)' } },
+        vibrate: { '0%, 100%': { transform: 'translateX(0)' }, '20%': { transform: 'translateX(-3px)' }, '40%': { transform: 'translateX(3px)' }, '60%': { transform: 'translateX(-2px)' }, '80%': { transform: 'translateX(2px)' } },
+        staggerIn: { '0%': { opacity: '0', transform: 'translateY(12px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
       },
     },
   },
-  plugins: [require('@tailwindcss/forms')],
+  plugins: [
+    require('@tailwindcss/forms'),
+    function ({ addUtilities }) {
+      addUtilities({
+        '.animation-delay-75': { animationDelay: '75ms' },
+        '.animation-delay-150': { animationDelay: '150ms' },
+        '.animation-delay-225': { animationDelay: '225ms' },
+        '.animation-delay-300': { animationDelay: '300ms' },
+        '.animation-delay-375': { animationDelay: '375ms' },
+        '.animation-delay-450': { animationDelay: '450ms' },
+      });
+    },
+  ],
 };

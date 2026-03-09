@@ -119,7 +119,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-12 animate-slide-up">
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-neutral-900">Checkout</h1>
         <p className="mt-1 text-sm text-neutral-500">Complete your order. We&apos;ll confirm via email.</p>
@@ -230,7 +230,7 @@ export default function CheckoutPage() {
             <button
               type="submit"
               disabled={placing}
-              className="mt-6 w-full rounded-2xl bg-neutral-900 py-3.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50 animate-cta-glow hover:animate-none transition disabled:animate-none"
+              className="mt-6 w-full rounded-2xl bg-neutral-900 py-3.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50 animate-cta-pulse hover:animate-none transition disabled:animate-none"
             >
               {placing ? 'Placing order…' : 'Place order (Cash on delivery)'}
             </button>

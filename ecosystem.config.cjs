@@ -19,6 +19,7 @@ module.exports = {
       cwd: backendDir,
       script: 'dist/main.js',
       interpreter: 'node',
+      env_file: '.env',
       env: {
         NODE_ENV: 'production',
         PORT: process.env.API_PORT || 4000,
@@ -36,6 +37,7 @@ module.exports = {
       args: ['start', '-p', process.env.WEB_PORT || 3000],
       interpreter: 'node',
       exec_mode: 'fork',
+      env_file: '.env.local',
       env: {
         NODE_ENV: 'production',
       },

@@ -14,6 +14,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { EventsModule } from './modules/events/events.module';
 import { SliderModule } from './modules/slider/slider.module';
 import { SetupModule } from './modules/setup/setup.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { SetupModule } from './modules/setup/setup.module';
     EventsModule,
     SliderModule,
     SetupModule,
+    ReviewsModule,
   ],
 })
 export class AppModule {}

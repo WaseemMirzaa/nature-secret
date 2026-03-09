@@ -60,6 +60,18 @@ export class OrdersService {
     return full;
   }
 
+  async findManyByCustomerId(customerId: string, params?: { limit?: number; offset?: number }): Promise<Order[]> {
+    const limit = Math.min(100, Math.max(1, params?.limit ?? 50));
+    const offset = Math.max(0, params?.offset ?? 0);
+    return this.orderRepo.find({
+      where: { customerId },
+      relations: ['items', 'statusTimeline'],
+      order: { createdAt: 'DESC' },
+      take: limit,
+      skip: offset,
+    });
+  }
+
   async findOne(id: string): Promise<Order> {
     const order = await this.orderRepo.findOne({
       where: { id },

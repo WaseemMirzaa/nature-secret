@@ -3,6 +3,8 @@ import * as bcrypt from 'bcryptjs';
 import { AdminUser } from './entities/admin-user.entity';
 import { Category } from './entities/category.entity';
 import { HeroSlide } from './entities/hero-slide.entity';
+import { Review } from './entities/review.entity';
+import { SEED_REVIEWS } from './seed-reviews-data';
 
 const DEFAULT_ADMINS = [
   { email: 'admin@naturesecret.com', password: 'Admin123!', role: 'admin' as const },
@@ -92,6 +94,27 @@ export async function seedAdminAndCategoriesIfEmpty(dataSource: DataSource): Pro
       await slideRepo.save(slideRepo.create(DEFAULT_HERO_SLIDES[i]));
     }
     console.log('Seeded hero slides:', DEFAULT_HERO_SLIDES.length);
+  }
+
+  try {
+    const reviewRepo = dataSource.getRepository(Review);
+    const reviewCount = await reviewRepo.count();
+    if (reviewCount === 0 && SEED_REVIEWS.length > 0) {
+      for (const r of SEED_REVIEWS) {
+        await reviewRepo.save(
+          reviewRepo.create({
+            authorName: r.authorName,
+            rating: r.rating,
+            body: r.body,
+            collection: r.collection,
+            productId: null,
+          }),
+        );
+      }
+      console.log('Seeded reviews (pool):', SEED_REVIEWS.length, 'in 3 collections (quality, pain_relief, value)');
+    }
+  } catch (e) {
+    console.error('Seed: reviews failed', e?.message || e);
   }
 
   console.log('Seed completed');

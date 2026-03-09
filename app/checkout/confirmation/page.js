@@ -2,11 +2,24 @@
 
 import Link from '@/components/Link';
 import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
+
+const LAST_ORDER_KEY = 'nature_secret_last_order_date';
+const LAST_ORDER_ID_KEY = 'nature_secret_last_order_id';
 
 function ConfirmationContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('order');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const now = Date.now();
+    try {
+      localStorage.setItem(LAST_ORDER_KEY, String(now));
+      if (orderId) localStorage.setItem(LAST_ORDER_ID_KEY, orderId);
+    } catch (_) {}
+  }, [orderId]);
+
   return (
     <div className="mx-auto max-w-lg px-4 py-20 text-center">
       <div className="rounded-full w-16 h-16 bg-neutral-900 text-white flex items-center justify-center text-2xl mx-auto mb-6">✓</div>

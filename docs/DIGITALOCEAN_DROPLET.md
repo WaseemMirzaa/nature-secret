@@ -1,6 +1,6 @@
 # Deploy Nature Secret on a DigitalOcean Droplet
 
-This guide covers a single Ubuntu droplet running the **backend API** and **Next.js frontend** behind Nginx, with MySQL and PM2. It uses the **droplet IP only** (no domain); you can add a domain and SSL later.
+This guide covers a single Ubuntu droplet running the **backend API** and **Next.js frontend** behind Nginx, with MySQL and PM2. You can use the **droplet IP only** at first, or connect a domain and SSL (see section 7b).
 
 ---
 
@@ -259,43 +259,45 @@ Open **`http://YOUR_DROPLET_IP`** in the browser (e.g. `http://165.232.123.45`).
 
 ---
 
-## 7b. When you add a domain and SSL later
+## 7b. Nginx with domain (and optional API subdomain)
 
-After you point a domain to the droplet IP, you can:
-
-1. **Nginx:** Change `server_name _;` to `server_name yourdomain.com www.yourdomain.com;` and reload Nginx.
-2. **Env:** Update `FRONTEND_ORIGIN`, `API_PUBLIC_URL`, and `NEXT_PUBLIC_API_URL` to `https://yourdomain.com`, rebuild frontend (`npm run build`), restart PM2.
-3. **SSL:** Use **Let's Encrypt** and/or **Cloudflare** as below.
-
-**Let's Encrypt (origin certificate)**
-
-```bash
-apt install -y certbot python3-certbot-nginx
-certbot --nginx -d yourdomain.com -d www.yourdomain.com
-```
-
-**Cloudflare in front**
-
-- DNS: A record for your domain → droplet IP, **Proxied** (orange cloud).
-- SSL/TLS: **Flexible** (no cert on droplet) or **Full (strict)** with Let's Encrypt on the droplet. Cloudflare sends `X-Forwarded-Proto`; Nginx already forwards it to the apps.
+**DNS first:** Point your domain to the droplet (A record). For API subdomain add another A record: `api` → droplet IP.
 
 ---
 
-### Optional: Two domains (subdomain for API)
+### Option A: Single domain (site + API on same host)
 
-When you have a domain, traffic flows like this (the right side is always `127.0.0.1` on the server — Nginx proxies to localhost):
+Everything on `naturesecret.pk`: site at `/`, API at `/api/`. Replace `naturesecret.pk` with your domain.
 
-- **Frontend:** `https://yourdomain.com` (or `http://YOUR_DROPLET_IP` when no domain) → `http://127.0.0.1:3000`  
-- **API:** `https://api.yourdomain.com` (or same IP with path `/api` when no domain) → `http://127.0.0.1:4000`  
-
-Create two server blocks (only when using two domains).
-
-**Frontend** (`/etc/nginx/sites-available/nature-secret-frontend`)
+**File:** `/etc/nginx/sites-available/nature-secret`
 
 ```nginx
 server {
     listen 80;
-    server_name yourdomain.com www.yourdomain.com;
+    server_name naturesecret.pk www.naturesecret.pk;
+    client_max_body_size 20M;
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:4000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Authorization $http_authorization;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 86400;
+    }
+
+    location /assets/ {
+        proxy_pass http://127.0.0.1:4000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
     location / {
         proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
@@ -310,12 +312,48 @@ server {
 }
 ```
 
-**API** (`/etc/nginx/sites-available/nature-secret-api`)
+**Enable (Option A):**
+
+```bash
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo ln -sf /etc/nginx/sites-available/nature-secret /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+**Env:** `NEXT_PUBLIC_API_URL=https://naturesecret.pk`, backend `FRONTEND_ORIGIN` and `API_PUBLIC_URL` = `https://naturesecret.pk`.
+
+---
+
+### Option B: Subdomain for API (api.naturesecret.pk)
+
+Frontend: `naturesecret.pk` → Next.js. API: `api.naturesecret.pk` → NestJS. Replace domain if different.
+
+**Frontend** — `/etc/nginx/sites-available/nature-secret-frontend`:
 
 ```nginx
 server {
     listen 80;
-    server_name api.yourdomain.com;
+    server_name naturesecret.pk www.naturesecret.pk;
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+**API** — `/etc/nginx/sites-available/nature-secret-api`:
+
+```nginx
+server {
+    listen 80;
+    server_name api.naturesecret.pk;
     client_max_body_size 20M;
     location / {
         proxy_pass http://127.0.0.1:4000;
@@ -331,13 +369,32 @@ server {
 }
 ```
 
-Enable and test (only if you use two domains):
+**Enable (Option B only):**
 
 ```bash
-ln -s /etc/nginx/sites-available/nature-secret-frontend /etc/nginx/sites-enabled/
-ln -s /etc/nginx/sites-available/nature-secret-api /etc/nginx/sites-enabled/
-nginx -t && systemctl reload nginx
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo ln -sf /etc/nginx/sites-available/nature-secret-frontend /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/nature-secret-api /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
 ```
+
+**Env for Option B:** `NEXT_PUBLIC_API_URL=https://api.naturesecret.pk`, backend `FRONTEND_ORIGIN=https://naturesecret.pk,https://www.naturesecret.pk`, `API_PUBLIC_URL=https://api.naturesecret.pk`.
+
+---
+
+### SSL (HTTPS) after Nginx works on port 80
+
+```bash
+sudo apt install -y certbot python3-certbot-nginx
+# Option A (single domain):
+sudo certbot --nginx -d naturesecret.pk -d www.naturesecret.pk
+# Option B (subdomain):
+sudo certbot --nginx -d naturesecret.pk -d www.naturesecret.pk -d api.naturesecret.pk
+```
+
+Then set env to `https://...`, rebuild frontend, restart PM2.
+
+**Cloudflare:** Add A records (optionally proxied). Use **Flexible** SSL or **Full (strict)** with certbot on the server.
 
 ---
 

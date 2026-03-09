@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from '@/components/Link';
 import { useRouter, useParams } from 'next/navigation';
 import { useProductsStore } from '@/lib/store';
-import { getCategories, uploadProductImage, updateProduct as updateProductApi, formatApiError } from '@/lib/api';
+import { getCategories, uploadProductImage, updateProduct as updateProductApi, formatApiError, getAdminReviews, assignReviewToProduct, unassignReview, setProductRating } from '@/lib/api';
 
 const emptyVariant = () => ({ id: `v-${Date.now()}`, name: '', volume: '', price: 0, image: '' });
 const emptyFaq = () => ({ q: '', a: '' });
@@ -38,6 +38,10 @@ export default function EditProductPage() {
   const [uploadError, setUploadError] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [assignedReviews, setAssignedReviews] = useState([]);
+  const [poolReviews, setPoolReviews] = useState([]);
+  const [reviewCollection, setReviewCollection] = useState('quality');
+  const [reviewsLoading, setReviewsLoading] = useState(false);
 
   const apiBase = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') : '';
   async function handleImageUpload(e, index) {
@@ -96,6 +100,23 @@ export default function EditProductPage() {
     setRating(product.rating ?? 4.5);
     setReviewCount(product.reviewCount ?? 0);
   }, [product]);
+
+  useEffect(() => {
+    if (!product?.id) return;
+    setReviewsLoading(true);
+    getAdminReviews({ productId: product.id })
+      .then((list) => setAssignedReviews(Array.isArray(list) ? list : []))
+      .catch(() => setAssignedReviews([]))
+      .finally(() => setReviewsLoading(false));
+  }, [product?.id]);
+
+  useEffect(() => {
+    setReviewsLoading(true);
+    getAdminReviews({ collection: reviewCollection })
+      .then((list) => setPoolReviews(Array.isArray(list) ? list : []))
+      .catch(() => setPoolReviews([]))
+      .finally(() => setReviewsLoading(false));
+  }, [reviewCollection]);
 
   function addBenefit() { setBenefits((b) => [...b, '']); }
   function updateBenefit(i, v) { setBenefits((b) => { const n = [...b]; n[i] = v; return n; }); }
@@ -266,6 +287,67 @@ export default function EditProductPage() {
             </div>
           ))}
           <button type="button" onClick={addFaq} className="text-sm text-neutral-600 hover:text-neutral-900">+ Add FAQ</button>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-neutral-700 mb-2">Reviews</label>
+          <p className="text-xs text-neutral-500 mb-2">Assign seed reviews from pool. Set overall 5 star from admin.</p>
+          <div className="flex flex-wrap gap-2 mb-2">
+            <span className="text-sm text-neutral-600">Overall rating:</span>
+            <input type="number" min="0" max="5" step="0.1" value={rating} onChange={(e) => setRating(e.target.value)} className="w-16 rounded-lg border border-neutral-200 px-2 py-1 text-sm" />
+            <span className="text-sm text-neutral-500">Count: {reviewCount}</span>
+            <button
+              type="button"
+              onClick={async () => {
+                if (!product) return;
+                try {
+                  await setProductRating(product.id, 5, assignedReviews.length);
+                  setRating(5);
+                  setReviewCount(assignedReviews.length);
+                } catch (_) {}
+              }}
+              className="rounded-lg bg-gold-500 text-white px-3 py-1 text-sm font-medium"
+            >
+              Set 5 star
+            </button>
+          </div>
+          <p className="text-sm text-neutral-600 mb-1">Assigned ({assignedReviews.length}):</p>
+          <ul className="mb-3 max-h-32 overflow-y-auto rounded-lg border border-neutral-200 p-2 space-y-1">
+            {reviewsLoading && !assignedReviews.length ? <li className="text-sm text-neutral-500">Loading…</li> : null}
+            {assignedReviews.map((r) => (
+              <li key={r.id} className="flex justify-between items-start gap-2 text-sm">
+                <span className="truncate flex-1">{r.body?.slice(0, 50)}… — {r.authorName}</span>
+                <button type="button" onClick={async () => { try { await unassignReview(r.id); setAssignedReviews((prev) => prev.filter((x) => x.id !== r.id)); setReviewCount((c) => Math.max(0, c - 1)); } catch (_) {} }} className="text-red-600 hover:underline shrink-0">Remove</button>
+              </li>
+            ))}
+          </ul>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-neutral-600">Add from pool:</span>
+            <select value={reviewCollection} onChange={(e) => setReviewCollection(e.target.value)} className="rounded-lg border border-neutral-200 px-2 py-1 text-sm">
+              <option value="quality">Quality</option>
+              <option value="pain_relief">Pain relief</option>
+              <option value="value">Value</option>
+            </select>
+            <select
+              className="rounded-lg border border-neutral-200 px-2 py-1 text-sm min-w-[200px]"
+              onChange={async (e) => {
+                const id = e.target.value;
+                if (!id || !product) return;
+                e.target.value = '';
+                try {
+                  await assignReviewToProduct(id, product.id);
+                  const r = poolReviews.find((x) => x.id === id);
+                  if (r) setAssignedReviews((prev) => [r, ...prev]);
+                  setPoolReviews((prev) => prev.filter((x) => x.id !== id));
+                  setReviewCount((c) => c + 1);
+                } catch (_) {}
+              }}
+            >
+              <option value="">— Choose review —</option>
+              {poolReviews.slice(0, 50).map((r) => (
+                <option key={r.id} value={r.id}>{r.body?.slice(0, 60)}…</option>
+              ))}
+            </select>
+          </div>
         </div>
         <div className="flex gap-4">
           <button type="submit" disabled={submitting} className="rounded-xl bg-neutral-900 text-white px-6 py-2.5 text-sm font-medium disabled:opacity-50">Save changes</button>

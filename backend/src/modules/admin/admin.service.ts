@@ -22,18 +22,25 @@ export class AdminService {
   ) {}
 
   async getOrders(params: { page?: number; limit?: number; status?: string; search?: string; dateFrom?: string; dateTo?: string }) {
-    const page = Math.max(1, params.page || 1);
-    const limit = Math.min(100, Math.max(1, params.limit || 50));
-    const qb = this.orderRepo.createQueryBuilder('o').leftJoinAndSelect('o.items', 'items').leftJoinAndSelect('o.statusTimeline', 'timeline');
-    if (params.status && params.status !== 'all') qb.andWhere('o.status = :status', { status: params.status });
-    if (params.search) {
-      const s = `%${params.search.trim()}%`;
-      qb.andWhere('o.id LIKE :s', { s });
+    try {
+      const page = Math.max(1, params.page || 1);
+      const limit = Math.min(100, Math.max(1, params.limit || 50));
+      const qb = this.orderRepo.createQueryBuilder('o').leftJoinAndSelect('o.items', 'items').leftJoinAndSelect('o.statusTimeline', 'timeline');
+      if (params.status && params.status !== 'all') qb.andWhere('o.status = :status', { status: params.status });
+      if (params.search && params.search.trim()) {
+        const s = `%${params.search.trim()}%`;
+        qb.andWhere('o.id LIKE :s', { s });
+      }
+      const from = params.dateFrom && params.dateFrom !== 'undefined' ? params.dateFrom : undefined;
+      const to = params.dateTo && params.dateTo !== 'undefined' ? params.dateTo : undefined;
+      if (from) qb.andWhere('o.createdAt >= :from', { from });
+      if (to) qb.andWhere('o.createdAt <= :to', { to: `${to}T23:59:59` });
+      const [data, total] = await qb.orderBy('o.createdAt', 'DESC').skip((page - 1) * limit).take(limit).getManyAndCount();
+      return { data, total, page, limit };
+    } catch (e) {
+      this.logger.warn(`getOrders failed: ${e?.message || e}. Ensure orders, order_items, order_status_timeline tables exist (TypeORM synchronize or migrations).`);
+      return { data: [], total: 0, page: params.page || 1, limit: params.limit || 50 };
     }
-    if (params.dateFrom) qb.andWhere('o.createdAt >= :from', { from: params.dateFrom });
-    if (params.dateTo) qb.andWhere('o.createdAt <= :to', { to: `${params.dateTo}T23:59:59` });
-    const [data, total] = await qb.orderBy('o.createdAt', 'DESC').skip((page - 1) * limit).take(limit).getManyAndCount();
-    return { data, total, page, limit };
   }
 
   async getOrder(id: string) {
@@ -147,14 +154,19 @@ export class AdminService {
   }
 
   async getDashboard() {
-    const r = await this.orderRepo.createQueryBuilder('o').select('COUNT(o.id)', 'count').addSelect('COALESCE(SUM(o.total), 0)', 'sum').getRawOne();
-    const orderCount = Number(r?.count || 0);
-    const totalRevenue = Number(r?.sum || 0);
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date(todayStart);
-    todayEnd.setDate(todayEnd.getDate() + 1);
-    const todayOrders = await this.orderRepo.createQueryBuilder('o').where('o.createdAt >= :start', { start: todayStart }).andWhere('o.createdAt < :end', { end: todayEnd }).getCount();
-    return { orderCount, totalRevenue, todayOrders };
+    try {
+      const r = await this.orderRepo.createQueryBuilder('o').select('COUNT(o.id)', 'count').addSelect('COALESCE(SUM(o.total), 0)', 'sum').getRawOne();
+      const orderCount = Number(r?.count || 0);
+      const totalRevenue = Number(r?.sum || 0);
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const todayEnd = new Date(todayStart);
+      todayEnd.setDate(todayEnd.getDate() + 1);
+      const todayOrders = await this.orderRepo.createQueryBuilder('o').where('o.createdAt >= :start', { start: todayStart }).andWhere('o.createdAt < :end', { end: todayEnd }).getCount();
+      return { orderCount, totalRevenue, todayOrders };
+    } catch (e) {
+      this.logger.warn(`getDashboard failed: ${e?.message || e}. Ensure orders table exists.`);
+      return { orderCount: 0, totalRevenue: 0, todayOrders: 0 };
+    }
   }
 }

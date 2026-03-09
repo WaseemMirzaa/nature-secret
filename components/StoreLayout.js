@@ -11,6 +11,7 @@ import { trackPageView } from '@/lib/analytics';
 
 const CartDrawer = dynamic(() => import('@/components/cart/CartDrawer').then((m) => m.CartDrawer), { ssr: false });
 const AuthModal = dynamic(() => import('@/components/auth/AuthModal').then((m) => m.AuthModal), { ssr: false });
+const ReviewPopup = dynamic(() => import('@/components/ReviewPopup').then((m) => m.ReviewPopup), { ssr: false });
 
 export function StoreLayout({ children }) {
   const pathname = usePathname();
@@ -39,6 +40,7 @@ export function StoreLayout({ children }) {
       <Suspense fallback={null}>
         <AuthModal />
       </Suspense>
+      <ReviewPopup />
     </BreadcrumbProvider>
   );
 }

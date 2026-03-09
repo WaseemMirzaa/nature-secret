@@ -9,7 +9,7 @@ import { useBreadcrumbLabel } from '@/lib/BreadcrumbContext';
 import { SHIPPING_POLICY, RETURN_POLICY } from '@/lib/constants';
 import { trackViewContent, trackAddToCart, trackOutOfStockView } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
-import { getProductById } from '@/lib/api';
+import { getProductById, resolveImageUrl, getReviews } from '@/lib/api';
 
 export default function ProductPage() {
   const params = useParams();
@@ -35,11 +35,14 @@ export default function ProductPage() {
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [faqOpen, setFaqOpen] = useState(null);
   const [zoom, setZoom] = useState(false);
+  const [addCartVibrate, setAddCartVibrate] = useState(false);
+  const [reviews, setReviews] = useState([]);
 
   const variant = selectedVariant ?? product?.variants?.[0];
   const price = variant?.price ?? product?.price;
-  const mainImage = variant?.image ?? product?.images?.[0] ?? '/assets/nature-secret-logo.svg';
-  const isApiImage = typeof mainImage === 'string' && (mainImage.startsWith('/api/') || mainImage.includes('/api/'));
+  const rawMain = variant?.image ?? product?.images?.[0] ?? '';
+  const mainImage = resolveImageUrl(rawMain) || '/assets/nature-secret-logo.svg';
+  const isApiImage = !!rawMain && (rawMain.startsWith('/') || rawMain.includes('/api/'));
   const productDisplayName = product?.name ?? product?.slug ?? 'Product';
   const currency = useCurrencyStore((s) => s.currency);
 
@@ -49,6 +52,11 @@ export default function ProductPage() {
       if ((product.inventory ?? 0) === 0) trackOutOfStockView(product.id);
     }
   }, [product]);
+
+  useEffect(() => {
+    if (!product?.id) return;
+    getReviews(product.id).then(setReviews).catch(() => setReviews([]));
+  }, [product?.id]);
 
   const addToCart = useCartStore((s) => s.addItem);
   const openCart = useCartOpenStore((s) => s.open);
@@ -99,7 +107,7 @@ export default function ProductPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 animate-slide-up">
         <div className="relative">
           <div
             className="aspect-[4/5] rounded-2xl overflow-hidden bg-neutral-100 relative"
@@ -117,16 +125,19 @@ export default function ProductPage() {
             />
           </div>
           <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
-            {[mainImage, ...(product.images || []).filter((u) => u !== mainImage)].slice(0, 4).map((url, i) => (
+            {[rawMain, ...(product.images || []).filter((u) => u !== rawMain)].slice(0, 4).map((url, i) => {
+              const resolved = resolveImageUrl(url);
+              return resolved ? (
               <button
                 key={i}
                 type="button"
                 onClick={() => setSelectedVariant(product.variants?.find((v) => v.image === url) ?? null)}
                 className="relative h-20 w-20 flex-shrink-0 rounded-xl overflow-hidden border-2 border-neutral-300"
               >
-                <Image src={url} alt={product.imageAlts?.[i] ?? productDisplayName} fill className="object-cover" sizes="80px" unoptimized={String(url).includes('/api/') || !String(url).startsWith('http')} />
+                <Image src={resolved} alt={product.imageAlts?.[i] ?? productDisplayName} fill className="object-cover" sizes="80px" unoptimized />
               </button>
-            ))}
+              ) : null;
+            })}
           </div>
         </div>
 
@@ -148,7 +159,8 @@ export default function ProductPage() {
           )}
           <h1 className="mt-2 text-3xl font-semibold text-neutral-900">{productDisplayName}</h1>
           <div className="mt-2 flex items-center gap-2">
-            <span className="text-gold-600">{'★'.repeat(5)}</span>
+            <span className="text-gold-600">{'★'.repeat(Math.min(5, Math.round(Number(product.rating) || 0)))}</span>
+            <span className="text-neutral-400">{'★'.repeat(5 - Math.min(5, Math.round(Number(product.rating) || 0)))}</span>
             <span className="text-sm text-neutral-500">({product.reviewCount} reviews)</span>
           </div>
           <p className="mt-4 text-2xl font-medium text-neutral-900">
@@ -185,8 +197,8 @@ export default function ProductPage() {
             ) : (
               <button
                 type="button"
-                onClick={handleAddToCart}
-                className="flex-1 min-w-[200px] rounded-2xl bg-neutral-900 py-3.5 text-sm font-medium text-white hover:bg-neutral-800 transition animate-cta-bounce hover:animate-none"
+                onClick={() => { handleAddToCart(); setAddCartVibrate(true); setTimeout(() => setAddCartVibrate(false), 400); }}
+                className={`flex-1 min-w-[200px] rounded-2xl bg-neutral-900 py-3.5 text-sm font-medium text-white hover:bg-neutral-800 transition ${addCartVibrate ? 'animate-vibrate' : 'animate-cta-bounce hover:animate-none'}`}
               >
                 Add to cart
               </button>
@@ -240,6 +252,28 @@ export default function ProductPage() {
             <span>Authentic & organic</span>
             <span>30-day returns</span>
           </div>
+
+          {reviews.length > 0 && (
+            <div className="mt-10 border-t border-neutral-200 pt-8">
+              <h3 className="text-lg font-medium text-neutral-900 mb-4">Customer reviews</h3>
+              <ul className="space-y-4">
+                {reviews.map((r, i) => (
+                  <li
+                    key={r.id}
+                    className="rounded-xl border border-neutral-100 bg-neutral-50/50 p-4 animate-stagger-in opacity-0"
+                    style={{ animationDelay: `${i * 75}ms` }}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-gold-600">{'★'.repeat(Math.min(5, r.rating || 0))}</span>
+                      <span className="text-neutral-400">{'★'.repeat(5 - Math.min(5, r.rating || 0))}</span>
+                      <span className="text-sm font-medium text-neutral-700">{r.authorName}</span>
+                    </div>
+                    <p className="text-sm text-neutral-600">{r.body}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
 
@@ -247,13 +281,13 @@ export default function ProductPage() {
         <section className="mt-20 pt-16 border-t border-neutral-200">
           <h2 className="text-2xl font-semibold text-neutral-900 mb-8">You may also like</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {related.map((p) => {
-              const img = p.images?.[0] || '/assets/nature-secret-logo.svg';
+            {related.map((p, i) => {
+              const img = resolveImageUrl(p.images?.[0]) || '/assets/nature-secret-logo.svg';
               const name = p.name ?? p.slug ?? 'Product';
               return (
-                <Link key={p.id} href={`/shop/${p.id}`} className="group">
+                <Link key={p.id} href={`/shop/${p.id}`} className="group animate-stagger-in opacity-0" style={{ animationDelay: `${i * 100}ms` }}>
                   <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100">
-                    <Image src={img} alt={name} width={300} height={400} className="h-full w-full object-cover group-hover:scale-105 transition duration-300" unoptimized={!img.startsWith('http')} />
+                    <Image src={img} alt={name} width={300} height={400} className="h-full w-full object-cover group-hover:scale-105 transition duration-300" unoptimized />
                   </div>
                   <p className="mt-3 font-medium text-neutral-900">{name}</p>
                   <p className="text-sm text-neutral-500">{formatPrice(p.price, currency)}</p>

@@ -80,7 +80,7 @@ export default function AdminOrdersPage() {
     } catch { return null; }
   }
 
-  const orders = useApi ? apiOrders : (localOrders || []);
+  const orders = useApi ? (Array.isArray(apiOrders) ? apiOrders : []) : (localOrders || []);
   const totalCount = useApi ? apiTotal : (localOrders || []).length;
 
   async function handleStatusChange(orderId, status) {
@@ -112,11 +112,11 @@ export default function AdminOrdersPage() {
     return list;
   }, [useApi, apiOrders, localOrders, search, statusFilter, dateFrom, dateTo]);
 
-  const ordersList = useApi ? (Array.isArray(apiOrders) ? apiOrders : []) : filtered;
-  const totalPages = useApi ? Math.max(1, Math.ceil(totalCount / PAGE_SIZE)) : Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const ordersList = useApi ? (Array.isArray(apiOrders) ? apiOrders : []) : (filtered || []);
+  const totalPages = useApi ? Math.max(1, Math.ceil((totalCount || 0) / PAGE_SIZE)) : Math.max(1, Math.ceil((filtered || []).length / PAGE_SIZE));
   const pageIndex = Math.min(page, totalPages);
-  const paginated = useApi ? ordersList : useMemo(() => filtered.slice((pageIndex - 1) * PAGE_SIZE, pageIndex * PAGE_SIZE), [filtered, pageIndex]);
-  const displayTotal = useApi ? totalCount : filtered.length;
+  const paginated = useApi ? ordersList : useMemo(() => (filtered || []).slice((pageIndex - 1) * PAGE_SIZE, pageIndex * PAGE_SIZE), [filtered, pageIndex]);
+  const displayTotal = useApi ? (totalCount ?? 0) : (filtered || []).length;
   const productsForMap = useApi ? apiProducts : products;
   const productsMap = useMemo(() => (productsForMap || []).reduce((acc, p) => ({ ...acc, [p.id]: { name: p.name } }), {}), [productsForMap]);
   useEffect(() => setPage(1), [search, statusFilter, dateFrom, dateTo]);

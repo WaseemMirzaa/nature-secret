@@ -12,6 +12,7 @@ import { CartIcon } from '@/components/icons/CartIcon';
 import { HeartIcon } from '@/components/icons/HeartIcon';
 import { trackAddToCart } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
+import { resolveImageUrl } from '@/lib/api';
 
 const SORT_OPTIONS = [
   { value: 'featured', label: 'Featured' },
@@ -43,6 +44,7 @@ function ShopContent() {
   const openCart = useCartOpenStore((s) => s.open);
   const wishlist = useWishlistStore((s) => s.productIds);
   const toggleWishlist = useWishlistStore((s) => s.toggle);
+  const [quickAddVibrate, setQuickAddVibrate] = useState(null);
 
   function handleQuickAdd(product, variant) {
     addToCart({
@@ -59,7 +61,7 @@ function ShopContent() {
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
       <div className="flex flex-col lg:flex-row gap-8">
-        <aside className="lg:w-56 flex-shrink-0">
+        <aside className="lg:w-56 flex-shrink-0 animate-slide-up">
           <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-gold-700/90 mb-4">Category</h3>
           <ul className="space-y-1">
             <li>
@@ -125,12 +127,12 @@ function ShopContent() {
                 <Link href="/" className="mt-4 inline-block text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/40 pb-0.5">Back to home</Link>
               </div>
             ) : (
-            filtered.map((product) => {
+            filtered.map((product, index) => {
               const variant = product.variants?.[0];
               const price = variant?.price ?? product.price;
               const inWishlist = wishlist.includes(product.id);
               return (
-                <article key={product.id} className="group">
+                <article key={product.id} className="group animate-stagger-in opacity-0" style={{ animationDelay: `${index * 75}ms` }}>
                   <Link href={`/shop/${product.id}`} className="block">
                     <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100 relative ring-1 ring-neutral-200/80 group-hover:ring-gold-400/40 transition-all duration-300 shadow-soft group-hover:shadow-gold-sm">
                       {product.badge && (
@@ -139,21 +141,21 @@ function ShopContent() {
                         </span>
                       )}
                       <Image
-                        src={product.images?.[0] || '/assets/nature-secret-logo.svg'}
+                        src={resolveImageUrl(product.images?.[0]) || '/assets/nature-secret-logo.svg'}
                         alt={product.imageAlts?.[0] || product.name || ''}
                         width={400}
                         height={533}
                         className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
-                        unoptimized={!(product.images?.[0] || '').startsWith('http')}
+                        unoptimized
                       />
                       {product.images?.[1] && (
                         <Image
-                          src={product.images[1]}
+                          src={resolveImageUrl(product.images[1])}
                           alt={product.imageAlts?.[1] || product.name || ''}
                           width={400}
                           height={533}
                           className="absolute inset-0 h-full w-full object-cover opacity-0 transition duration-300 group-hover:opacity-100"
-                          unoptimized={!String(product.images[1]).startsWith('http')}
+                          unoptimized
                         />
                       )}
                       <button
@@ -185,8 +187,14 @@ function ShopContent() {
                     ) : (
                       <button
                         type="button"
-                        onClick={() => variant && handleQuickAdd(product, variant)}
-                        className="mt-3 w-full flex items-center justify-center gap-2 rounded-xl border-2 border-neutral-300 py-2.5 text-sm font-medium text-neutral-900 hover:border-gold-400/60 hover:bg-gold-50/50 transition-colors animate-cta-pulse hover:animate-none"
+                        onClick={() => {
+                          if (variant) {
+                            handleQuickAdd(product, variant);
+                            setQuickAddVibrate(product.id);
+                            setTimeout(() => setQuickAddVibrate(null), 400);
+                          }
+                        }}
+                        className={`mt-3 w-full flex items-center justify-center gap-2 rounded-xl border-2 border-neutral-300 py-2.5 text-sm font-medium text-neutral-900 hover:border-gold-400/60 hover:bg-gold-50/50 transition-colors ${quickAddVibrate === product.id ? 'animate-vibrate' : 'animate-cta-pulse hover:animate-none'}`}
                       >
                         <CartIcon className="w-4 h-4" />
                         Quick add

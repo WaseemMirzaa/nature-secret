@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -7,6 +7,15 @@ import { CreateOrderDto } from './dto/create-order.dto';
 @UseGuards(JwtAuthGuard)
 export class OrdersController {
   constructor(private service: OrdersService) {}
+
+  @Get()
+  async list(@Req() req: { user: { id: string } }, @Query('limit') limit?: string, @Query('offset') offset?: string) {
+    const opts = {
+      limit: limit ? Math.min(100, Math.max(1, parseInt(limit, 10) || 50)) : 50,
+      offset: offset ? Math.max(0, parseInt(offset, 10) || 0) : 0,
+    };
+    return this.service.findManyByCustomerId(req.user.id, opts);
+  }
 
   @Post()
   async create(@Req() req: { user: { id: string } }, @Body() dto: CreateOrderDto) {
