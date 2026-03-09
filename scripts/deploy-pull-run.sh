@@ -6,7 +6,7 @@ REPO_DIR="${1:-/var/www/nature-secret}"
 cd "$REPO_DIR"
 git pull
 npm ci
-cd backend && npm run build && cd ..
+cd backend && npm ci && npm run build && cd ..
 rm -rf .next
 npm run build
 pm2 restart nature-secret-api nature-secret-web
