@@ -7,7 +7,7 @@ import { OrderStatusTimeline } from '../../entities/order-status-timeline.entity
 import { Customer } from '../../entities/customer.entity';
 import { EmailService } from '../notifications/email.service';
 import { WhatsAppService } from '../notifications/whatsapp.service';
-import { PushService } from '../notifications/push.service';
+// import { PushService } from '../notifications/push.service'; // TODO: replace with Firebase FCM
 import { EventsGateway } from '../events/events.gateway';
 
 function randomCode(len = 6) {
@@ -26,7 +26,7 @@ export class OrdersService {
     @InjectRepository(Customer) private customerRepo: Repository<Customer>,
     private emailService: EmailService,
     private whatsappService: WhatsAppService,
-    private pushService: PushService,
+    // private pushService: PushService, // TODO: replace with Firebase FCM
     private eventsGateway: EventsGateway,
   ) {}
 
@@ -65,7 +65,7 @@ export class OrdersService {
     if (full.email) this.emailService.sendOrderConfirmation(full.email, full, itemsSummary).catch(() => {});
     if (full.phone) this.whatsappService.sendOrderConfirmation(full.phone, full.id, full.confirmationCode).catch(() => {});
     this.eventsGateway.emitOrderCreated({ id: full.id, status: full.status, createdAt: full.createdAt?.toISOString?.() });
-    this.pushService.notifyNewOrder({ id: full.id, total: full.total, customerName: full.customerName }).catch(() => {});
+    // this.pushService.notifyNewOrder({ id: full.id, total: full.total, customerName: full.customerName }).catch(() => {}); // TODO: Firebase FCM
     return full;
   }
 

@@ -8,6 +8,9 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 export const metadata = {
   title: 'Nature Secret | Premium Herbal Oils & Skincare',
   description: 'Premium minimalistic online store for herbal oils and skincare. Clean, natural, luxurious.',
+  icons: {
+    icon: '/assets/nature-secret-logo.svg',
+  },
 };
 export const viewport = { width: 'device-width', initialScale: 1, maximumScale: 5 };
 
@@ -35,6 +38,7 @@ export default function RootLayout({ children }) {
     <html lang="en" className={inter.variable}>
       <head>
         <meta name="api-url" content={apiUrl} />
+        <link rel="icon" href="/assets/nature-secret-logo.svg" type="image/svg+xml" />
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className="min-h-screen flex flex-col font-sans">
