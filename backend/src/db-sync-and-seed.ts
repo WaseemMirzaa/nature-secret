@@ -3,6 +3,17 @@
  * Run: npm run db:setup  (or npx ts-node -r tsconfig-paths/register src/db-sync-and-seed.ts)
  * Requires .env with MYSQL_* (or defaults for local dev).
  */
+import * as fs from 'fs';
+import * as path from 'path';
+
+const envPath = path.join(__dirname, '..', '.env');
+if (fs.existsSync(envPath)) {
+  fs.readFileSync(envPath, 'utf8').split('\n').forEach((line) => {
+    const m = line.match(/^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.*)$/);
+    if (m) process.env[m[1]] = m[2].replace(/^["']|["']$/g, '').trim();
+  });
+}
+
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { AdminUser } from './entities/admin-user.entity';

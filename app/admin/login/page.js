@@ -5,11 +5,6 @@ import { useRouter } from 'next/navigation';
 import { Logo } from '@/components/Logo';
 import { adminLogin, adminRegister, formatApiError } from '@/lib/api';
 
-const FALLBACK_CREDENTIALS = {
-  'admin@naturesecret.com': { role: 'admin', password: 'Admin123!' },
-  'staff@naturesecret.com': { role: 'staff', password: 'Staff123!' },
-};
-
 export default function AdminLoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState('login');
@@ -31,14 +26,6 @@ export default function AdminLoginPage() {
       router.replace('/admin');
       return;
     } catch (err) {
-      if (mode === 'login' && err?.status === 401 && err?.body) {
-        const cred = FALLBACK_CREDENTIALS[email];
-        if (cred && cred.password === password) {
-          localStorage.setItem('nature_secret_admin', JSON.stringify({ email, role: cred.role }));
-          router.replace('/admin');
-          return;
-        }
-      }
       setError(formatApiError(err, mode === 'signup' ? 'Signup failed.' : 'Invalid email or password.'));
     } finally {
       setLoading(false);

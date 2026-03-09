@@ -194,6 +194,10 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Authorization $http_authorization;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 86400;
     }
 
     location /assets/ {
@@ -318,6 +322,9 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 86400;
     }
 }
 ```
@@ -410,9 +417,24 @@ If health works but login returns 401, check that the seed ran (`pm2 logs` for "
 
 If the browser shows: *Access to fetch at 'http://localhost:4000/...' from origin 'http://YOUR_IP:3000' has been blocked by CORS policy... resource is in more-private address space `loopback`*, the frontend is still calling `localhost:4000` instead of the droplet. Fix: on the droplet set `NEXT_PUBLIC_API_URL=http://YOUR_DROPLET_IP` in `/var/www/nature-secret/.env.local` (e.g. `http://64.23.180.126`, no port), then **rebuild** the frontend (`npm run build`) and restart (`pm2 restart nature-secret-web`). Next.js bakes `NEXT_PUBLIC_*` at build time.
 
+**"GET /api/v1/admin/* 401 (Unauthorized)"**
+
+1. **Nginx must forward the token:** In `location /api/` add `proxy_set_header Authorization $http_authorization;` (see section 7), then `sudo nginx -t && sudo systemctl reload nginx`.
+2. **Use a real login token:** In the browser, open DevTools → Application → Local Storage. If `nature_secret_admin` has no `access_token`, run `localStorage.removeItem('nature_secret_admin'); location.href='/admin/login';` then sign in with `admin@naturesecret.com` / `Admin123!` so the API returns and stores a token.
+3. **Backend:** Same `JWT_SECRET` in backend `.env` as when the token was issued; admin user must exist (re-run seed if needed: `cd backend && node dist/db-sync-and-seed.js`).
+
+**"WebSocket connection to .../api/v1/ws/ failed"**
+
+1. In `location /api/` you must have `proxy_set_header Upgrade $http_upgrade;` and `proxy_set_header Connection "upgrade";` (section 7). Reload Nginx.
+2. Backend and Socket.IO must be running (`pm2 list` → `nature-secret-api` online).
+
 **"Script not found: .../node_modules/.bin/next"**
 
 The ecosystem file was updated to use `./node_modules/next/dist/bin/next` instead of `.bin/next`. On the droplet run: `git pull` (or copy the latest `ecosystem.config.cjs`), then `pm2 delete nature-secret-web`, then `pm2 start ecosystem.config.cjs --only nature-secret-web` and `pm2 save`. If the error persists, ensure `node_modules` exists: from repo root run `npm ci` then `npm run build`, then start PM2 again.
+
+**"Failed to find Server Action \"1\". This request might be from an older or newer deployment."**
+
+The browser is using cached pages from a previous build; Server Action IDs changed after a new deploy. On the droplet do a clean rebuild and restart: `cd /var/www/nature-secret && rm -rf .next && npm run build && pm2 restart nature-secret-web && pm2 save`. Users should hard-refresh (Ctrl+Shift+R or Cmd+Shift+R) or clear cache for the site.
 
 ---
 

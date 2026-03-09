@@ -69,6 +69,11 @@ export default function AdminLayout({ children }) {
     }
     try {
       const data = JSON.parse(stored || '{}');
+      if (!data?.access_token && !pathname?.startsWith('/admin/login')) {
+        localStorage.removeItem('nature_secret_admin');
+        router.replace('/admin/login');
+        return;
+      }
       setAuth(data);
     } catch {
       if (!pathname?.startsWith('/admin/login')) router.replace('/admin/login');
