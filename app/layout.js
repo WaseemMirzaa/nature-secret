@@ -1,6 +1,9 @@
 import './globals.css';
+import { Inter } from 'next/font/google';
 import { Providers } from '@/components/Providers';
 import { StoreLayout } from '@/components/StoreLayout';
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata = {
   title: 'Nature Secret | Premium Herbal Oils & Skincare',
