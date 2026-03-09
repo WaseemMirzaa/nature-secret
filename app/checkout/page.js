@@ -10,6 +10,7 @@ import { trackPurchase } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
 import { createOrder as apiCreateOrder, trackAnalytics, getCustomerToken } from '@/lib/api';
 import { useProductsAndCategories } from '@/lib/useApiData';
+import { CustomerPageLoader } from '@/components/ui/PageLoader';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -106,11 +107,7 @@ export default function CheckoutPage() {
   }
 
   if (!mounted || (mounted && !getCustomerToken())) {
-    return (
-      <div className="mx-auto max-w-lg px-4 py-16 text-center">
-        <p className="text-neutral-600">Checking login…</p>
-      </div>
-    );
+    return <CustomerPageLoader message="Checking login" />;
   }
 
   if (items.length === 0 && !placing) {

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useCustomerStore, useCartStore, useCartOpenStore, useCurrencyStore } from '@/lib/store';
 import { getCustomerOrders, getProducts, resolveImageUrl } from '@/lib/api';
 import { formatPrice } from '@/lib/currency';
+import { CustomerPageLoader, OrderCardSkeleton } from '@/components/ui/PageLoader';
 
 const STATUS_COLORS = {
   pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
@@ -56,7 +57,7 @@ export default function AccountPage() {
   }
 
   if (!customer) {
-    return <div className="mx-auto max-w-lg px-4 py-16 text-center text-neutral-500">Loading…</div>;
+    return <CustomerPageLoader message="Loading your account" />;
   }
 
   return (
@@ -77,19 +78,7 @@ export default function AccountPage() {
 
       <section className="mt-8">
         {loading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-2xl border border-neutral-200 bg-white p-5 animate-pulse">
-                <div className="flex gap-4">
-                  <div className="w-16 h-16 rounded-xl bg-neutral-100" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-neutral-100 rounded w-1/3" />
-                    <div className="h-3 bg-neutral-100 rounded w-1/4" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <OrderCardSkeleton count={3} />
         ) : orders.length === 0 ? (
           <div className="text-center py-16">
             <div className="mx-auto w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mb-4">

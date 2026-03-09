@@ -7,6 +7,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useCustomerStore, useCartStore, useCartOpenStore, useCurrencyStore } from '@/lib/store';
 import { getCustomerOrder, getProducts, resolveImageUrl } from '@/lib/api';
 import { formatPrice } from '@/lib/currency';
+import { CustomerPageLoader, OrderDetailSkeleton } from '@/components/ui/PageLoader';
 
 const STATUS_COLORS = {
   pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
@@ -59,19 +60,9 @@ export default function AccountOrderDetailPage() {
     openCart();
   }
 
-  if (!customer) return <div className="mx-auto max-w-lg px-4 py-16 text-center text-neutral-500">Loading…</div>;
+  if (!customer) return <CustomerPageLoader message="Loading your account" />;
 
-  if (loading) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-12">
-        <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-neutral-100 rounded w-1/3" />
-          <div className="h-4 bg-neutral-100 rounded w-1/4" />
-          <div className="h-40 bg-neutral-100 rounded-2xl" />
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <OrderDetailSkeleton />;
 
 
   if (!order) {

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCustomerStore, useAuthModalStore } from '@/lib/store';
 import { Logo } from '@/components/Logo';
 import { customerLogin, formatApiError } from '@/lib/api';
+import { CustomerPageLoader } from '@/components/ui/PageLoader';
 
 function LoginForm() {
   const router = useRouter();
@@ -85,7 +86,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="mx-auto max-w-sm px-4 py-16 text-center text-neutral-500">Loading…</div>}>
+    <Suspense fallback={<CustomerPageLoader message="Loading" />}>
       <LoginForm />
     </Suspense>
   );
