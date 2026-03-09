@@ -43,7 +43,7 @@ export default function WishlistPage() {
           const v = p.variants?.[0];
           return (
             <article key={p.id} className="group relative">
-              <Link href={`/shop/${p.slug}`}>
+              <Link href={`/shop/${p.id}`}>
                 <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100">
                   <Image src={p.images?.[0] || '/'} alt={p.name || ''} width={300} height={400} className="h-full w-full object-cover" />
                 </div>

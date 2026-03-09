@@ -8,27 +8,27 @@ import { useProductsStore, useCartStore, useCartOpenStore, useWishlistStore, use
 import { SHIPPING_POLICY, RETURN_POLICY } from '@/lib/constants';
 import { trackViewContent, trackAddToCart, trackOutOfStockView } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
-import { getProductBySlug } from '@/lib/api';
+import { getProductById } from '@/lib/api';
 
 export default function ProductPage() {
   const params = useParams();
-  const slug = typeof params?.slug === 'string' ? params.slug : Array.isArray(params?.slug) ? params.slug[0] : '';
+  const id = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params.id[0] : '';
   const storeProducts = useProductsStore((s) => s.products);
   const [apiProduct, setApiProduct] = useState(null);
-  const [productLoading, setProductLoading] = useState(!!slug);
+  const [productLoading, setProductLoading] = useState(!!id);
 
   useEffect(() => {
-    if (!slug) {
+    if (!id) {
       setProductLoading(false);
       return;
     }
-    getProductBySlug(slug)
+    getProductById(id)
       .then((p) => { setApiProduct(p); })
       .catch(() => { setApiProduct(null); })
       .finally(() => setProductLoading(false));
-  }, [slug]);
+  }, [id]);
 
-  const productFromStore = useMemo(() => (slug ? storeProducts.find((p) => p.slug === slug) : null), [storeProducts, slug]);
+  const productFromStore = useMemo(() => (id ? storeProducts.find((p) => p.id === id) : null), [storeProducts, id]);
   const product = apiProduct ?? productFromStore;
   const products = apiProduct ? [apiProduct, ...storeProducts.filter((p) => p.id !== apiProduct.id)] : storeProducts;
   const [selectedVariant, setSelectedVariant] = useState(null);
@@ -107,7 +107,7 @@ export default function ProductPage() {
             />
           </div>
           <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
-            {[mainImage, ...product.images.filter((u) => u !== mainImage)].slice(0, 4).map((url, i) => (
+            {[mainImage, ...(product.images || []).filter((u) => u !== mainImage)].slice(0, 4).map((url, i) => (
               <button
                 key={i}
                 type="button"
@@ -194,7 +194,7 @@ export default function ProductPage() {
           </div>
 
           <ul className="mt-8 space-y-2">
-            {product.benefits?.map((b, i) => (
+            {(product.benefits || []).map((b, i) => (
               <li key={i} className="flex items-center gap-2 text-sm text-neutral-600">
                 <span className="text-gold-600">✓</span> {b}
               </li>
@@ -204,7 +204,7 @@ export default function ProductPage() {
           <div className="mt-10 border-t border-neutral-200 pt-8">
             <h3 className="text-sm font-medium text-neutral-900 mb-3">FAQ</h3>
             <ul className="space-y-2">
-              {product.faq?.map((item, i) => (
+              {(product.faq || []).map((item, i) => (
                 <li key={i} className="border-b border-neutral-100">
                   <button
                     type="button"
@@ -238,9 +238,9 @@ export default function ProductPage() {
           <h2 className="text-2xl font-semibold text-neutral-900 mb-8">You may also like</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {related.map((p) => (
-              <Link key={p.id} href={`/shop/${p.slug}`} className="group">
+              <Link key={p.id} href={`/shop/${p.id}`} className="group">
                 <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100">
-                  <Image src={p.images[0]} alt={p.name} width={300} height={400} className="h-full w-full object-cover group-hover:scale-105 transition duration-300" />
+                  <Image src={p.images?.[0]} alt={p.name} width={300} height={400} className="h-full w-full object-cover group-hover:scale-105 transition duration-300" />
                 </div>
                 <p className="mt-3 font-medium text-neutral-900">{p.name}</p>
                 <p className="text-sm text-neutral-500">{formatPrice(p.price, currency)}</p>

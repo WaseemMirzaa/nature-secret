@@ -145,7 +145,7 @@ export default function HomeContent() {
               {bestsellerProducts.map((product) => {
                 const img = (product.images && product.images[0]) || product.image || '';
                 return (
-                  <Link key={product.id} href={`/shop/${product.slug}`} className="group group/card">
+                  <Link key={product.id} href={`/shop/${product.id}`} className="group group/card">
                     <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100 relative ring-1 ring-neutral-200/80 group-hover/card:ring-gold-400/40 transition-all duration-300 shadow-soft group-hover/card:shadow-gold-sm">
                       {img ? (
                         <Image

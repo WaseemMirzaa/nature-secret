@@ -106,7 +106,7 @@ export default function BlogPostPage() {
               {relatedProducts.map((p) => (
                 <Link
                   key={p.id}
-                  href={`/shop/${p.slug}`}
+                  href={`/shop/${p.id}`}
                   className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-3 shadow-soft hover:border-gold-400/40 hover:shadow-gold-sm transition-all duration-200"
                 >
                   <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-neutral-100 flex-shrink-0">
