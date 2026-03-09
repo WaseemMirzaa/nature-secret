@@ -120,7 +120,7 @@ export default function AdminOrdersPage() {
   const paginated = useApi ? ordersList : sliced;
   const displayTotal = useApi ? (totalCount ?? 0) : (filtered || []).length;
   const productsForMap = useApi ? apiProducts : products;
-  const productsMap = useMemo(() => (productsForMap || []).reduce((acc, p) => ({ ...acc, [p.id]: { name: p.name } }), {}), [productsForMap]);
+  const productsMap = useMemo(() => (productsForMap || []).reduce((acc, p) => ({ ...acc, [p.id]: { name: p.name, variants: p.variants || [] } }), {}), [productsForMap]);
   useEffect(() => setPage(1), [search, statusFilter, dateFrom, dateTo]);
 
   return (

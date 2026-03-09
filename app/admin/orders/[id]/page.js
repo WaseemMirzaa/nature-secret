@@ -100,7 +100,7 @@ export default function AdminOrderDetailPage() {
     );
   }
 
-  const productsMap = products.reduce((acc, p) => ({ ...acc, [p.id]: { name: p.name } }), {});
+  const productsMap = products.reduce((acc, p) => ({ ...acc, [p.id]: { name: p.name, variants: p.variants || [] } }), {});
 
   return (
     <div className="max-w-3xl min-h-[400px]">
