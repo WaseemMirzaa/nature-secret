@@ -19,7 +19,7 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKeyProvider: (req, rawJwt, done) => {
+      secretOrKeyProvider: (req: any, rawJwt: any, done: any) => {
         const secret = this.config.get<string>('JWT_SECRET') || process.env.JWT_SECRET || 'nature-secret-jwt-change-in-production';
         done(null, secret);
       },
