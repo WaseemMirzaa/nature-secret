@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google';
 import { Providers } from '@/components/Providers';
 import { StoreLayout } from '@/components/StoreLayout';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata = {
   title: 'Nature Secret | Premium Herbal Oils & Skincare',
@@ -36,7 +36,7 @@ export default function RootLayout({ children }) {
       <head>
         <meta name="api-url" content={apiUrl} />
       </head>
-      <body className="min-h-screen flex flex-col">
+      <body className="min-h-screen flex flex-col font-sans">
         <script dangerouslySetInnerHTML={{ __html: chunkReloadScript }} />
         <Providers>
           <StoreLayout>{children}</StoreLayout>

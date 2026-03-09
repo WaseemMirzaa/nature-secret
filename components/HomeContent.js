@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { useProductsStore } from '@/lib/store';
 import { useProductsAndCategories } from '@/lib/useApiData';
 import { formatPrice } from '@/lib/currency';
-import { getSlider } from '@/lib/api';
+import { getSlider, resolveImageUrl } from '@/lib/api';
 import { TRUST_BADGES } from '@/lib/constants';
 
 export default function HomeContent() {
@@ -22,7 +22,7 @@ export default function HomeContent() {
     getSlider()
       .then((list) => {
         if (Array.isArray(list) && list.length > 0) {
-          setHeroSlides(list.map((s) => ({ id: s.id, src: s.imageUrl, alt: s.alt || '', title: s.title || '', href: s.href || '/shop' })));
+          setHeroSlides(list.map((s) => ({ id: s.id, src: resolveImageUrl(s.imageUrl), alt: s.alt || '', title: s.title || '', href: s.href || '/shop' })));
         }
       })
       .catch(() => setSliderError(true));

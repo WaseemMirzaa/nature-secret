@@ -7,7 +7,7 @@ import { useBlogStore, useProductsStore } from '@/lib/store';
 import { BLOG_TEMPLATES } from '@/lib/constants';
 import { format } from 'date-fns';
 import { useMemo, useState, useEffect } from 'react';
-import { getBlogPostBySlug } from '@/lib/api';
+import { getBlogPostBySlug, resolveImageUrl } from '@/lib/api';
 
 function getTemplateLabel(templateSlug) {
   return BLOG_TEMPLATES.find((t) => t.slug === templateSlug || t.id === templateSlug)?.name || templateSlug || 'Article';
@@ -90,7 +90,7 @@ export default function BlogPostPage() {
 
         {post.image && (
           <div className="aspect-[16/9] rounded-2xl overflow-hidden bg-neutral-100 mb-12 ring-1 ring-neutral-200/60 shadow-soft">
-            <Image src={post.image} alt={post.imageAlt || post.title || ''} width={1200} height={675} className="h-full w-full object-cover" priority />
+            <Image src={resolveImageUrl(post.image)} alt={post.imageAlt || post.title || ''} width={1200} height={675} className="h-full w-full object-cover" priority />
           </div>
         )}
 

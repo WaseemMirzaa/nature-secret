@@ -5,7 +5,7 @@ import Link from '@/components/Link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useBlogStore } from '@/lib/store';
-import { getAdminBlog, deleteBlogPost as deleteBlogPostApi } from '@/lib/api';
+import { getAdminBlog, deleteBlogPost as deleteBlogPostApi, resolveImageUrl } from '@/lib/api';
 import { BLOG_TEMPLATES, BLOG_CATEGORIES } from '@/lib/constants';
 import { format } from 'date-fns';
 import { CardListSkeleton } from '@/components/ui/PageLoader';
@@ -82,7 +82,7 @@ export default function AdminBlogPage() {
         {!mounted ? <CardListSkeleton count={6} /> : paginated.map((post) => (
           <div key={post.id} className="flex items-center gap-4 rounded-2xl border border-neutral-200 bg-white p-4">
             <div className="relative h-16 w-24 rounded-lg overflow-hidden bg-neutral-100 flex-shrink-0">
-              <Image src={post.image || ''} alt="" fill className="object-cover" sizes="96px" />
+              <Image src={resolveImageUrl(post.image) || ''} alt="" fill className="object-cover" sizes="96px" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-medium text-neutral-900">{post.title}</p>

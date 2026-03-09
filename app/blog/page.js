@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useBlogStore } from '@/lib/store';
 import { useBlogPosts } from '@/lib/useApiData';
 import { BLOG_TEMPLATES } from '@/lib/constants';
+import { resolveImageUrl } from '@/lib/api';
 import { format } from 'date-fns';
 
 function getTemplateLabel(templateSlug) {
@@ -61,7 +62,7 @@ export default function BlogPage() {
                   <div className="aspect-[4/3] overflow-hidden bg-neutral-100">
                     {post.image ? (
                       <Image
-                        src={post.image}
+                        src={resolveImageUrl(post.image)}
                         alt={post.imageAlt || post.title || ''}
                         width={600}
                         height={450}

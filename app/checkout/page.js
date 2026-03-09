@@ -32,6 +32,7 @@ export default function CheckoutPage() {
     pincode: '',
   });
   const [placing, setPlacing] = useState(false);
+  const [orderError, setOrderError] = useState('');
 
   useEffect(() => setMounted(true), []);
   useEffect(() => {
@@ -75,6 +76,7 @@ export default function CheckoutPage() {
       return;
     }
     setPlacing(true);
+    setOrderError('');
     const addressStr = `${form.address}, ${form.city}, ${form.state} ${form.pincode}`;
     const orderPayload = {
       customerName: form.name,
@@ -88,11 +90,13 @@ export default function CheckoutPage() {
     let orderId;
     try {
       const res = await apiCreateOrder(orderPayload);
-      orderId = res?.id || `ORD-${Date.now()}`;
+      orderId = res?.id;
+      if (!orderId) throw new Error('Order creation failed');
       addOrder({ id: orderId, ...orderPayload, status: 'pending' });
-    } catch (_) {
-      orderId = `ORD-${Date.now()}`;
-      addOrder({ id: orderId, ...orderPayload, status: 'pending' });
+    } catch (err) {
+      setPlacing(false);
+      setOrderError(err?.body?.message || err?.message || 'Failed to place order. Please try again.');
+      return;
     }
     trackPurchase(orderId, grandTotal / 100, currency, items.map((i) => i.productId));
     try { await trackAnalytics({ type: 'purchase', orderId, sessionId: `sess-${Date.now()}`, payload: {} }); } catch (_) {}
@@ -227,6 +231,7 @@ export default function CheckoutPage() {
               <div className="flex justify-between text-neutral-600"><span>Shipping</span><span>{shipping === 0 ? 'Free' : formatPrice(shipping, currency)}</span></div>
               <div className="flex justify-between font-semibold text-neutral-900 pt-2 border-t border-neutral-200"><span>Total</span><span>{formatPrice(grandTotal, currency)}</span></div>
             </div>
+            {orderError && <p className="mt-4 text-sm text-red-600">{orderError}</p>}
             <button
               type="submit"
               disabled={placing}
