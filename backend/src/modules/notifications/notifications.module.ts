@@ -4,12 +4,13 @@ import { Order } from '../../entities/order.entity';
 import { OrderStatusTimeline } from '../../entities/order-status-timeline.entity';
 import { EmailService } from './email.service';
 import { WhatsAppService } from './whatsapp.service';
+import { PushService } from './push.service';
 import { NotificationsController } from './notifications.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Order, OrderStatusTimeline])],
   controllers: [NotificationsController],
-  providers: [EmailService, WhatsAppService],
-  exports: [EmailService, WhatsAppService],
+  providers: [EmailService, WhatsAppService, PushService],
+  exports: [EmailService, WhatsAppService, PushService],
 })
 export class NotificationsModule {}

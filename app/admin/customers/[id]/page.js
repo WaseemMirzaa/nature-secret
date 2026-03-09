@@ -5,7 +5,7 @@ import Link from '@/components/Link';
 import { useParams } from 'next/navigation';
 import { useOrdersStore, useCustomerNotesStore, useCurrencyStore } from '@/lib/store';
 import { formatPrice } from '@/lib/currency';
-import { getAdminCustomer } from '@/lib/api';
+import { getAdminCustomer, setCustomerBlocked } from '@/lib/api';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -16,6 +16,7 @@ export default function AdminCustomerDetailPage() {
   const orders = useOrdersStore((s) => s.orders);
   const [apiCustomer, setApiCustomer] = useState(null);
   const [loading, setLoading] = useState(isUuid);
+  const [blocking, setBlocking] = useState(false);
 
   useEffect(() => {
     if (!isUuid) return;
@@ -37,10 +38,21 @@ export default function AdminCustomerDetailPage() {
     ? { name: customerOrders[0].customerName, email: customerOrders[0].email, phone: customerOrders[0].phone, address: customerOrders[0].address }
     : null;
   const customer = apiCustomer
-    ? { name: apiCustomer.name, email: apiCustomer.email, phone: apiCustomer.phone, address: apiCustomer.address }
+    ? { name: apiCustomer.name, email: apiCustomer.email, phone: apiCustomer.phone, address: apiCustomer.address, blocked: apiCustomer.blocked }
     : customerFromOrders;
 
   const saveNote = () => setNote(noteKey, noteValue);
+
+  const handleBlock = async (block) => {
+    if (!apiCustomer?.id || blocking) return;
+    setBlocking(true);
+    try {
+      const updated = await setCustomerBlocked(apiCustomer.id, block);
+      setApiCustomer((c) => (c ? { ...c, blocked: updated.blocked } : c));
+    } finally {
+      setBlocking(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -65,6 +77,14 @@ export default function AdminCustomerDetailPage() {
       <Link href="/admin/customers" className="text-sm text-neutral-500 hover:text-neutral-900 mb-6 inline-block">← Customers</Link>
       <h1 className="text-2xl font-semibold text-neutral-900">{customer?.name || idOrEmail}</h1>
       <p className="text-neutral-600">{customer?.email ?? idOrEmail}</p>
+      {apiCustomer && (
+        <div className="mt-2 flex items-center gap-3">
+          {customer?.blocked ? <span className="text-red-600 font-medium">Blocked</span> : <span className="text-green-600">Active</span>}
+          <button type="button" disabled={blocking} onClick={() => handleBlock(!customer?.blocked)} className={`rounded-xl border border-neutral-200 px-3 py-1.5 text-sm font-medium disabled:opacity-50 ${customer?.blocked ? 'text-green-600' : 'text-red-600'}`}>
+            {customer?.blocked ? 'Unblock' : 'Block'}
+          </button>
+        </div>
+      )}
       {customer?.phone && <p className="text-neutral-600">Phone: {customer.phone}</p>}
       {customer?.address && <p className="mt-2 text-neutral-600 whitespace-pre-wrap">{customer.address}</p>}
 

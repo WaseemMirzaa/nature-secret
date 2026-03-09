@@ -50,6 +50,7 @@ module.exports = {
         'fade-in': 'fadeIn 0.3s ease-out',
         'slide-up': 'slideUp 0.4s ease-out',
         'cta-pulse': 'ctaPulse 2s ease-in-out infinite',
+        'cta-attract': 'ctaAttract 1s ease-in-out infinite',
         'cta-bounce': 'ctaBounce 1.5s ease-in-out infinite',
         'cta-shimmer': 'ctaShimmer 2.5s ease-in-out infinite',
         'cta-glow': 'ctaGlow 2s ease-in-out infinite',
@@ -61,6 +62,10 @@ module.exports = {
         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
         slideUp: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
         ctaPulse: { '0%, 100%': { transform: 'scale(1)', boxShadow: '0 0 0 0 rgba(212, 168, 74, 0.4)' }, '50%': { transform: 'scale(1.02)', boxShadow: '0 0 0 6px rgba(212, 168, 74, 0.15)' } },
+        ctaAttract: {
+          '0%, 100%': { transform: 'scale(1) translateY(0)', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' },
+          '50%': { transform: 'scale(1.05) translateY(-2px)', boxShadow: '0 8px 24px rgba(0,0,0,0.25), 0 0 20px 4px rgba(212, 168, 74, 0.45)' },
+        },
         ctaBounce: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-3px)' } },
         ctaShimmer: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.92' } },
         ctaGlow: { '0%, 100%': { boxShadow: '0 0 0 0 rgba(28, 25, 23, 0.3)' }, '50%': { boxShadow: '0 0 20px 2px rgba(212, 168, 74, 0.25)' } },

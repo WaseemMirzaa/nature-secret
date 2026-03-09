@@ -11,12 +11,14 @@ import { AdminBlogUploadController } from './admin-blog-upload.controller';
 import { AdminService } from './admin.service';
 import { OrdersModule } from '../orders/orders.module';
 import { ProductsModule } from '../products/products.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Order, Product, Customer, BlogPost, BlogCategory]),
     OrdersModule,
     ProductsModule,
+    NotificationsModule,
   ],
   controllers: [AdminController, AdminProductUploadController, AdminBlogUploadController],
   providers: [AdminService],

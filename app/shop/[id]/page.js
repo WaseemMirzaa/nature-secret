@@ -37,6 +37,7 @@ export default function ProductPage() {
   const [zoom, setZoom] = useState(false);
   const [addCartVibrate, setAddCartVibrate] = useState(false);
   const [reviews, setReviews] = useState([]);
+  const [reviewsExpanded, setReviewsExpanded] = useState(false);
 
   const variant = selectedVariant ?? product?.variants?.[0];
   const price = variant?.price ?? product?.price;
@@ -198,7 +199,7 @@ export default function ProductPage() {
               <button
                 type="button"
                 onClick={() => { handleAddToCart(); setAddCartVibrate(true); setTimeout(() => setAddCartVibrate(false), 400); }}
-                className={`flex-1 min-w-[200px] rounded-2xl bg-neutral-900 py-3.5 text-sm font-medium text-white hover:bg-neutral-800 transition ${addCartVibrate ? 'animate-vibrate' : 'animate-cta-bounce hover:animate-none'}`}
+                className={`flex-1 min-w-[200px] rounded-2xl bg-neutral-900 py-3.5 text-sm font-medium text-white hover:bg-neutral-800 transition ${addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'}`}
               >
                 Add to cart
               </button>
@@ -255,23 +256,38 @@ export default function ProductPage() {
 
           {reviews.length > 0 && (
             <div className="mt-10 border-t border-neutral-200 pt-8">
-              <h3 className="text-lg font-medium text-neutral-900 mb-4">Customer reviews</h3>
-              <ul className="space-y-4">
-                {reviews.map((r, i) => (
-                  <li
-                    key={r.id}
-                    className="rounded-xl border border-neutral-100 bg-neutral-50/50 p-4 animate-stagger-in opacity-0"
-                    style={{ animationDelay: `${i * 75}ms` }}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-gold-600">{'★'.repeat(Math.min(5, r.rating || 0))}</span>
-                      <span className="text-neutral-400">{'★'.repeat(5 - Math.min(5, r.rating || 0))}</span>
-                      <span className="text-sm font-medium text-neutral-700">{r.authorName}</span>
-                    </div>
-                    <p className="text-sm text-neutral-600">{r.body}</p>
-                  </li>
-                ))}
-              </ul>
+              <button
+                type="button"
+                onClick={() => setReviewsExpanded((e) => !e)}
+                className="flex w-full items-center justify-between text-left rounded-xl border border-neutral-200 bg-white px-4 py-3 hover:bg-neutral-50 transition"
+                aria-expanded={reviewsExpanded}
+              >
+                <span className="text-lg font-medium text-neutral-900">Customer reviews ({reviews.length})</span>
+                <span className="text-neutral-400">{reviewsExpanded ? '▼' : '▶'}</span>
+              </button>
+              {reviewsExpanded && (
+                <ul className="space-y-4 mt-4">
+                  {reviews.map((r, i) => (
+                    <li
+                      key={r.id}
+                      className="rounded-xl border border-neutral-100 bg-neutral-50/50 p-4 animate-stagger-in opacity-0"
+                      style={{ animationDelay: `${i * 75}ms` }}
+                    >
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <span className="text-gold-600">{'★'.repeat(Math.min(5, r.rating || 0))}</span>
+                        <span className="text-neutral-400">{'★'.repeat(5 - Math.min(5, r.rating || 0))}</span>
+                        <span className="text-sm font-medium text-neutral-700">{r.authorName}</span>
+                        {r.createdAt && (
+                          <span className="text-xs text-neutral-500 ml-auto">
+                            {new Date(r.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-neutral-600">{r.body}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           )}
         </div>

@@ -1,0 +1,9 @@
+{
+  "name": "Nature Secret Order Alerts",
+  "short_name": "Order Alerts",
+  "start_url": "/admin/order-notifications",
+  "display": "standalone",
+  "background_color": "#fafafa",
+  "theme_color": "#171717",
+  "icons": []
+}

@@ -232,7 +232,7 @@ export default function CheckoutPage() {
             <button
               type="submit"
               disabled={placing}
-              className="mt-6 w-full rounded-2xl bg-neutral-900 py-3.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50 animate-cta-pulse hover:animate-none transition disabled:animate-none"
+              className="mt-6 w-full rounded-2xl bg-neutral-900 py-3.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50 animate-cta-attract hover:animate-none transition disabled:animate-none"
             >
               {placing ? 'Placing order…' : 'Place order (Cash on delivery)'}
             </button>

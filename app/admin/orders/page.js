@@ -11,7 +11,15 @@ import { useAdminRealtime } from '@/context/AdminRealtimeContext';
 import { exportOrdersCSV, exportOrdersXLSX, exportGroupsCSV, exportGroupsXLSX } from '@/lib/export';
 
 const STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'];
+const STAFF_STATUSES = ['shipped', 'delivered', 'cancelled', 'returned'];
 const PAGE_SIZE = 50;
+
+function statusSequence(order) {
+  const tl = order?.statusTimeline || [];
+  if (!tl.length) return order?.status ? [order.status] : [];
+  const sorted = [...tl].sort((a, b) => new Date(a.changedAt || 0) - new Date(b.changedAt || 0));
+  return sorted.map((e) => ({ status: e.status, changedBy: e.changedBy }));
+}
 
 function getChangedBy() {
   if (typeof window === 'undefined') return 'admin';
@@ -240,7 +248,7 @@ export default function AdminOrdersPage() {
         {selected.size > 0 && <span className="text-sm font-medium text-neutral-700">{selected.size} selected</span>}
         <select value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value)} className="rounded-xl border border-neutral-200 px-3 py-2 text-sm min-w-0">
           <option value="">Change status to…</option>
-          {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+          {(isStaff ? STAFF_STATUSES : STATUSES).map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
         {selected.size > 0 && (
           <button type="button" onClick={handleBulkStatusChange} disabled={!bulkStatus || bulkUpdating} className="rounded-xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium disabled:opacity-50">
@@ -278,6 +286,7 @@ export default function AdminOrdersPage() {
                     <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Customer</th>
                     <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Total</th>
                     <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Status</th>
+                    {!isStaff && <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Status sequence</th>}
                     <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Actions</th>
                   </>
                 )}
@@ -313,9 +322,20 @@ export default function AdminOrdersPage() {
                           onChange={(e) => handleStatusChange(o.id, e.target.value)}
                           className="rounded-xl border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-900 capitalize bg-white hover:border-gold-400/50 focus:outline-none focus:ring-2 focus:ring-gold-500/30"
                         >
-                          {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                          {(isStaff ? STAFF_STATUSES : STATUSES).map((s) => <option key={s} value={s}>{s}</option>)}
                         </select>
                       </td>
+                      {!isStaff && (
+                        <td className="p-4 text-xs text-neutral-600 max-w-[180px]">
+                          {(() => {
+                            const seq = statusSequence(o);
+                            if (!seq.length) return '—';
+                            const last = seq[seq.length - 1];
+                            const by = last.changedBy === 'staff' ? ' (Staff)' : last.changedBy === 'admin' ? ' (Admin)' : '';
+                            return seq.map((e) => e.status).join(' → ') + by;
+                          })()}
+                        </td>
+                      )}
                       <td className="p-4">
                         <div className="flex flex-wrap items-center gap-2">
                           <Link href={`/admin/orders/${o.id}`} prefetch={false} className="inline-flex items-center rounded-xl bg-neutral-900 text-white px-3 py-2 text-sm font-medium hover:bg-neutral-800">View</Link>

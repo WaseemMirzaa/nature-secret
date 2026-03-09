@@ -63,6 +63,7 @@ export class AuthService {
   async customerLogin(email: string, password: string) {
     const customer = await this.validateCustomer(email, password);
     if (!customer) throw new UnauthorizedException('Invalid email or password.');
+    if (customer.blocked) throw new UnauthorizedException('Account is blocked.');
     const payload = { sub: customer.id, email: customer.email, type: 'customer' };
     return {
       access_token: this.jwtService.sign(payload),

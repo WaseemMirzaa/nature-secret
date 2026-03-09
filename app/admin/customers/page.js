@@ -3,7 +3,7 @@
 import { useOrdersStore } from '@/lib/store';
 import { useMemo, useState, useEffect } from 'react';
 import Link from '@/components/Link';
-import { getAdminCustomers } from '@/lib/api';
+import { getAdminCustomers, setCustomerBlocked } from '@/lib/api';
 import { TableSkeleton } from '@/components/ui/PageLoader';
 
 const PAGE_SIZE = 50;
@@ -25,6 +25,7 @@ export default function AdminCustomersPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [page, setPage] = useState(1);
+  const [blockingId, setBlockingId] = useState(null);
 
   useEffect(() => {
     if (!getAdminToken()) {
@@ -88,6 +89,19 @@ export default function AdminCustomersPage() {
 
   useEffect(() => setPage(1), [search, dateFrom, dateTo]);
 
+  const handleBlock = async (c, block) => {
+    if (!c.id || blockingId) return;
+    setBlockingId(c.id);
+    try {
+      await setCustomerBlocked(c.id, block);
+      setApiCustomers((prev) => prev.map((x) => (x.id === c.id ? { ...x, blocked: !!block } : x)));
+    } finally {
+      setBlockingId(null);
+    }
+  };
+
+  const isUuid = (id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
   return (
     <div>
       <h1 className="text-2xl font-semibold text-neutral-900">Customers</h1>
@@ -112,22 +126,35 @@ export default function AdminCustomersPage() {
               <tr>
                 <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Name</th>
                 <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Email</th>
+                <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Status</th>
                 <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Orders</th>
                 <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Last order</th>
                 <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {loading ? <TableSkeleton rows={8} cols={5} /> : paginated.map((c) => (
+              {loading ? <TableSkeleton rows={8} cols={6} /> : paginated.map((c) => (
                 <tr key={c.id || c.email} className="border-b border-neutral-100 hover:bg-neutral-50/50">
                   <td className="p-4 font-medium">
                     <Link href={`/admin/customers/${encodeURIComponent(c.id || c.email)}`} className="text-neutral-900 hover:underline">{c.name ?? '—'}</Link>
                   </td>
                   <td className="p-4 text-neutral-600">{c.email ?? '—'}</td>
+                  <td className="p-4">
+                    {useApi && isUuid(c.id) ? (
+                      c.blocked ? <span className="text-red-600 text-sm font-medium">Blocked</span> : <span className="text-green-600 text-sm">Active</span>
+                    ) : '—'}
+                  </td>
                   <td className="p-4">{c.orderCount ?? '—'}</td>
                   <td className="p-4 text-neutral-500">{c.lastOrder ? new Date(c.lastOrder).toLocaleDateString() : '—'}</td>
-                  <td className="p-4">
+                  <td className="p-4 flex flex-wrap items-center gap-2">
                     <Link href={`/admin/customers/${encodeURIComponent(c.id || c.email)}`} className="text-neutral-600 hover:text-neutral-900">View</Link>
+                    {useApi && isUuid(c.id) && (
+                      c.blocked ? (
+                        <button type="button" disabled={blockingId === c.id} onClick={() => handleBlock(c, false)} className="text-green-600 hover:underline text-sm disabled:opacity-50">Unblock</button>
+                      ) : (
+                        <button type="button" disabled={blockingId === c.id} onClick={() => handleBlock(c, true)} className="text-red-600 hover:underline text-sm disabled:opacity-50">Block</button>
+                      )
+                    )}
                   </td>
                 </tr>
             ))}

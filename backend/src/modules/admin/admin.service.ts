@@ -25,14 +25,24 @@ export class AdminService {
     try {
       const page = Math.max(1, params.page || 1);
       const limit = Math.min(100, Math.max(1, params.limit || 50));
-      const qb = this.orderRepo.createQueryBuilder('o').leftJoinAndSelect('o.items', 'items').leftJoinAndSelect('o.statusTimeline', 'timeline');
+      const qb = this.orderRepo
+        .createQueryBuilder('o')
+        .leftJoinAndSelect('o.items', 'items')
+        .leftJoinAndSelect('o.statusTimeline', 'timeline')
+        .leftJoin('o.customer', 'cust');
+      qb.andWhere('(o.customerId IS NULL OR cust.blocked = 0)');
       if (params.status && params.status !== 'all') qb.andWhere('o.status = :status', { status: params.status });
       if (params.search && params.search.trim()) {
         const s = `%${params.search.trim()}%`;
         qb.andWhere('(o.id LIKE :s)', { s });
       }
-      const from = params.dateFrom && params.dateFrom !== 'undefined' ? params.dateFrom : undefined;
-      const to = params.dateTo && params.dateTo !== 'undefined' ? params.dateTo : undefined;
+      let from = params.dateFrom && params.dateFrom !== 'undefined' ? params.dateFrom : undefined;
+      let to = params.dateTo && params.dateTo !== 'undefined' ? params.dateTo : undefined;
+      if (!from && !to) {
+        const today = new Date().toISOString().slice(0, 10);
+        from = today;
+        to = today;
+      }
       if (from) qb.andWhere('o.createdAt >= :from', { from });
       if (to) qb.andWhere('o.createdAt <= :to', { to: `${to}T23:59:59` });
 
@@ -132,6 +142,22 @@ export class AdminService {
   async getCustomer(id: string) {
     const c = await this.customerRepo.findOne({ where: { id } });
     if (!c) throw new NotFoundException('Customer not found');
+    return c;
+  }
+
+  async setCustomerBlocked(id: string, blocked: boolean) {
+    const c = await this.customerRepo.findOne({ where: { id } });
+    if (!c) throw new NotFoundException('Customer not found');
+    c.blocked = !!blocked;
+    await this.customerRepo.save(c);
+    if (blocked) {
+      const orders = await this.orderRepo.find({ where: { customerId: id } });
+      for (const order of orders) {
+        if (order.status !== 'cancelled') {
+          await this.ordersService.updateStatus(order.id, 'cancelled', 'system');
+        }
+      }
+    }
     return c;
   }
 

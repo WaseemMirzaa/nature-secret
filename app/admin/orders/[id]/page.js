@@ -14,6 +14,7 @@ function _format(amount, currency) {
 }
 
 const STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'];
+const STAFF_STATUSES = ['shipped', 'delivered', 'cancelled', 'returned'];
 
 function getChangedBy() {
   if (typeof window === 'undefined') return 'admin';
@@ -46,6 +47,7 @@ export default function AdminOrderDetailPage() {
   const [apiProducts, setApiProducts] = useState([]);
   const currency = useCurrencyStore((s) => s.currency);
   const orderId = params?.id ? (Array.isArray(params.id) ? params.id[0] : params.id) : null;
+  const isStaff = (() => { try { return JSON.parse(localStorage.getItem('nature_secret_admin') || '{}').role === 'staff'; } catch { return false; } })();
   const products = getAdminToken()
     ? (Array.isArray(apiProducts) && apiProducts.length ? apiProducts : (storeProducts || []))
     : (storeProducts || []);
@@ -143,20 +145,20 @@ export default function AdminOrderDetailPage() {
               onChange={(e) => updateOrderStatus(order.id, e.target.value, getChangedBy())}
               className="rounded-xl border border-neutral-200 px-4 py-2.5 text-sm font-medium text-neutral-900 capitalize bg-white hover:border-gold-400/50 focus:outline-none focus:ring-2 focus:ring-gold-500/30 min-w-[160px]"
             >
-              {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+              {(isStaff ? STAFF_STATUSES : STATUSES).map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
         </section>
         {statusTimeline && statusTimeline.length > 0 && (
           <section className="p-6">
-            <h2 className="text-sm font-medium text-neutral-500 uppercase tracking-wider mb-3">Status timeline</h2>
+            <h2 className="text-sm font-medium text-neutral-500 uppercase tracking-wider mb-3">Status history (who changed)</h2>
             <ul className="space-y-2 text-sm">
               {[...statusTimeline].reverse().map((entry, i) => (
                 <li key={i} className="flex flex-wrap items-center gap-2 py-1.5 border-b border-neutral-100 last:border-0">
                   <span className="font-medium capitalize text-neutral-900">{entry.status}</span>
                   <span className="text-neutral-500">{entry.changedAt ? new Date(entry.changedAt).toLocaleString() : '—'}</span>
                   <span className="text-neutral-500">·</span>
-                  <span className="text-neutral-600 capitalize">{entry.changedBy === 'staff' ? 'Staff' : entry.changedBy === 'admin' ? 'Admin' : 'System'}</span>
+                  <span className="text-neutral-600">{entry.changedBy === 'staff' ? 'Staff' : entry.changedBy === 'admin' ? 'Admin' : 'System'}</span>
                 </li>
               ))}
             </ul>
@@ -211,7 +213,7 @@ export default function AdminOrderDetailPage() {
                       onChange={(e) => updateOrderStatus(o.id, e.target.value, getChangedBy())}
                       className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm capitalize bg-white"
                     >
-                      {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                      {(isStaff ? STAFF_STATUSES : STATUSES).map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
                     <span className="text-xs text-neutral-500">{o.createdAt ? new Date(o.createdAt).toLocaleString() : ''}</span>
                   </div>

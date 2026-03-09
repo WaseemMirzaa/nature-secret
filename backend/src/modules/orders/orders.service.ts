@@ -1,11 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from '../../entities/order.entity';
 import { OrderItem } from '../../entities/order-item.entity';
 import { OrderStatusTimeline } from '../../entities/order-status-timeline.entity';
+import { Customer } from '../../entities/customer.entity';
 import { EmailService } from '../notifications/email.service';
 import { WhatsAppService } from '../notifications/whatsapp.service';
+import { PushService } from '../notifications/push.service';
 import { EventsGateway } from '../events/events.gateway';
 
 function randomCode(len = 6) {
@@ -21,8 +23,10 @@ export class OrdersService {
     @InjectRepository(Order) private orderRepo: Repository<Order>,
     @InjectRepository(OrderItem) private itemRepo: Repository<OrderItem>,
     @InjectRepository(OrderStatusTimeline) private timelineRepo: Repository<OrderStatusTimeline>,
+    @InjectRepository(Customer) private customerRepo: Repository<Customer>,
     private emailService: EmailService,
     private whatsappService: WhatsAppService,
+    private pushService: PushService,
     private eventsGateway: EventsGateway,
   ) {}
 
@@ -36,6 +40,10 @@ export class OrdersService {
     paymentMethod?: string;
     items: Array<{ productId: string; variantId?: string; qty: number; price: number }>;
   }): Promise<Order> {
+    if (dto.customerId) {
+      const customer = await this.customerRepo.findOne({ where: { id: dto.customerId } });
+      if (customer?.blocked) throw new ForbiddenException('Account is blocked.');
+    }
     const order = this.orderRepo.create({
       customerId: dto.customerId ?? null,
       customerName: dto.customerName ?? null,
@@ -57,6 +65,7 @@ export class OrdersService {
     if (full.email) this.emailService.sendOrderConfirmation(full.email, full, itemsSummary).catch(() => {});
     if (full.phone) this.whatsappService.sendOrderConfirmation(full.phone, full.id, full.confirmationCode).catch(() => {});
     this.eventsGateway.emitOrderCreated({ id: full.id, status: full.status, createdAt: full.createdAt?.toISOString?.() });
+    this.pushService.notifyNewOrder({ id: full.id, total: full.total, customerName: full.customerName }).catch(() => {});
     return full;
   }
 
@@ -83,6 +92,10 @@ export class OrdersService {
   }
 
   async updateStatus(orderId: string, status: string, changedBy: string): Promise<Order> {
+    const staffAllowedStatuses = ['shipped', 'delivered', 'cancelled', 'returned'];
+    if (changedBy === 'staff' && !staffAllowedStatuses.includes(status)) {
+      throw new BadRequestException('Staff can only set status to: shipped, delivered, cancelled, or returned.');
+    }
     const order = await this.orderRepo.findOne({ where: { id: orderId } });
     if (!order) throw new NotFoundException('Order not found');
     order.status = status;

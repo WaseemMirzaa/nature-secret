@@ -32,6 +32,9 @@ export class Customer {
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
+  @Column({ type: 'boolean', default: false })
+  blocked: boolean;
+
   @OneToMany(() => Order, (o) => o.customer)
   orders: Order[];
 

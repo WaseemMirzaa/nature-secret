@@ -35,6 +35,7 @@ export default function RootLayout({ children }) {
     <html lang="en" className={inter.variable}>
       <head>
         <meta name="api-url" content={apiUrl} />
+        <link rel="manifest" href="/manifest.json" />
       </head>
       <body className="min-h-screen flex flex-col font-sans">
         <script dangerouslySetInnerHTML={{ __html: chunkReloadScript }} />

@@ -64,7 +64,7 @@ export default function WishlistPage() {
                 <button
                   type="button"
                   onClick={() => { if (v) { addItem({ productId: p.id, variantId: v.id, price: v.price }); openCart(); } }}
-                  className="flex-1 rounded-lg border border-neutral-900 bg-neutral-900 text-white py-2 text-sm font-medium animate-cta-lift hover:animate-none transition"
+                  className="flex-1 rounded-lg border border-neutral-900 bg-neutral-900 text-white py-2 text-sm font-medium animate-cta-attract hover:animate-none transition"
                 >
                   Add to cart
                 </button>

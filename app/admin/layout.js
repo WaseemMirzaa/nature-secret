@@ -8,13 +8,14 @@ import { PageLoader } from '@/components/ui/PageLoader';
 import { AdminRealtimeProvider } from '@/context/AdminRealtimeContext';
 
 const ADMIN_NAV = [
-  { href: '/admin', label: 'Dashboard' },
-  { href: '/admin/products', label: 'Products' },
-  { href: '/admin/orders', label: 'Orders' },
-  { href: '/admin/customers', label: 'Customers' },
-  { href: '/admin/slider', label: 'Home slider' },
-  { href: '/admin/blog', label: 'Blog' },
-  { href: '/admin/analytics', label: 'Analytics' },
+  { href: '/admin', label: 'Dashboard', adminOnly: true },
+  { href: '/admin/products', label: 'Products', adminOnly: true },
+  { href: '/admin/orders', label: 'Orders', adminOnly: false },
+  { href: '/admin/customers', label: 'Customers', adminOnly: true },
+  { href: '/admin/order-notifications', label: 'Order notifications', adminOnly: true },
+  { href: '/admin/slider', label: 'Home slider', adminOnly: true },
+  { href: '/admin/blog', label: 'Blog', adminOnly: true },
+  { href: '/admin/analytics', label: 'Analytics', adminOnly: true },
 ];
 
 function NavSidebar({ pathname, auth, onNavClick, onLogout }) {
@@ -27,7 +28,7 @@ function NavSidebar({ pathname, auth, onNavClick, onLogout }) {
         <p className="text-xs text-neutral-500 mt-1">Admin</p>
       </div>
       <nav className="flex-1 p-4 space-y-1">
-        {ADMIN_NAV.map((item) => (
+        {ADMIN_NAV.filter((item) => !item.adminOnly || auth?.role === 'admin').map((item) => (
           <Link
             key={item.href}
             href={item.href}
@@ -85,6 +86,11 @@ export default function AdminLayout({ children }) {
   }
 
   if (!auth) {
+    return <PageLoader />;
+  }
+
+  if (auth?.role === 'staff' && pathname !== '/admin/orders' && !pathname?.startsWith?.('/admin/orders/')) {
+    router.replace('/admin/orders');
     return <PageLoader />;
   }
 

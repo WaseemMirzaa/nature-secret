@@ -23,6 +23,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     if (payload.type !== 'customer') throw new UnauthorizedException();
     const customer = await this.authService.findCustomerById(payload.sub);
     if (!customer) throw new UnauthorizedException();
+    if (customer.blocked) throw new UnauthorizedException('Account is blocked.');
     return { id: customer.id, email: customer.email, role: 'customer', type: 'customer' };
   }
 }
