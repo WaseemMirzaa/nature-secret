@@ -44,58 +44,88 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="mx-auto max-w-sm px-4 py-16">
-      <div className="flex justify-center mb-8">
-        <Logo className="h-10" />
+    <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md">
+        <div className="rounded-2xl border border-neutral-200 bg-white shadow-premium overflow-hidden">
+          <div className="bg-neutral-900 px-8 py-6 text-center">
+            <Link href="/" className="inline-block">
+              <Logo className="h-9 text-gold-500" link={false} />
+            </Link>
+            <p className="mt-2 text-xs font-medium text-neutral-400 tracking-wider uppercase">Reset password</p>
+          </div>
+          <div className="p-8">
+            {done ? (
+              <div className="rounded-xl bg-gold-50 border border-gold-200 p-4">
+                <p className="text-sm font-medium text-gold-900">Password updated</p>
+                <p className="mt-1 text-sm text-gold-800">Redirecting you to login…</p>
+              </div>
+            ) : !token ? (
+              <div className="rounded-xl bg-red-50 border border-red-200 p-4">
+                <p className="text-sm font-medium text-red-800">Invalid reset link</p>
+                <p className="mt-1 text-sm text-red-700">This link is missing or invalid. Request a new one from the login page.</p>
+                <p className="mt-4">
+                  <Link href="/forgot-password" className="text-sm font-medium text-red-700 hover:underline">Request new link</Link>
+                </p>
+              </div>
+            ) : (
+              <>
+                <p className="text-neutral-600 text-sm">Enter your new password below. Use at least 8 characters.</p>
+                <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+                  <div>
+                    <label htmlFor="password" className="block text-sm font-medium text-neutral-700 mb-1.5">New password</label>
+                    <input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={8}
+                      placeholder="••••••••"
+                      className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-gold-500/30 focus:border-gold-400/50"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="confirm" className="block text-sm font-medium text-neutral-700 mb-1.5">Confirm password</label>
+                    <input
+                      id="confirm"
+                      type="password"
+                      value={confirm}
+                      onChange={(e) => setConfirm(e.target.value)}
+                      required
+                      minLength={8}
+                      placeholder="••••••••"
+                      className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-gold-500/30 focus:border-gold-400/50"
+                    />
+                  </div>
+                  {error && <p className="text-sm text-red-600">{error}</p>}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full rounded-xl bg-neutral-900 py-3.5 text-sm font-semibold text-white hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:ring-offset-2 disabled:opacity-50 transition"
+                  >
+                    {loading ? 'Updating…' : 'Update password'}
+                  </button>
+                </form>
+              </>
+            )}
+            <p className="mt-6 text-center">
+              <Link href="/login" className="text-sm font-medium text-gold-600 hover:text-gold-700">← Back to login</Link>
+            </p>
+          </div>
+        </div>
+        <p className="mt-6 text-center text-xs text-neutral-500">Nature Secret · Premium Herbal Oils &amp; Skincare</p>
       </div>
-      <h1 className="text-2xl font-semibold text-neutral-900">Reset password</h1>
-      <p className="mt-1 text-sm text-neutral-500">Enter your new password.</p>
-      {done ? (
-        <p className="mt-6 text-sm text-neutral-700">Password updated. Redirecting to login…</p>
-      ) : !token ? (
-        <p className="mt-6 text-sm text-red-600">Missing or invalid reset link. Request a new one from the login page.</p>
-      ) : (
-        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-neutral-700">New password</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-              className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-neutral-900"
-            />
-          </div>
-          <div>
-            <label htmlFor="confirm" className="block text-sm font-medium text-neutral-700">Confirm password</label>
-            <input
-              id="confirm"
-              type="password"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              required
-              minLength={8}
-              className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-neutral-900"
-            />
-          </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <button type="submit" disabled={loading} className="w-full rounded-xl bg-neutral-900 py-3 text-sm font-medium text-white disabled:opacity-50">
-            {loading ? 'Updating…' : 'Update password'}
-          </button>
-        </form>
-      )}
-      <p className="mt-6 text-center text-sm text-neutral-500">
-        <Link href="/login" className="text-neutral-900 font-medium">Back to login</Link>
-      </p>
     </div>
   );
 }
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div className="mx-auto max-w-sm px-4 py-16 text-center text-neutral-500">Loading…</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <p className="text-neutral-500 text-sm">Loading…</p>
+      </div>
+    }>
       <ResetPasswordForm />
     </Suspense>
   );

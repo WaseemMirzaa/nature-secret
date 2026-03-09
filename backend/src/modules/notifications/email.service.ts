@@ -1,5 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import { renderOrderConfirmationEmail } from './templates/order-confirmation.template';
+import { renderResetPasswordEmail } from './templates/reset-password.template';
+
+interface OrderForEmail {
+  id: string;
+  total: number;
+  confirmationCode?: string | null;
+  customerName?: string | null;
+  createdAt?: Date | string | null;
+  paymentMethod?: string | null;
+  address?: string | null;
+}
 
 @Injectable()
 export class EmailService {
@@ -16,15 +28,35 @@ export class EmailService {
     }
   }
 
-  async sendOrderConfirmation(to: string, order: { id: string; total: number; confirmationCode?: string | null }, itemsSummary: string) {
+  async sendOrderConfirmation(to: string, order: OrderForEmail, itemsSummary: string) {
     if (!this.transporter || !to) return;
     try {
+      const totalFormatted = `PKR ${(order.total / 100).toLocaleString()}`;
+      const createdAtFormatted = order.createdAt
+        ? new Date(order.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+        : '—';
+      const itemsSummaryHtml = itemsSummary
+        .split('\n')
+        .filter((line) => line.trim())
+        .map((line) => line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'))
+        .join('<br>');
+      const html = renderOrderConfirmationEmail({
+        orderId: order.id,
+        customerName: order.customerName ?? null,
+        totalFormatted,
+        confirmationCode: order.confirmationCode ?? null,
+        createdAtFormatted,
+        paymentMethod: order.paymentMethod || 'cash_on_delivery',
+        address: order.address ?? null,
+        itemsSummaryHtml: itemsSummaryHtml || '—',
+      });
+      const text = `Thank you for your order.\n\nOrder ID: ${order.id}\nConfirmation code: ${order.confirmationCode ?? '—'}\nTotal: ${totalFormatted}\n\n${itemsSummary}\n\nWe will notify you when your order is shipped.`;
       await this.transporter.sendMail({
         from: process.env.GMAIL_USER,
         to,
-        subject: `Order confirmed – Nature Secret #${order.id}`,
-        text: `Thank you for your order.\n\nOrder ID: ${order.id}\nTotal: PKR ${(order.total / 100).toLocaleString()}\n\n${itemsSummary}\n\nWe will notify you when your order is shipped.`,
-        html: `<p>Thank you for your order.</p><p><strong>Order ID:</strong> ${order.id}</p><p><strong>Total:</strong> PKR ${(order.total / 100).toLocaleString()}</p><p>${itemsSummary.replace(/\n/g, '<br>')}</p><p>We will notify you when your order is shipped.</p>`,
+        subject: `Order confirmed – Nature Secret #${order.id.slice(0, 8)}`,
+        text,
+        html,
       });
     } catch (e) {
       console.error('Email send failed:', e);
@@ -34,12 +66,14 @@ export class EmailService {
   async sendPasswordReset(to: string, resetLink: string) {
     if (!this.transporter || !to) return;
     try {
+      const html = renderResetPasswordEmail(resetLink);
+      const text = `Reset your password – Nature Secret\n\nUse this link (valid 1 hour):\n\n${resetLink}\n\nIf you didn't request this, ignore this email.`;
       await this.transporter.sendMail({
         from: process.env.GMAIL_USER,
         to,
         subject: 'Reset your password – Nature Secret',
-        text: `Use this link to reset your password (valid 1 hour):\n\n${resetLink}`,
-        html: `<p>Use this link to reset your password (valid 1 hour):</p><p><a href="${resetLink}">${resetLink}</a></p>`,
+        text,
+        html,
       });
     } catch (e) {
       console.error('Password reset email failed:', e);

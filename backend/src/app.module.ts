@@ -30,6 +30,10 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
       autoLoadEntities: true,
       synchronize: true,
       charset: 'utf8mb4',
+      extra: {
+        connectionLimit: 50,
+        queueLimit: 100,
+      },
     }),
     AuthModule,
     CategoriesModule,
