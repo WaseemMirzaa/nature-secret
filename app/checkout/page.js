@@ -65,7 +65,7 @@ export default function CheckoutPage() {
     if (codes[code] != null) setAppliedDiscount(code);
   }
 
-  const getProduct = (id) => products.find((p) => p.id === id);
+  const getProduct = (id) => (Array.isArray(products) ? products.find((p) => p.id === id) : null);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -196,13 +196,14 @@ export default function CheckoutPage() {
             <ul className="space-y-3 mb-4">
               {items.map((i) => {
                 const p = getProduct(i.productId);
+                const imgSrc = p?.images?.[0] || '/assets/nature-secret-logo.svg';
                 return (
                   <li key={`${i.productId}-${i.variantId}`} className="flex gap-3">
                     <div className="relative h-14 w-14 rounded-lg overflow-hidden bg-white flex-shrink-0">
-                      <Image src={p?.images?.[0] || ''} alt="" fill className="object-cover" sizes="56px" />
+                      <Image src={imgSrc} alt="" fill className="object-cover" sizes="56px" unoptimized={!imgSrc.startsWith('http')} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-neutral-900 truncate">{p?.name}</p>
+                      <p className="text-sm font-medium text-neutral-900 truncate">{p?.name ?? i.name ?? 'Product'}</p>
                       <p className="text-xs text-neutral-500">Qty: {i.qty} · {formatPrice(i.price, currency)}</p>
                     </div>
                   </li>

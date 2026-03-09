@@ -144,6 +144,7 @@ function ShopContent() {
                         width={400}
                         height={533}
                         className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
+                        unoptimized={!(product.images?.[0] || '').startsWith('http')}
                       />
                       {product.images?.[1] && (
                         <Image
@@ -152,6 +153,7 @@ function ShopContent() {
                           width={400}
                           height={533}
                           className="absolute inset-0 h-full w-full object-cover opacity-0 transition duration-300 group-hover:opacity-100"
+                          unoptimized={!String(product.images[1]).startsWith('http')}
                         />
                       )}
                       <button
@@ -166,7 +168,7 @@ function ShopContent() {
                   </Link>
                   <div className="mt-4">
                     <Link href={`/shop/${product.id}`}>
-                      <p className="font-medium text-neutral-900">{product.name}</p>
+                      <p className="font-medium text-neutral-900">{product.name ?? product.slug ?? 'Product'}</p>
                     </Link>
                     <div className="mt-1 flex items-center gap-2">
                       <span className="text-sm text-gold-500">{'★'.repeat(5)}</span>

@@ -173,7 +173,7 @@ export default function AdminOrderDetailPage() {
                 const p = products.find((x) => x.id === item.productId);
                 return (
                   <tr key={i} className="border-t border-neutral-100">
-                    <td className="py-2 font-medium">{p?.name || item.productId}</td>
+                    <td className="py-2 font-medium">{p?.name ?? 'Product'}</td>
                     <td className="py-2">{item.qty}</td>
                     <td className="py-2 text-right">{_format(item.price, currency)}</td>
                     <td className="py-2 text-right">{_format((item.price || 0) * (item.qty || 1), currency)}</td>

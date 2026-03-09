@@ -37,7 +37,8 @@ export default function ProductPage() {
 
   const variant = selectedVariant ?? product?.variants?.[0];
   const price = variant?.price ?? product?.price;
-  const mainImage = variant?.image ?? product?.images?.[0];
+  const mainImage = variant?.image ?? product?.images?.[0] ?? '/assets/nature-secret-logo.svg';
+  const productDisplayName = product?.name ?? product?.slug ?? 'Product';
   const currency = useCurrencyStore((s) => s.currency);
 
   useEffect(() => {
@@ -114,7 +115,7 @@ export default function ProductPage() {
                 onClick={() => setSelectedVariant(product.variants?.find((v) => v.image === url) ?? null)}
                 className="relative h-20 w-20 flex-shrink-0 rounded-xl overflow-hidden border-2 border-neutral-300"
               >
-                <Image src={url} alt={product.imageAlts?.[i] ?? product.name ?? ''} fill className="object-cover" sizes="80px" />
+                <Image src={url} alt={product.imageAlts?.[i] ?? productDisplayName} fill className="object-cover" sizes="80px" unoptimized={!String(url).startsWith('http')} />
               </button>
             ))}
           </div>
@@ -136,7 +137,7 @@ export default function ProductPage() {
               )}
             </div>
           )}
-          <h1 className="mt-2 text-3xl font-semibold text-neutral-900">{product.name}</h1>
+          <h1 className="mt-2 text-3xl font-semibold text-neutral-900">{productDisplayName}</h1>
           <div className="mt-2 flex items-center gap-2">
             <span className="text-gold-600">{'★'.repeat(5)}</span>
             <span className="text-sm text-neutral-500">({product.reviewCount} reviews)</span>
@@ -237,15 +238,19 @@ export default function ProductPage() {
         <section className="mt-20 pt-16 border-t border-neutral-200">
           <h2 className="text-2xl font-semibold text-neutral-900 mb-8">You may also like</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {related.map((p) => (
-              <Link key={p.id} href={`/shop/${p.id}`} className="group">
-                <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100">
-                  <Image src={p.images?.[0]} alt={p.name} width={300} height={400} className="h-full w-full object-cover group-hover:scale-105 transition duration-300" />
-                </div>
-                <p className="mt-3 font-medium text-neutral-900">{p.name}</p>
-                <p className="text-sm text-neutral-500">{formatPrice(p.price, currency)}</p>
-              </Link>
-            ))}
+            {related.map((p) => {
+              const img = p.images?.[0] || '/assets/nature-secret-logo.svg';
+              const name = p.name ?? p.slug ?? 'Product';
+              return (
+                <Link key={p.id} href={`/shop/${p.id}`} className="group">
+                  <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100">
+                    <Image src={img} alt={name} width={300} height={400} className="h-full w-full object-cover group-hover:scale-105 transition duration-300" unoptimized={!img.startsWith('http')} />
+                  </div>
+                  <p className="mt-3 font-medium text-neutral-900">{name}</p>
+                  <p className="text-sm text-neutral-500">{formatPrice(p.price, currency)}</p>
+                </Link>
+              );
+            })}
           </div>
         </section>
       )}

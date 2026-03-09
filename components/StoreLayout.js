@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -35,7 +35,9 @@ export function StoreLayout({ children }) {
       </div>
       <Footer />
       <CartDrawer />
-      <AuthModal />
+      <Suspense fallback={null}>
+        <AuthModal />
+      </Suspense>
     </>
   );
 }

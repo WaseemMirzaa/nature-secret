@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCustomerStore, useAuthModalStore } from '@/lib/store';
 import { Logo } from '@/components/Logo';
 import { customerLogin, customerRegister, formatApiError } from '@/lib/api';
 
 export function AuthModal() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { open, mode, close } = useAuthModalStore();
   const login = useCustomerStore((s) => s.login);
   const [email, setEmail] = useState('');
@@ -45,7 +46,8 @@ export function AuthModal() {
       setEmail('');
       setPassword('');
       setName('');
-      router.push('/account');
+      const returnUrl = (searchParams?.get('returnUrl') || '/account').replace(/^[^/]/, '/$&');
+      router.push(returnUrl.startsWith('/') ? returnUrl : '/account');
     } catch (err) {
       setError(formatApiError(err, 'Invalid email or password.'));
     } finally {

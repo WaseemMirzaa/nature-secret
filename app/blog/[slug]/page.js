@@ -103,18 +103,22 @@ export default function BlogPostPage() {
           <aside className="mt-16 pt-12 border-t border-neutral-200">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-4">Related products</p>
             <div className="flex flex-wrap gap-4">
-              {relatedProducts.map((p) => (
-                <Link
-                  key={p.id}
-                  href={`/shop/${p.id}`}
-                  className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-3 shadow-soft hover:border-gold-400/40 hover:shadow-gold-sm transition-all duration-200"
-                >
-                  <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-neutral-100 flex-shrink-0">
-                    {p.images?.[0] && <Image src={p.images[0]} alt="" fill className="object-cover" sizes="48px" />}
-                  </div>
-                  <span className="font-medium text-neutral-900 text-sm">{p.name}</span>
-                </Link>
-              ))}
+              {relatedProducts.map((p) => {
+                const img = p.images?.[0] || '/assets/nature-secret-logo.svg';
+                const name = p.name ?? p.slug ?? 'Product';
+                return (
+                  <Link
+                    key={p.id}
+                    href={`/shop/${p.id}`}
+                    className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-3 shadow-soft hover:border-gold-400/40 hover:shadow-gold-sm transition-all duration-200"
+                  >
+                    <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-neutral-100 flex-shrink-0">
+                      <Image src={img} alt={name} fill className="object-cover" sizes="48px" unoptimized={!img.startsWith('http')} />
+                    </div>
+                    <span className="font-medium text-neutral-900 text-sm">{name}</span>
+                  </Link>
+                );
+              })}
             </div>
           </aside>
         )}

@@ -143,22 +143,19 @@ export default function HomeContent() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {bestsellerProducts.map((product) => {
-                const img = (product.images && product.images[0]) || product.image || '';
+                const img = (product.images && product.images[0]) || product.image || '/assets/nature-secret-logo.svg';
+                const name = product.name ?? product.slug ?? 'Product';
                 return (
                   <Link key={product.id} href={`/shop/${product.id}`} className="group group/card">
                     <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100 relative ring-1 ring-neutral-200/80 group-hover/card:ring-gold-400/40 transition-all duration-300 shadow-soft group-hover/card:shadow-gold-sm">
-                      {img ? (
-                        <Image
-                          src={img}
-                          alt={product.name}
-                          width={400}
-                          height={533}
-                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                          unoptimized
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-neutral-200" />
-                      )}
+                      <Image
+                        src={img}
+                        alt={name}
+                        width={400}
+                        height={533}
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                        unoptimized={!img.startsWith('http')}
+                      />
                       {product.badge && (
                         <span className="absolute top-3 left-3 rounded-full bg-neutral-900 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white ring-1 ring-gold-500/60 shadow-gold-sm">
                           {product.badge}
@@ -166,7 +163,7 @@ export default function HomeContent() {
                       )}
                     </div>
                     <div className="mt-4">
-                      <p className="font-medium text-neutral-900 group-hover/card:text-gold-700 transition-colors">{product.name}</p>
+                      <p className="font-medium text-neutral-900 group-hover/card:text-gold-700 transition-colors">{name}</p>
                       <p className="mt-1 text-sm font-medium text-gold-700/90">{formatPrice(product.price, 'PKR')}</p>
                     </div>
                   </Link>

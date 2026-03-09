@@ -438,6 +438,15 @@ The ecosystem file was updated to use `./node_modules/next/dist/bin/next` instea
 
 The browser is using cached pages from a previous build; Server Action IDs changed after a new deploy. On the droplet do a clean rebuild and restart: `cd /var/www/nature-secret && rm -rf .next && npm run build && pm2 restart nature-secret-web && pm2 save`. Users should hard-refresh (Ctrl+Shift+R or Cmd+Shift+R) or clear cache for the site.
 
+**502 Bad Gateway on any page (e.g. /checkout)**
+
+Nginx is up but the app behind it is not responding. On the droplet run:
+
+1. **Check if the Next.js app is running:** `pm2 list` — ensure `nature-secret-web` is **online** (not errored/stopped).
+2. **View recent logs:** `pm2 logs nature-secret-web --lines 50` — look for crash stack traces or "EADDRINUSE" (port in use).
+3. **Restart and save:** `pm2 restart nature-secret-web && pm2 save`. If the app keeps exiting, run `pm2 logs nature-secret-web` in one terminal and trigger the failing URL again to see the error.
+4. **Clean rebuild:** `cd /var/www/nature-secret && rm -rf .next && npm run build && pm2 restart nature-secret-web && pm2 save`.
+
 ---
 
 ## 10. CI/CD with GitHub Actions

@@ -29,7 +29,7 @@ function LoginForm() {
       const raw = typeof window !== 'undefined' ? localStorage.getItem('nature_secret_customer') : null;
       const customer = raw ? JSON.parse(raw) : { email: email.trim(), name: email.trim().split('@')[0] };
       login(customer);
-      const returnUrl = searchParams?.get('returnUrl') || '/account';
+      const returnUrl = (searchParams?.get('returnUrl') || '/account').replace(/^[^/]/, '/$&');
       router.push(returnUrl.startsWith('/') ? returnUrl : '/account');
     } catch (err) {
       setError(formatApiError(err, 'Invalid email or password.'));

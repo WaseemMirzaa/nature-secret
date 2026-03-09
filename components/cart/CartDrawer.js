@@ -59,14 +59,15 @@ export function CartDrawer() {
               {items.map((item) => {
                 const product = getProduct(item.productId);
                 const variant = getVariant(item.productId, item.variantId);
-                const img = variant?.image || product?.images?.[0];
+                const img = variant?.image || product?.images?.[0] || '/assets/nature-secret-logo.svg';
+                const displayName = product?.name ?? item.name ?? 'Product';
                 return (
                   <li key={`${item.productId}-${item.variantId}`} className="flex gap-4 border-b border-neutral-100 pb-4">
                     <div className="relative h-20 w-20 flex-shrink-0 rounded-xl overflow-hidden bg-neutral-100">
-                      {img && <Image src={img} alt="" fill className="object-cover" sizes="80px" />}
+                      <Image src={img} alt="" fill className="object-cover" sizes="80px" unoptimized={!img.startsWith('http')} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-neutral-900 truncate">{product?.name}</p>
+                      <p className="font-medium text-neutral-900 truncate">{displayName}</p>
                       {variant && <p className="text-xs text-neutral-500">{variant.name}</p>}
                       <p className="text-sm text-neutral-600 mt-1">{formatPrice(item.price, currency)} × {item.qty}</p>
                       <div className="flex items-center gap-2 mt-2">

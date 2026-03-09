@@ -41,13 +41,15 @@ export default function WishlistPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {products.map((p) => {
           const v = p.variants?.[0];
+          const img = p.images?.[0] || '/assets/nature-secret-logo.svg';
+          const name = p.name ?? p.slug ?? 'Product';
           return (
             <article key={p.id} className="group relative">
               <Link href={`/shop/${p.id}`}>
                 <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100">
-                  <Image src={p.images?.[0] || '/'} alt={p.name || ''} width={300} height={400} className="h-full w-full object-cover" />
+                  <Image src={img} alt={name} width={300} height={400} className="h-full w-full object-cover" unoptimized={!img.startsWith('http')} />
                 </div>
-                <p className="mt-3 font-medium text-neutral-900">{p.name}</p>
+                <p className="mt-3 font-medium text-neutral-900">{name}</p>
                 <p className="text-sm text-neutral-500">{formatPrice(v?.price ?? p.price, 'PKR')}</p>
               </Link>
               <div className="flex gap-2 mt-2">
