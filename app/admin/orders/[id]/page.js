@@ -171,9 +171,13 @@ export default function AdminOrderDetailPage() {
             <tbody>
               {(order.items || []).map((item, i) => {
                 const p = products.find((x) => x.id === item.productId);
+                const variant = item.variantId && p?.variants ? p.variants.find((v) => v.id === item.variantId) : null;
                 return (
                   <tr key={i} className="border-t border-neutral-100">
-                    <td className="py-2 font-medium">{p?.name ?? 'Product'}</td>
+                    <td className="py-2">
+                      <span className="font-medium">{p?.name ?? 'Product'}</span>
+                      {variant && <span className="ml-2 text-xs text-neutral-500 bg-neutral-100 rounded-lg px-2 py-0.5">{variant.name}</span>}
+                    </td>
                     <td className="py-2">{item.qty}</td>
                     <td className="py-2 text-right">{_format(item.price, currency)}</td>
                     <td className="py-2 text-right">{_format((item.price || 0) * (item.qty || 1), currency)}</td>

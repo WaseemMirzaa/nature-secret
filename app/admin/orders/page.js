@@ -39,6 +39,9 @@ export default function AdminOrdersPage() {
   const [dateTo, setDateTo] = useState('');
   const [page, setPage] = useState(1);
   const [isStaff, setIsStaff] = useState(false);
+  const [selected, setSelected] = useState(new Set());
+  const [bulkStatus, setBulkStatus] = useState('');
+  const [bulkUpdating, setBulkUpdating] = useState(false);
 
   useEffect(() => {
     try {
@@ -121,7 +124,69 @@ export default function AdminOrdersPage() {
   const displayTotal = useApi ? (totalCount ?? 0) : (filtered || []).length;
   const productsForMap = useApi ? apiProducts : products;
   const productsMap = useMemo(() => (productsForMap || []).reduce((acc, p) => ({ ...acc, [p.id]: { name: p.name, variants: p.variants || [] } }), {}), [productsForMap]);
-  useEffect(() => setPage(1), [search, statusFilter, dateFrom, dateTo]);
+  useEffect(() => { setPage(1); setSelected(new Set()); }, [search, statusFilter, dateFrom, dateTo]);
+
+  const allPageIds = (Array.isArray(paginated) ? paginated : []).map((o) => o.id);
+  const allSelected = allPageIds.length > 0 && allPageIds.every((id) => selected.has(id));
+
+  function toggleSelect(id) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (allSelected) {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        allPageIds.forEach((id) => next.delete(id));
+        return next;
+      });
+    } else {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        allPageIds.forEach((id) => next.add(id));
+        return next;
+      });
+    }
+  }
+
+  async function handleBulkStatusChange() {
+    if (!bulkStatus || selected.size === 0) return;
+    setBulkUpdating(true);
+    const ids = [...selected];
+    if (useApi) {
+      await Promise.all(ids.map((id) => apiUpdateOrderStatus(id, bulkStatus).catch(() => {})));
+      setApiOrders((prev) => prev.map((o) => (ids.includes(o.id) ? { ...o, status: bulkStatus } : o)));
+    } else {
+      ids.forEach((id) => localUpdateStatus(id, bulkStatus, getChangedBy()));
+    }
+    setSelected(new Set());
+    setBulkStatus('');
+    setBulkUpdating(false);
+  }
+
+  async function handleBulkAllFiltered() {
+    if (!bulkStatus) return;
+    const allIds = (filtered || []).map((o) => o.id).filter(Boolean);
+    if (allIds.length === 0) return;
+    if (!window.confirm(`Change status of all ${allIds.length} filtered orders to "${bulkStatus}"?`)) return;
+    setBulkUpdating(true);
+    if (useApi) {
+      const batchSize = 10;
+      for (let i = 0; i < allIds.length; i += batchSize) {
+        await Promise.all(allIds.slice(i, i + batchSize).map((id) => apiUpdateOrderStatus(id, bulkStatus).catch(() => {})));
+      }
+      setApiOrders((prev) => prev.map((o) => (allIds.includes(o.id) ? { ...o, status: bulkStatus } : o)));
+    } else {
+      allIds.forEach((id) => localUpdateStatus(id, bulkStatus, getChangedBy()));
+    }
+    setSelected(new Set());
+    setBulkStatus('');
+    setBulkUpdating(false);
+  }
 
   return (
     <div>
@@ -154,11 +219,30 @@ export default function AdminOrdersPage() {
           </div>
         )}
       </div>
+      <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+        {selected.size > 0 && <span className="text-sm font-medium text-neutral-700">{selected.size} selected</span>}
+        <select value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value)} className="rounded-xl border border-neutral-200 px-3 py-2 text-sm min-w-0">
+          <option value="">Change status to…</option>
+          {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+        {selected.size > 0 && (
+          <button type="button" onClick={handleBulkStatusChange} disabled={!bulkStatus || bulkUpdating} className="rounded-xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium disabled:opacity-50">
+            {bulkUpdating ? 'Updating…' : `Apply to ${selected.size} selected`}
+          </button>
+        )}
+        <button type="button" onClick={() => handleBulkAllFiltered()} disabled={!bulkStatus || bulkUpdating} className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50 disabled:opacity-50">
+          {bulkUpdating ? 'Updating…' : `Apply to all ${displayTotal} filtered`}
+        </button>
+        {selected.size > 0 && <button type="button" onClick={() => setSelected(new Set())} className="text-sm text-neutral-500 hover:text-neutral-900">Clear</button>}
+      </div>
       <div className="mt-4 rounded-2xl border border-neutral-200 bg-white overflow-hidden flex flex-col max-h-[calc(100vh-12rem)] sm:max-h-[calc(100vh-16rem)]">
         <div className="overflow-y-auto overflow-x-auto min-h-0 flex-1">
           <table className="w-full text-left text-sm min-w-[600px]">
             <thead className="bg-neutral-50 border-b border-neutral-200 sticky top-0 z-10">
               <tr>
+                <th className="p-4 bg-neutral-50 w-10">
+                  <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} className="rounded border-neutral-300" />
+                </th>
                 <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Order</th>
                 <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Customer</th>
                 <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Total</th>
@@ -167,8 +251,11 @@ export default function AdminOrdersPage() {
               </tr>
             </thead>
             <tbody>
-              {loading ? <TableSkeleton rows={8} cols={5} /> : (Array.isArray(paginated) ? paginated : []).map((o) => (
-                <tr key={o.id} className="border-b border-neutral-100 hover:bg-neutral-50/50">
+              {loading ? <TableSkeleton rows={8} cols={6} /> : (Array.isArray(paginated) ? paginated : []).map((o) => (
+                <tr key={o.id} className={`border-b border-neutral-100 hover:bg-neutral-50/50 ${selected.has(o.id) ? 'bg-neutral-50' : ''}`}>
+                  <td className="p-4">
+                    <input type="checkbox" checked={selected.has(o.id)} onChange={() => toggleSelect(o.id)} className="rounded border-neutral-300" />
+                  </td>
                   <td className="p-4 font-medium">
                     <Link href={`/admin/orders/${o.id}`} prefetch={false} className="text-neutral-900 hover:underline">{o.id}</Link>
                   </td>
