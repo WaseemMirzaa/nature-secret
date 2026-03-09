@@ -16,8 +16,14 @@ export class AdminController {
   ) {}
 
   @Get('dashboard')
-  async dashboard() {
-    return this.service.getDashboard();
+  async dashboard(@Query('dateFrom') dateFrom?: string, @Query('dateTo') dateTo?: string) {
+    return this.service.getDashboard({ dateFrom, dateTo });
+  }
+
+  @Get('orders/same-day/:id')
+  @StaffOrAdmin()
+  async ordersSameDay(@Param('id') id: string) {
+    return this.service.getOrdersSameDay(id);
   }
 
   @Get('orders')
@@ -29,6 +35,7 @@ export class AdminController {
     @Query('search') search?: string,
     @Query('dateFrom') dateFrom?: string,
     @Query('dateTo') dateTo?: string,
+    @Query('groupBy') groupBy?: string,
   ) {
     return this.service.getOrders({
       page: page ? Number(page) : undefined,
@@ -37,6 +44,7 @@ export class AdminController {
       search,
       dateFrom,
       dateTo,
+      groupBy,
     });
   }
 

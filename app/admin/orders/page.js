@@ -8,7 +8,7 @@ import { formatPrice } from '@/lib/currency';
 import { getAdminOrders, updateOrderStatus as apiUpdateOrderStatus, getAdminProducts } from '@/lib/api';
 import { TableSkeleton } from '@/components/ui/PageLoader';
 import { useAdminRealtime } from '@/context/AdminRealtimeContext';
-import { exportOrdersCSV, exportOrdersXLSX } from '@/lib/export';
+import { exportOrdersCSV, exportOrdersXLSX, exportGroupsCSV, exportGroupsXLSX } from '@/lib/export';
 
 const STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'];
 const PAGE_SIZE = 50;
@@ -30,6 +30,7 @@ export default function AdminOrdersPage() {
   const currency = useCurrencyStore((s) => s.currency);
   const [apiOrders, setApiOrders] = useState([]);
   const [apiTotal, setApiTotal] = useState(0);
+  const [apiGrouped, setApiGrouped] = useState(false);
   const [apiProducts, setApiProducts] = useState([]);
   const [useApi, setUseApi] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -42,6 +43,7 @@ export default function AdminOrdersPage() {
   const [selected, setSelected] = useState(new Set());
   const [bulkStatus, setBulkStatus] = useState('');
   const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [groupedView, setGroupedView] = useState(true);
 
   useEffect(() => {
     try {
@@ -61,13 +63,14 @@ export default function AdminOrdersPage() {
     let cancelled = false;
     setLoading(true);
     Promise.all([
-        getAdminOrders({ page, limit: PAGE_SIZE, status: statusFilter !== 'all' ? statusFilter : undefined, search: search || undefined, dateFrom: dateFrom || undefined, dateTo: dateTo || undefined }).catch(() => ({ data: [], total: 0 })),
+        getAdminOrders({ page, limit: PAGE_SIZE, status: statusFilter !== 'all' ? statusFilter : undefined, search: search || undefined, dateFrom: dateFrom || undefined, dateTo: dateTo || undefined, groupBy: groupedView ? 'customerDate' : undefined }).catch(() => ({ data: [], total: 0 })),
         getAdminProducts({ limit: 500 }).catch(() => ({ data: [] })),
       ])
       .then(([ordersRes, productsRes]) => {
         if (!cancelled) {
           setApiOrders(Array.isArray(ordersRes?.data) ? ordersRes.data : []);
           setApiTotal(typeof ordersRes?.total === 'number' ? ordersRes.total : 0);
+          setApiGrouped(!!ordersRes?.grouped);
           setApiProducts(Array.isArray(productsRes?.data) ? productsRes.data : []);
           setUseApi(true);
         }
@@ -75,7 +78,7 @@ export default function AdminOrdersPage() {
       .catch(() => { if (!cancelled) setUseApi(false); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [page, statusFilter, search, dateFrom, dateTo, realtimeKey]);
+  }, [page, statusFilter, search, dateFrom, dateTo, groupedView, realtimeKey]);
 
   function getAdminToken() {
     try {
@@ -124,7 +127,7 @@ export default function AdminOrdersPage() {
   const displayTotal = useApi ? (totalCount ?? 0) : (filtered || []).length;
   const productsForMap = useApi ? apiProducts : products;
   const productsMap = useMemo(() => (productsForMap || []).reduce((acc, p) => ({ ...acc, [p.id]: { name: p.name, variants: p.variants || [] } }), {}), [productsForMap]);
-  useEffect(() => { setPage(1); setSelected(new Set()); }, [search, statusFilter, dateFrom, dateTo]);
+  useEffect(() => { setPage(1); setSelected(new Set()); }, [search, statusFilter, dateFrom, dateTo, groupedView]);
 
   const allPageIds = (Array.isArray(paginated) ? paginated : []).map((o) => o.id);
   const allSelected = allPageIds.length > 0 && allPageIds.every((id) => selected.has(id));
@@ -207,6 +210,10 @@ export default function AdminOrdersPage() {
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
+        <label className="flex items-center gap-2 text-sm text-neutral-700">
+          <input type="checkbox" checked={groupedView} onChange={(e) => setGroupedView(e.target.checked)} className="rounded border-neutral-300" />
+          Group by customer + date
+        </label>
       </div>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-neutral-500">
@@ -214,11 +221,21 @@ export default function AdminOrdersPage() {
         </p>
         {!isStaff && (
           <div className="flex gap-2">
-            <button type="button" onClick={() => exportOrdersCSV(filtered, productsMap, (v) => formatPrice(v, currency))} className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50">Export CSV</button>
-            <button type="button" onClick={() => exportOrdersXLSX(filtered, productsMap, (v) => formatPrice(v, currency))} className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50">Export XLSX</button>
+            {apiGrouped ? (
+              <>
+                <button type="button" onClick={() => exportGroupsCSV(paginated, (v) => formatPrice(v, currency))} className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50">Export CSV</button>
+                <button type="button" onClick={() => exportGroupsXLSX(paginated, (v) => formatPrice(v, currency))} className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50">Export XLSX</button>
+              </>
+            ) : (
+              <>
+                <button type="button" onClick={() => exportOrdersCSV(filtered, productsMap, (v) => formatPrice(v, currency))} className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50">Export CSV</button>
+                <button type="button" onClick={() => exportOrdersXLSX(filtered, productsMap, (v) => formatPrice(v, currency))} className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50">Export XLSX</button>
+              </>
+            )}
           </div>
         )}
       </div>
+      {!apiGrouped && (
       <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
         {selected.size > 0 && <span className="text-sm font-medium text-neutral-700">{selected.size} selected</span>}
         <select value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value)} className="rounded-xl border border-neutral-200 px-3 py-2 text-sm min-w-0">
@@ -235,51 +252,80 @@ export default function AdminOrdersPage() {
         </button>
         {selected.size > 0 && <button type="button" onClick={() => setSelected(new Set())} className="text-sm text-neutral-500 hover:text-neutral-900">Clear</button>}
       </div>
+      )}
       <div className="mt-4 rounded-2xl border border-neutral-200 bg-white overflow-hidden flex flex-col max-h-[calc(100vh-12rem)] sm:max-h-[calc(100vh-16rem)]">
         <div className="overflow-y-auto overflow-x-auto min-h-0 flex-1">
           <table className="w-full text-left text-sm min-w-[600px]">
             <thead className="bg-neutral-50 border-b border-neutral-200 sticky top-0 z-10">
               <tr>
-                <th className="p-4 bg-neutral-50 w-10">
-                  <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} className="rounded border-neutral-300" />
-                </th>
-                <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Order</th>
-                <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Customer</th>
-                <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Total</th>
-                <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Status</th>
-                <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Actions</th>
+                {!apiGrouped && (
+                  <th className="p-4 bg-neutral-50 w-10">
+                    <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} className="rounded border-neutral-300" />
+                  </th>
+                )}
+                {apiGrouped ? (
+                  <>
+                    <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Customer</th>
+                    <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Date</th>
+                    <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Orders</th>
+                    <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Total</th>
+                    <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Status</th>
+                    <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Actions</th>
+                  </>
+                ) : (
+                  <>
+                    <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Order</th>
+                    <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Customer</th>
+                    <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Total</th>
+                    <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Status</th>
+                    <th className="p-4 font-medium text-neutral-900 bg-neutral-50">Actions</th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody>
-              {loading ? <TableSkeleton rows={8} cols={6} /> : (Array.isArray(paginated) ? paginated : []).map((o) => (
-                <tr key={o.id} className={`border-b border-neutral-100 hover:bg-neutral-50/50 ${selected.has(o.id) ? 'bg-neutral-50' : ''}`}>
-                  <td className="p-4">
-                    <input type="checkbox" checked={selected.has(o.id)} onChange={() => toggleSelect(o.id)} className="rounded border-neutral-300" />
-                  </td>
-                  <td className="p-4 font-medium">
-                    <Link href={`/admin/orders/${o.id}`} prefetch={false} className="text-neutral-900 hover:underline">{o.id}</Link>
-                  </td>
-                  <td className="p-4">{o.customerName}<br /><span className="text-neutral-500 text-xs">{o.email}</span></td>
-                  <td className="p-4">{formatPrice(o.total, currency)}</td>
-                  <td className="p-4">
-                    <select
-                      value={o.status}
-                      onChange={(e) => handleStatusChange(o.id, e.target.value)}
-                      className="rounded-xl border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-900 capitalize bg-white hover:border-gold-400/50 focus:outline-none focus:ring-2 focus:ring-gold-500/30"
-                    >
-                      {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Link href={`/admin/orders/${o.id}`} prefetch={false} className="inline-flex items-center rounded-xl bg-neutral-900 text-white px-3 py-2 text-sm font-medium hover:bg-neutral-800">View</Link>
-                      {!isStaff && (
-                        <button type="button" onClick={() => generateInvoicePDF(o, productsMap, currency)} className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50">Invoice</button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {loading ? <TableSkeleton rows={8} cols={apiGrouped ? 6 : 6} /> : apiGrouped
+                ? (Array.isArray(paginated) ? paginated : []).map((g) => (
+                    <tr key={`${g.email}-${g.dateKey}`} className="border-b border-neutral-100 hover:bg-neutral-50/50">
+                      <td className="p-4">{g.customerName}<br /><span className="text-neutral-500 text-xs">{g.email}</span></td>
+                      <td className="p-4">{g.dateKey}</td>
+                      <td className="p-4 font-medium">{g.orderCount}</td>
+                      <td className="p-4">{formatPrice(g.totalAmount, currency)}</td>
+                      <td className="p-4 text-xs text-neutral-600">{(g.statusSummary || []).map((s) => `${s.status}: ${s.count}`).join(', ')}</td>
+                      <td className="p-4">
+                        <Link href={`/admin/orders/${g.firstOrderId}`} prefetch={false} className="inline-flex items-center rounded-xl bg-neutral-900 text-white px-3 py-2 text-sm font-medium hover:bg-neutral-800">View all</Link>
+                      </td>
+                    </tr>
+                  ))
+                : (Array.isArray(paginated) ? paginated : []).map((o) => (
+                    <tr key={o.id} className={`border-b border-neutral-100 hover:bg-neutral-50/50 ${selected.has(o.id) ? 'bg-neutral-50' : ''}`}>
+                      <td className="p-4">
+                        <input type="checkbox" checked={selected.has(o.id)} onChange={() => toggleSelect(o.id)} className="rounded border-neutral-300" />
+                      </td>
+                      <td className="p-4 font-medium">
+                        <Link href={`/admin/orders/${o.id}`} prefetch={false} className="text-neutral-900 hover:underline">{o.id}</Link>
+                      </td>
+                      <td className="p-4">{o.customerName}<br /><span className="text-neutral-500 text-xs">{o.email}</span></td>
+                      <td className="p-4">{formatPrice(o.total, currency)}</td>
+                      <td className="p-4">
+                        <select
+                          value={o.status}
+                          onChange={(e) => handleStatusChange(o.id, e.target.value)}
+                          className="rounded-xl border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-900 capitalize bg-white hover:border-gold-400/50 focus:outline-none focus:ring-2 focus:ring-gold-500/30"
+                        >
+                          {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Link href={`/admin/orders/${o.id}`} prefetch={false} className="inline-flex items-center rounded-xl bg-neutral-900 text-white px-3 py-2 text-sm font-medium hover:bg-neutral-800">View</Link>
+                          {!isStaff && (
+                            <button type="button" onClick={() => generateInvoicePDF(o, productsMap, currency)} className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50">Invoice</button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
           </tbody>
         </table>
         </div>

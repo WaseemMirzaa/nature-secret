@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation';
 import { useOrdersStore, useProductsStore, useCurrencyStore } from '@/lib/store';
 import { generateInvoicePDF } from '@/lib/invoice';
 import { formatPrice } from '@/lib/currency';
-import { getAdminOrder, updateOrderStatus as apiUpdateOrderStatus, getAdminProducts } from '@/lib/api';
+import { getAdminOrder, getAdminOrdersSameDay, updateOrderStatus as apiUpdateOrderStatus, getAdminProducts } from '@/lib/api';
 import { useAdminRealtime } from '@/context/AdminRealtimeContext';
 
 function _format(amount, currency) {
@@ -38,6 +38,7 @@ export default function AdminOrderDetailPage() {
   const { realtimeKey } = useAdminRealtime();
   const [mounted, setMounted] = useState(false);
   const [order, setOrder] = useState(null);
+  const [sameDayOrders, setSameDayOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const localOrders = useOrdersStore((s) => s.orders);
   const localUpdateStatus = useOrdersStore((s) => s.updateOrderStatus);
@@ -56,9 +57,11 @@ export default function AdminOrderDetailPage() {
     if (getAdminToken()) {
       Promise.all([
         getAdminOrder(orderId).catch(() => null),
+        getAdminOrdersSameDay(orderId).catch(() => []),
         getAdminProducts({ limit: 200 }).then((r) => r.data || []).catch(() => []),
-      ]).then(([o, prods]) => {
+      ]).then(([o, sameDay, prods]) => {
         setOrder(o || localOrders.find((x) => x.id === orderId) || null);
+        setSameDayOrders(Array.isArray(sameDay) ? sameDay : []);
         setApiProducts(prods || []);
       }).finally(() => setLoading(false));
     } else {
@@ -70,12 +73,14 @@ export default function AdminOrderDetailPage() {
   const updateOrderStatus = async (id, status, changedBy) => {
     if (getAdminToken()) {
       try {
-        const updated = await apiUpdateOrderStatus(id, status);
-        setOrder(updated);
+        await apiUpdateOrderStatus(id, status);
+        setOrder((o) => (o && o.id === id ? { ...o, status } : o));
+        setSameDayOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
       } catch (_) {}
     } else {
       localUpdateStatus(id, status, changedBy);
       setOrder((o) => (o && o.id === id ? { ...o, status } : o));
+      setSameDayOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
     }
   };
 
@@ -188,6 +193,47 @@ export default function AdminOrderDetailPage() {
           </table>
           <p className="mt-3 font-semibold text-neutral-900">Total: {_format(order.total, currency)}</p>
         </section>
+
+        {sameDayOrders.length > 1 && (
+          <section className="p-6 border-t border-neutral-200">
+            <h2 className="text-sm font-medium text-neutral-500 uppercase tracking-wider mb-3">Orders from this customer on this day ({sameDayOrders.length})</h2>
+            <div className="space-y-4">
+              {sameDayOrders.map((o) => (
+                <div key={o.id} className={`rounded-xl border p-4 ${o.id === order.id ? 'border-neutral-300 bg-neutral-50/80' : 'border-neutral-200 bg-white'}`}>
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <span className="font-medium text-neutral-900">Order {o.id}</span>
+                    {o.id === order.id && <span className="text-xs font-medium text-neutral-600 bg-neutral-200 rounded px-2 py-0.5">Current</span>}
+                    <span className="text-sm text-neutral-600">{_format(o.total, currency)}</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <select
+                      value={o.status}
+                      onChange={(e) => updateOrderStatus(o.id, e.target.value, getChangedBy())}
+                      className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm capitalize bg-white"
+                    >
+                      {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    <span className="text-xs text-neutral-500">{o.createdAt ? new Date(o.createdAt).toLocaleString() : ''}</span>
+                  </div>
+                  <table className="w-full text-sm">
+                    <tbody>
+                      {(o.items || []).map((item, i) => {
+                        const p = products.find((x) => x.id === item.productId);
+                        const variant = item.variantId && p?.variants ? p.variants.find((v) => v.id === item.variantId) : null;
+                        return (
+                          <tr key={i} className="border-t border-neutral-100">
+                            <td className="py-1">{p?.name ?? 'Product'}{variant ? ` (${variant.name})` : ''} × {item.qty}</td>
+                            <td className="py-1 text-right">{_format((item.price || 0) * (item.qty || 1), currency)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

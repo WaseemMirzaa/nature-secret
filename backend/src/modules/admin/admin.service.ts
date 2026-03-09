@@ -21,7 +21,7 @@ export class AdminService {
     private ordersService: OrdersService,
   ) {}
 
-  async getOrders(params: { page?: number; limit?: number; status?: string; search?: string; dateFrom?: string; dateTo?: string }) {
+  async getOrders(params: { page?: number; limit?: number; status?: string; search?: string; dateFrom?: string; dateTo?: string; groupBy?: string }) {
     try {
       const page = Math.max(1, params.page || 1);
       const limit = Math.min(100, Math.max(1, params.limit || 50));
@@ -29,12 +29,51 @@ export class AdminService {
       if (params.status && params.status !== 'all') qb.andWhere('o.status = :status', { status: params.status });
       if (params.search && params.search.trim()) {
         const s = `%${params.search.trim()}%`;
-        qb.andWhere('o.id LIKE :s', { s });
+        qb.andWhere('(o.id LIKE :s)', { s });
       }
       const from = params.dateFrom && params.dateFrom !== 'undefined' ? params.dateFrom : undefined;
       const to = params.dateTo && params.dateTo !== 'undefined' ? params.dateTo : undefined;
       if (from) qb.andWhere('o.createdAt >= :from', { from });
       if (to) qb.andWhere('o.createdAt <= :to', { to: `${to}T23:59:59` });
+
+      if (params.groupBy === 'customerDate') {
+        const cap = 2000;
+        const all = await qb.clone().orderBy('o.createdAt', 'DESC').take(cap).getMany();
+        const map = new Map<string, { orders: Order[] }>();
+        for (const o of all) {
+          const email = (o.email || '').trim().toLowerCase();
+          const dateKey = o.createdAt ? new Date(o.createdAt).toISOString().slice(0, 10) : '';
+          const key = `${email}|${dateKey}`;
+          if (!map.has(key)) map.set(key, { orders: [] });
+          map.get(key)!.orders.push(o);
+        }
+        const groups = Array.from(map.entries()).map(([key, { orders: ords }]) => {
+          const first = ords[0];
+          const dateKey = key.split('|')[1] || '';
+          const statusCounts: Record<string, number> = {};
+          let totalAmount = 0;
+          for (const o of ords) {
+            statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
+            totalAmount += o.total || 0;
+          }
+          return {
+            customerName: first.customerName,
+            email: first.email,
+            dateKey,
+            orderCount: ords.length,
+            totalAmount,
+            statusSummary: Object.entries(statusCounts).map(([status, count]) => ({ status, count })),
+            firstOrderId: first.id,
+            orderIds: ords.map((o) => o.id),
+            maxCreatedAt: Math.max(...ords.map((o) => new Date(o.createdAt).getTime())),
+          };
+        });
+        groups.sort((a, b) => (b.maxCreatedAt || 0) - (a.maxCreatedAt || 0));
+        const total = groups.length;
+        const data = groups.slice((page - 1) * limit, page * limit);
+        return { data, total, page, limit, grouped: true };
+      }
+
       const [data, total] = await qb.orderBy('o.createdAt', 'DESC').skip((page - 1) * limit).take(limit).getManyAndCount();
       return { data, total, page, limit };
     } catch (e) {
@@ -45,6 +84,27 @@ export class AdminService {
 
   async getOrder(id: string) {
     return this.ordersService.findOne(id);
+  }
+
+  /** All orders from the same customer on the same day as the given order (for order detail grouping). */
+  async getOrdersSameDay(orderId: string): Promise<Order[]> {
+    const order = await this.orderRepo.findOne({ where: { id: orderId }, relations: ['items', 'statusTimeline'] });
+    if (!order) return [];
+    const orderDate = order.createdAt ? new Date(order.createdAt) : new Date();
+    const dayStart = new Date(orderDate);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(dayStart);
+    dayEnd.setDate(dayEnd.getDate() + 1);
+    const orders = await this.orderRepo
+      .createQueryBuilder('o')
+      .leftJoinAndSelect('o.items', 'items')
+      .leftJoinAndSelect('o.statusTimeline', 'timeline')
+      .where('o.createdAt >= :start', { start: dayStart })
+      .andWhere('o.createdAt < :end', { end: dayEnd })
+      .orderBy('o.createdAt', 'DESC')
+      .getMany();
+    const orderEmail = (order.email || '').trim().toLowerCase();
+    return orders.filter((o) => (o.email || '').trim().toLowerCase() === orderEmail);
   }
 
   async updateOrderStatus(orderId: string, status: string, changedBy: string) {
@@ -153,20 +213,39 @@ export class AdminService {
     return { deleted: true };
   }
 
-  async getDashboard() {
+  async getDashboard(params?: { dateFrom?: string; dateTo?: string }) {
     try {
-      const r = await this.orderRepo.createQueryBuilder('o').select('COUNT(o.id)', 'count').addSelect('COALESCE(SUM(o.total), 0)', 'sum').getRawOne();
+      const qb = this.orderRepo.createQueryBuilder('o');
+      const from = params?.dateFrom && params.dateFrom !== 'undefined' ? params.dateFrom : undefined;
+      const to = params?.dateTo && params.dateTo !== 'undefined' ? params.dateTo : undefined;
+      if (from) qb.andWhere('o.createdAt >= :from', { from });
+      if (to) qb.andWhere('o.createdAt <= :to', { to: `${to}T23:59:59` });
+
+      const r = await qb.clone().select('COUNT(o.id)', 'count').addSelect('COALESCE(SUM(o.total), 0)', 'sum').getRawOne();
       const orderCount = Number(r?.count || 0);
       const totalRevenue = Number(r?.sum || 0);
+
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
       const todayEnd = new Date(todayStart);
       todayEnd.setDate(todayEnd.getDate() + 1);
       const todayOrders = await this.orderRepo.createQueryBuilder('o').where('o.createdAt >= :start', { start: todayStart }).andWhere('o.createdAt < :end', { end: todayEnd }).getCount();
-      return { orderCount, totalRevenue, todayOrders };
+      const revenueTodayRaw = await this.orderRepo.createQueryBuilder('o').select('COALESCE(SUM(o.total), 0)', 'sum').where('o.createdAt >= :start', { start: todayStart }).andWhere('o.createdAt < :end', { end: todayEnd }).getRawOne();
+      const revenueToday = Number(revenueTodayRaw?.sum || 0);
+
+      const statuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'];
+      const byStatus: Array<{ status: string; count: number; total: number }> = [];
+      for (const status of statuses) {
+        const q = this.orderRepo.createQueryBuilder('o').where('o.status = :status', { status });
+        if (from) q.andWhere('o.createdAt >= :from', { from });
+        if (to) q.andWhere('o.createdAt <= :to', { to: `${to}T23:59:59` });
+        const [count, sumRaw] = await Promise.all([q.getCount(), q.select('COALESCE(SUM(o.total), 0)', 'sum').getRawOne()]);
+        byStatus.push({ status, count, total: Number(sumRaw?.sum || 0) });
+      }
+      return { orderCount, totalRevenue, todayOrders, revenueToday, byStatus };
     } catch (e) {
       this.logger.warn(`getDashboard failed: ${e?.message || e}. Ensure orders table exists.`);
-      return { orderCount: 0, totalRevenue: 0, todayOrders: 0 };
+      return { orderCount: 0, totalRevenue: 0, todayOrders: 0, revenueToday: 0, byStatus: [] };
     }
   }
 }
