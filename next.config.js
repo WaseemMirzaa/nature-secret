@@ -1,12 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    unoptimized: false,
-    remotePatterns: [
-      { protocol: 'http', hostname: '64.23.180.126', pathname: '/api/**' },
-      { protocol: 'http', hostname: '127.0.0.1', pathname: '/api/**' },
-      { protocol: 'http', hostname: 'localhost', pathname: '/api/**' },
-    ],
+    // Avoid 502: _next/image optimizer fetching same-origin API images can fail on the server.
+    // With unoptimized, browser loads image URLs directly (Nginx proxies /api to backend).
+    unoptimized: true,
   },
 };
 

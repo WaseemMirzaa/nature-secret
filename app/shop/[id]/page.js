@@ -39,6 +39,7 @@ export default function ProductPage() {
   const variant = selectedVariant ?? product?.variants?.[0];
   const price = variant?.price ?? product?.price;
   const mainImage = variant?.image ?? product?.images?.[0] ?? '/assets/nature-secret-logo.svg';
+  const isApiImage = typeof mainImage === 'string' && (mainImage.startsWith('/api/') || mainImage.includes('/api/'));
   const productDisplayName = product?.name ?? product?.slug ?? 'Product';
   const currency = useCurrencyStore((s) => s.currency);
 
@@ -107,11 +108,12 @@ export default function ProductPage() {
           >
             <Image
               src={mainImage}
-              alt={product.name}
+              alt={productDisplayName}
               fill
               className={`object-cover transition-transform duration-300 ${zoom ? 'scale-110' : ''}`}
               sizes="(max-width: 1024px) 100vw, 50vw"
               priority
+              unoptimized={isApiImage || !String(mainImage).startsWith('http')}
             />
           </div>
           <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
@@ -122,7 +124,7 @@ export default function ProductPage() {
                 onClick={() => setSelectedVariant(product.variants?.find((v) => v.image === url) ?? null)}
                 className="relative h-20 w-20 flex-shrink-0 rounded-xl overflow-hidden border-2 border-neutral-300"
               >
-                <Image src={url} alt={product.imageAlts?.[i] ?? productDisplayName} fill className="object-cover" sizes="80px" unoptimized={!String(url).startsWith('http')} />
+                <Image src={url} alt={product.imageAlts?.[i] ?? productDisplayName} fill className="object-cover" sizes="80px" unoptimized={String(url).includes('/api/') || !String(url).startsWith('http')} />
               </button>
             ))}
           </div>
