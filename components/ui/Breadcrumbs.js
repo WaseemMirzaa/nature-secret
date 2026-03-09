@@ -2,6 +2,7 @@
 
 import Link from '@/components/Link';
 import { usePathname } from 'next/navigation';
+import { useBreadcrumbLabel } from '@/lib/BreadcrumbContext';
 
 const LABELS = {
   shop: 'Shop',
@@ -14,9 +15,12 @@ const LABELS = {
   'skin-care': 'Skin Care',
 };
 
-function segmentLabel(segment, nextSegment) {
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function segmentLabel(segment, nextSegment, overrideLabel) {
   if (segment === '') return 'Home';
   if (LABELS[segment]) return LABELS[segment];
+  if (overrideLabel && UUID_REGEX.test(segment)) return overrideLabel;
   const readable = decodeURIComponent(segment).replace(/-/g, ' ');
   if (nextSegment === undefined) return readable.charAt(0).toUpperCase() + readable.slice(1);
   return readable.charAt(0).toUpperCase() + readable.slice(1);
@@ -24,6 +28,7 @@ function segmentLabel(segment, nextSegment) {
 
 export function Breadcrumbs({ customItems, className = '' }) {
   const pathname = usePathname();
+  const { lastSegmentLabel } = useBreadcrumbLabel() || {};
   const isAdmin = pathname?.startsWith('/admin');
   if (isAdmin) return null;
 
@@ -31,10 +36,11 @@ export function Breadcrumbs({ customItems, className = '' }) {
     const segments = pathname?.split('/').filter(Boolean) ?? [];
     const result = [{ href: '/', label: 'Home' }];
     let href = '';
+    const lastIndex = segments.length - 1;
     segments.forEach((seg, i) => {
       href += `/${seg}`;
-      const label = segmentLabel(seg, segments[i + 1]);
-      result.push({ href, label: decodeURIComponent(label) });
+      const label = segmentLabel(seg, segments[i + 1], i === lastIndex ? lastSegmentLabel : null);
+      result.push({ href, label: typeof label === 'string' ? label : decodeURIComponent(String(label)) });
     });
     return result;
   })();

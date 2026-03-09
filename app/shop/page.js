@@ -186,7 +186,7 @@ function ShopContent() {
                       <button
                         type="button"
                         onClick={() => variant && handleQuickAdd(product, variant)}
-                        className="mt-3 w-full flex items-center justify-center gap-2 rounded-xl border-2 border-neutral-300 py-2.5 text-sm font-medium text-neutral-900 hover:border-gold-400/60 hover:bg-gold-50/50 transition-colors"
+                        className="mt-3 w-full flex items-center justify-center gap-2 rounded-xl border-2 border-neutral-300 py-2.5 text-sm font-medium text-neutral-900 hover:border-gold-400/60 hover:bg-gold-50/50 transition-colors animate-cta-pulse hover:animate-none"
                       >
                         <CartIcon className="w-4 h-4" />
                         Quick add

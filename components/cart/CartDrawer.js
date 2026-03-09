@@ -100,7 +100,7 @@ export function CartDrawer() {
             {discountAmount > 0 && <div className="text-sm text-green-600">Discount: −{formatPrice(discountAmount, currency)}</div>}
             <div className="text-sm text-neutral-500">Shipping: {shipping === 0 ? 'Free' : formatPrice(shipping, currency)}</div>
             <div className="font-semibold text-neutral-900">Total: {formatPrice(totalWithShipping, currency)}</div>
-            <Link href="/checkout" onClick={close} className="block w-full rounded-xl bg-neutral-900 text-white text-center py-3 font-medium">Checkout</Link>
+            <Link href="/checkout" onClick={close} className="block w-full rounded-xl bg-neutral-900 text-white text-center py-3 font-medium animate-cta-shimmer hover:animate-none transition">Checkout</Link>
           </div>
         )}
       </div>

@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { BreadcrumbProvider } from '@/lib/BreadcrumbContext';
 import { trackPageView } from '@/lib/analytics';
 
 const CartDrawer = dynamic(() => import('@/components/cart/CartDrawer').then((m) => m.CartDrawer), { ssr: false });
@@ -23,7 +24,7 @@ export function StoreLayout({ children }) {
 
   const showBreadcrumbs = pathname && pathname !== '/' && pathname.split('/').filter(Boolean).length > 0;
   return (
-    <>
+    <BreadcrumbProvider>
       <Header />
       <div className="flex-1 flex flex-col">
         {showBreadcrumbs && (
@@ -38,6 +39,6 @@ export function StoreLayout({ children }) {
       <Suspense fallback={null}>
         <AuthModal />
       </Suspense>
-    </>
+    </BreadcrumbProvider>
   );
 }

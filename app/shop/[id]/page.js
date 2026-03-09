@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import Link from '@/components/Link';
 import Image from 'next/image';
 import { useProductsStore, useCartStore, useCartOpenStore, useWishlistStore, useCurrencyStore } from '@/lib/store';
+import { useBreadcrumbLabel } from '@/lib/BreadcrumbContext';
 import { SHIPPING_POLICY, RETURN_POLICY } from '@/lib/constants';
 import { trackViewContent, trackAddToCart, trackOutOfStockView } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
@@ -52,6 +53,12 @@ export default function ProductPage() {
   const openCart = useCartOpenStore((s) => s.open);
   const wishlist = useWishlistStore((s) => s.productIds);
   const toggleWishlist = useWishlistStore((s) => s.toggle);
+  const { setLastSegmentLabel } = useBreadcrumbLabel() || {};
+
+  useEffect(() => {
+    if (product) setLastSegmentLabel?.(productDisplayName);
+    return () => setLastSegmentLabel?.(null);
+  }, [product, productDisplayName, setLastSegmentLabel]);
 
   const related = useMemo(() => {
     if (!product) return [];
@@ -177,7 +184,7 @@ export default function ProductPage() {
               <button
                 type="button"
                 onClick={handleAddToCart}
-                className="flex-1 min-w-[200px] rounded-2xl bg-neutral-900 py-3.5 text-sm font-medium text-white hover:bg-neutral-800 transition"
+                className="flex-1 min-w-[200px] rounded-2xl bg-neutral-900 py-3.5 text-sm font-medium text-white hover:bg-neutral-800 transition animate-cta-bounce hover:animate-none"
               >
                 Add to cart
               </button>
