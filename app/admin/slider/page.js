@@ -37,7 +37,9 @@ export default function AdminSliderPage() {
     setError('');
     uploadSlideImage(file, { slug: uploadSlug, alt: form.alt, onProgress: setUploadProgress })
       .then((res) => {
-        const url = res.url?.startsWith('http') ? res.url : apiBase + (res.url || '');
+        const raw = (res.url ?? '').trim();
+        const path = raw ? (raw.startsWith('/') ? raw : '/' + raw) : '';
+        const url = raw.startsWith('http') ? raw : (apiBase ? (apiBase.replace(/\/+$/, '') + path) : path);
         setForm((f) => ({ ...f, imageUrl: url, alt: res.alt || f.alt }));
       })
       .catch((err) => setError(formatApiError(err)))

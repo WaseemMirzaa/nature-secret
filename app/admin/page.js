@@ -53,15 +53,17 @@ export default function AdminDashboardPage() {
       });
   }, [realtimeKey]);
 
-  const orders = useApi ? apiOrders : localOrders;
+  const ordersList = useApi ? apiOrders : (localOrders || []);
+  const orders = Array.isArray(ordersList) ? ordersList : [];
   const stats = useApi && apiStats
     ? { ...apiStats, revenueToday: apiStats.revenueToday }
     : (() => {
-        const totalSales = localOrders.reduce((s, o) => s + (o.total || 0), 0);
+        const list = localOrders || [];
+        const totalSales = list.reduce((s, o) => s + (o.total || 0), 0);
         const today = new Date().toDateString();
-        const ordersToday = localOrders.filter((o) => new Date(o.createdAt).toDateString() === today).length;
-        const revenueToday = localOrders.filter((o) => new Date(o.createdAt).toDateString() === today).reduce((s, o) => s + (o.total || 0), 0);
-        return { totalSales, ordersCount: localOrders.length, ordersToday, revenueToday };
+        const ordersToday = list.filter((o) => new Date(o.createdAt).toDateString() === today).length;
+        const revenueToday = list.filter((o) => new Date(o.createdAt).toDateString() === today).reduce((s, o) => s + (o.total || 0), 0);
+        return { totalSales, ordersCount: list.length, ordersToday, revenueToday };
       })();
 
   return (

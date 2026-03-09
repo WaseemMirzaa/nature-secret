@@ -232,6 +232,8 @@ nginx -t && systemctl reload nginx
 
 Open **`http://YOUR_DROPLET_IP`** in the browser (e.g. `http://165.232.123.45`). Frontend loads from `/`, API from `/api/v1/...`, assets from `/assets/`.
 
+**Image caching and optimization:** Uploaded images (slider, products, blog) are served with `Cache-Control: public, max-age=31536000, immutable` so the browser caches them for 1 year. Next.js image optimization is enabled (`next.config.js`: `unoptimized: false` and `remotePatterns` for your API host), so `<Image>` can serve WebP/resized versions. If you add a domain, add it to `images.remotePatterns` in `next.config.js`.
+
 **If you get 404 Not Found (nginx):**
 
 1. **Apps must be running.** Nginx only proxies; it doesn’t serve the app. Run:

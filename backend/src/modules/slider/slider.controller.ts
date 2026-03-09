@@ -32,6 +32,11 @@ function sanitizeSlug(s: string): string {
   return (s || '').replace(/[^a-z0-9-]/gi, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 80) || '';
 }
 
+function normalizeImageUrl(u: string | undefined): string {
+  if (!u || typeof u !== 'string') return u ?? '';
+  return u.startsWith('http') ? u.replace(/^(https?:\/\/[^/]+)(\/.*)$/, (_, o, p) => o + p.replace(/\/+/g, '/')) : u.replace(/\/+/g, '/');
+}
+
 @Controller('slider')
 export class SliderController {
   constructor(private service: SliderService) {}
@@ -39,7 +44,8 @@ export class SliderController {
   @Public()
   @Get()
   async getSlides() {
-    return this.service.findAll();
+    const slides = await this.service.findAll();
+    return Array.isArray(slides) ? slides.map((s) => ({ ...s, imageUrl: normalizeImageUrl(s.imageUrl) })) : slides;
   }
 
   @Public()
@@ -51,6 +57,7 @@ export class SliderController {
       res.status(404).end();
       return;
     }
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     const stream = createReadStream(path);
     stream.pipe(res);
   }
@@ -59,7 +66,8 @@ export class SliderController {
   @StaffOrAdmin()
   @Get('admin')
   async adminGetSlides() {
-    return this.service.findAll();
+    const slides = await this.service.findAll();
+    return Array.isArray(slides) ? slides.map((s) => ({ ...s, imageUrl: normalizeImageUrl(s.imageUrl) })) : slides;
   }
 
   @UseGuards(AdminJwtAuthGuard, AdminRoleGuard)
@@ -101,9 +109,11 @@ export class SliderController {
   )
   uploadImage(@UploadedFile() file: Express.Multer.File, @Body() body: { slug?: string; alt?: string }) {
     if (!file) throw new BadRequestException('No image file');
-    const base = (process.env.API_PUBLIC_URL || '').replace(/\/$/, '');
+    const base = (process.env.API_PUBLIC_URL || '').trim().replace(/\/+$/, '');
     const path = `/api/v1/slider/upload/${file.filename}`;
-    return { url: base ? `${base}${path}` : path, alt: body?.alt || '' };
+    const url = base ? base + (path.startsWith('/') ? path : `/${path}`) : path;
+    const normalized = url.startsWith('http') ? url.replace(/^(https?:\/\/[^/]+)(\/.*)$/, (_, o, p) => o + p.replace(/\/+/g, '/')) : url.replace(/\/+/g, '/');
+    return { url: normalized, alt: body?.alt || '' };
   }
 
   @UseGuards(AdminJwtAuthGuard, AdminRoleGuard)

@@ -39,6 +39,7 @@ export class AdminProductUploadController {
       res.status(404).end();
       return;
     }
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     createReadStream(filePath).pipe(res);
   }
 
