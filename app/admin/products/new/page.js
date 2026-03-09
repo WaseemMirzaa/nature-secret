@@ -34,6 +34,9 @@ export default function NewProductPage() {
   const [imageAlts, setImageAlts] = useState(['']);
   const [uploadSlug, setUploadSlug] = useState('');
   const [inventory, setInventory] = useState(0);
+  const [manufacturingCost, setManufacturingCost] = useState('');
+  const [boxPrice, setBoxPrice] = useState('');
+  const [stickerPrice, setStickerPrice] = useState('');
   const [badge, setBadge] = useState('');
   const [badgeSub, setBadgeSub] = useState('');
   const [variants, setVariants] = useState([emptyVariant()]);
@@ -125,6 +128,9 @@ export default function NewProductPage() {
         images: Array.isArray(images) ? images.filter(Boolean) : [],
         imageAlts: Array.isArray(imageAlts) && Array.isArray(images) ? imageAlts.slice(0, images.length).map((a, i) => images[i] ? (a || '') : '').filter((_, i) => images[i]) : [],
         inventory: Number(inventory) || 0,
+        manufacturingCost: manufacturingCost ? Math.round(parseFloat(manufacturingCost) * 100) : 0,
+        boxPrice: boxPrice ? Math.round(parseFloat(boxPrice) * 100) : 0,
+        stickerPrice: stickerPrice ? Math.round(parseFloat(stickerPrice) * 100) : 0,
         rating: Number(rating) || 0,
         reviewCount: Number(reviewCount) || 0,
         badge: badge || undefined,

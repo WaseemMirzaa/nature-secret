@@ -120,6 +120,21 @@ export class CreateProductDto {
   outOfStock?: boolean;
 
   @IsOptional()
+  @IsInt()
+  @Min(0)
+  manufacturingCost?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  boxPrice?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  stickerPrice?: number;
+
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ProductVariantDto)
@@ -208,6 +223,21 @@ export class UpdateProductDto {
   @IsOptional()
   @IsBoolean()
   outOfStock?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  manufacturingCost?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  boxPrice?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  stickerPrice?: number;
 
   @IsOptional()
   @IsArray()

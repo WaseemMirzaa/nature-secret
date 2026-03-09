@@ -13,7 +13,7 @@ function _format(amount, currency) {
   return formatPrice(amount, currency || 'PKR');
 }
 
-const STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'confirmed'];
+const STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'];
 
 function getChangedBy() {
   if (typeof window === 'undefined') return 'admin';

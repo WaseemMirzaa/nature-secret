@@ -10,7 +10,7 @@ import { TableSkeleton } from '@/components/ui/PageLoader';
 import { useAdminRealtime } from '@/context/AdminRealtimeContext';
 import { exportOrdersCSV, exportOrdersXLSX } from '@/lib/export';
 
-const STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered'];
+const STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'];
 const PAGE_SIZE = 50;
 
 function getChangedBy() {

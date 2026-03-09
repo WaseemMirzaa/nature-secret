@@ -61,6 +61,15 @@ export class Product {
   @Column({ type: 'boolean', default: false })
   outOfStock: boolean;
 
+  @Column({ type: 'int', default: 0 })
+  manufacturingCost: number;
+
+  @Column({ type: 'int', default: 0 })
+  boxPrice: number;
+
+  @Column({ type: 'int', default: 0 })
+  stickerPrice: number;
+
   @Column({ type: 'json', nullable: true })
   faq: Array<{ q: string; a: string }> | null;
 
