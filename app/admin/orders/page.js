@@ -8,6 +8,7 @@ import { formatPrice } from '@/lib/currency';
 import { getAdminOrders, updateOrderStatus as apiUpdateOrderStatus, getAdminProducts } from '@/lib/api';
 import { TableSkeleton } from '@/components/ui/PageLoader';
 import { useAdminRealtime } from '@/context/AdminRealtimeContext';
+import { exportOrdersCSV, exportOrdersXLSX } from '@/lib/export';
 
 const STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered'];
 const PAGE_SIZE = 50;
@@ -142,9 +143,17 @@ export default function AdminOrdersPage() {
           ))}
         </select>
       </div>
-      <p className="mt-2 text-sm text-neutral-500">
-        Showing {(pageIndex - 1) * PAGE_SIZE + 1}–{Math.min(pageIndex * PAGE_SIZE, displayTotal)} of {displayTotal.toLocaleString()}
-      </p>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-neutral-500">
+          Showing {(pageIndex - 1) * PAGE_SIZE + 1}–{Math.min(pageIndex * PAGE_SIZE, displayTotal)} of {displayTotal.toLocaleString()}
+        </p>
+        {!isStaff && (
+          <div className="flex gap-2">
+            <button type="button" onClick={() => exportOrdersCSV(filtered, productsMap, (v) => formatPrice(v, currency))} className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50">Export CSV</button>
+            <button type="button" onClick={() => exportOrdersXLSX(filtered, productsMap, (v) => formatPrice(v, currency))} className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50">Export XLSX</button>
+          </div>
+        )}
+      </div>
       <div className="mt-4 rounded-2xl border border-neutral-200 bg-white overflow-hidden flex flex-col max-h-[calc(100vh-12rem)] sm:max-h-[calc(100vh-16rem)]">
         <div className="overflow-y-auto overflow-x-auto min-h-0 flex-1">
           <table className="w-full text-left text-sm min-w-[600px]">
