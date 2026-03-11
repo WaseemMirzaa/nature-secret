@@ -534,6 +534,42 @@ Nginx is up but the app behind it is not responding. On the droplet run:
 3. **Restart and save:** `pm2 restart nature-secret-web && pm2 save`. If the app keeps exiting, run `pm2 logs nature-secret-web` in one terminal and trigger the failing URL again to see the error.
 4. **Clean rebuild:** `cd /var/www/nature-secret && rm -rf .next && npm run build && pm2 restart nature-secret-web && pm2 save`.
 
+**"Could not find a production build in the '.next' directory"**
+
+The Next.js app was started but there is no valid `.next` build (build failed, was never run, or ran in the wrong directory). From **repo root** on the droplet:
+
+```bash
+cd /var/www/nature-secret
+npm ci
+rm -rf .next
+NODE_OPTIONS='--max-old-space-size=4096' npm run build
+# Must see a BUILD_ID file:
+test -f .next/BUILD_ID && echo "Build OK" || { echo "Build failed"; exit 1; }
+pm2 restart nature-secret-web
+pm2 save
+```
+
+If the build runs out of memory, add swap or use a smaller heap: `NODE_OPTIONS='--max-old-space-size=2048' npm run build`. Only start `nature-secret-web` after `.next/BUILD_ID` exists.
+
+**PM2 shows "errored" or "too many unstable restarts (10). Stopped"**
+
+The app was restarted too many times and PM2 stopped it. Fix the cause (e.g. missing `.next` build, API crash), then reset and start again:
+
+```bash
+cd /var/www/nature-secret
+# Ensure frontend has a build
+test -f .next/BUILD_ID || { rm -rf .next && NODE_OPTIONS='--max-old-space-size=4096' npm run build; }
+# Rebuild backend if needed
+(cd backend && npm run build)
+# Reset restart count and start (delete then start from ecosystem)
+pm2 delete nature-secret-api nature-secret-web 2>/dev/null; pm2 start ecosystem.config.cjs
+pm2 save
+```
+
+**API error: "Incorrect DATETIME value: 'undefined'"**
+
+The backend now rejects invalid date query params. If you still see this on an old deploy, pull the latest code and rebuild the backend, then `pm2 restart nature-secret-api`.
+
 ---
 
 ## 10. CI/CD with GitHub Actions

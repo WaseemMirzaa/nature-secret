@@ -227,7 +227,7 @@ export default function NewProductPage() {
         </div>
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-1">Description (HTML allowed)</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={5} placeholder="<p>...</p>, <strong>, <ul><li>...</li></ul>, <a href=\"...\">" className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900 font-mono text-sm" />
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={5} placeholder={'e.g. <p>...</p>, <strong>, <ul><li>...</li></ul>, <a href="...">'} className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900 font-mono text-sm" />
         </div>
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-1">Benefits (one per line)</label>

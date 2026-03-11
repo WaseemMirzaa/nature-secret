@@ -36,8 +36,9 @@ export class AdminService {
         const s = `%${params.search.trim()}%`;
         qb.andWhere('(o.id LIKE :s)', { s });
       }
-      let from = params.dateFrom && params.dateFrom !== 'undefined' ? params.dateFrom : undefined;
-      let to = params.dateTo && params.dateTo !== 'undefined' ? params.dateTo : undefined;
+      const validDate = (s: string | undefined) => s && s !== 'undefined' && /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : undefined;
+      let from = validDate(params.dateFrom);
+      let to = validDate(params.dateTo);
       if (!from && !to) {
         const today = new Date().toISOString().slice(0, 10);
         from = today;
@@ -241,9 +242,10 @@ export class AdminService {
 
   async getDashboard(params?: { dateFrom?: string; dateTo?: string }) {
     try {
+      const validDate = (s: string | undefined) => s && s !== 'undefined' && /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : undefined;
       const qb = this.orderRepo.createQueryBuilder('o');
-      const from = params?.dateFrom && params.dateFrom !== 'undefined' ? params.dateFrom : undefined;
-      const to = params?.dateTo && params.dateTo !== 'undefined' ? params.dateTo : undefined;
+      const from = validDate(params?.dateFrom);
+      const to = validDate(params?.dateTo);
       if (from) qb.andWhere('o.createdAt >= :from', { from });
       if (to) qb.andWhere('o.createdAt <= :to', { to: `${to}T23:59:59` });
 
