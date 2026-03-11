@@ -2,6 +2,9 @@ import { Controller, Get, Post, Param, Patch, Delete, Body, Query, Req, UseGuard
 import { AdminService } from './admin.service';
 import { ProductsService } from '../products/products.service';
 import { PushService } from '../notifications/push.service';
+import { WhatsAppLinkService } from '../notifications/whatsapp-link.service';
+import { SettingsService } from '../settings/settings.service';
+import { SupportService } from '../support/support.service';
 import { CreateProductDto, UpdateProductDto } from '../products/dto/product.dto';
 import { CreateBlogPostDto, UpdateBlogPostDto } from './dto/blog.dto';
 import { AdminJwtAuthGuard } from '../../common/guards/admin-jwt.guard';
@@ -15,7 +18,23 @@ export class AdminController {
     private service: AdminService,
     private productsService: ProductsService,
     private pushService: PushService,
+    private whatsappLink: WhatsAppLinkService,
+    private settingsService: SettingsService,
+    private supportService: SupportService,
   ) {}
+
+  @Get('settings/contact')
+  @AdminOnly()
+  getContactSettings() {
+    return this.settingsService.getContact();
+  }
+
+  @Patch('settings/contact')
+  @AdminOnly()
+  async updateContactSettings(@Body() body: { whatsappNumber?: string; phone?: string; emails?: string }) {
+    await this.settingsService.setContact(body);
+    return this.settingsService.getContact();
+  }
 
   @Get('dashboard')
   @AdminOnly()
@@ -106,6 +125,38 @@ export class AdminController {
   @AdminOnly()
   async setCustomerBlock(@Param('id') id: string, @Body('blocked') blocked: boolean) {
     return this.service.setCustomerBlocked(id, !!blocked);
+  }
+
+  @Get('whatsapp/status')
+  @AdminOnly()
+  whatsappStatus() {
+    return this.whatsappLink.getStatus();
+  }
+
+  @Get('whatsapp/qr')
+  @AdminOnly()
+  async whatsappQR() {
+    return this.whatsappLink.getQR();
+  }
+
+  @Get('support')
+  @AdminOnly()
+  async listSupportTickets(
+    @Query('status') status?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ) {
+    return this.supportService.findAllForAdmin({
+      status,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      offset: offset ? parseInt(offset, 10) : undefined,
+    });
+  }
+
+  @Patch('support/:id')
+  @AdminOnly()
+  async updateSupportTicket(@Param('id') id: string, @Body() body: { status?: string; adminReply?: string }) {
+    return this.supportService.updateByAdmin(id, body);
   }
 
   @Get('push/fcm-supported')

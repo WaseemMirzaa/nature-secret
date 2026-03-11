@@ -17,8 +17,8 @@ const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');
 
 const admins = [
-  { email: 'admin@naturesecret.com', password: 'Admin123!', role: 'admin' },
-  { email: 'staff@naturesecret.com', password: 'Staff123!', role: 'staff' },
+  { email: 'admin@naturesecret.pk', password: 'Admin123!', role: 'admin' },
+  { email: 'staff@naturesecret.pk', password: 'Staff123!', role: 'staff' },
 ];
 
 const config = {

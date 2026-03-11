@@ -49,7 +49,7 @@ function LoginForm() {
       const returnUrl = (searchParams?.get('returnUrl') || '/account').replace(/^[^/]/, '/$&');
       router.push(returnUrl.startsWith('/') ? returnUrl : '/account');
     } catch (err) {
-      setError(err?.code ? getFirebaseAuthErrorMessage(err.code) : formatApiError(err, 'Invalid email or password.'));
+      setError(err?.code ? getFirebaseAuthErrorMessage(err.code, err?.message) : formatApiError(err, 'Invalid email or password.'));
     } finally {
       setLoading(false);
     }

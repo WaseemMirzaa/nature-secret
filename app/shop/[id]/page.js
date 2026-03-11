@@ -10,27 +10,33 @@ import { SHIPPING_POLICY, RETURN_POLICY } from '@/lib/constants';
 import { trackViewContent, trackAddToCart, trackOutOfStockView } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
 import { sanitizeHtml } from '@/lib/sanitizeHtml';
-import { getProductById, resolveImageUrl, getReviews } from '@/lib/api';
+import { getProductById, getProductBySlug, resolveImageUrl, getReviews } from '@/lib/api';
+
+const isUuid = (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 
 export default function ProductPage() {
   const params = useParams();
-  const id = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params.id[0] : '';
+  const slugOrId = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params.id[0] : '';
   const storeProducts = useProductsStore((s) => s.products);
   const [apiProduct, setApiProduct] = useState(null);
-  const [productLoading, setProductLoading] = useState(!!id);
+  const [productLoading, setProductLoading] = useState(!!slugOrId);
 
   useEffect(() => {
-    if (!id) {
+    if (!slugOrId) {
       setProductLoading(false);
       return;
     }
-    getProductById(id)
+    const fetchProduct = isUuid(slugOrId) ? getProductById(slugOrId) : getProductBySlug(slugOrId);
+    fetchProduct
       .then((p) => { setApiProduct(p); })
       .catch(() => { setApiProduct(null); })
       .finally(() => setProductLoading(false));
-  }, [id]);
+  }, [slugOrId]);
 
-  const productFromStore = useMemo(() => (id ? storeProducts.find((p) => p.id === id) : null), [storeProducts, id]);
+  const productFromStore = useMemo(
+    () => (slugOrId ? storeProducts.find((p) => p.id === slugOrId || (p.slug && p.slug === slugOrId)) : null),
+    [storeProducts, slugOrId]
+  );
   const product = apiProduct ?? productFromStore;
   const products = apiProduct ? [apiProduct, ...storeProducts.filter((p) => p.id !== apiProduct.id)] : storeProducts;
   const [selectedVariant, setSelectedVariant] = useState(null);
@@ -307,7 +313,7 @@ export default function ProductPage() {
               const img = resolveImageUrl(p.images?.[0]) || '/assets/nature-secret-logo.svg';
               const name = p.name ?? p.slug ?? 'Product';
               return (
-                <Link key={p.id} href={`/shop/${p.id}`} className="group animate-stagger-in opacity-0" style={{ animationDelay: `${i * 100}ms` }}>
+                <Link key={p.id} href={`/shop/${(p.slug && p.slug.trim()) ? p.slug : p.id}`} className="group animate-stagger-in opacity-0" style={{ animationDelay: `${i * 100}ms` }}>
                   <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100">
                     <Image src={img} alt={name} width={300} height={400} className="h-full w-full object-cover group-hover:scale-105 transition duration-300" unoptimized />
                   </div>

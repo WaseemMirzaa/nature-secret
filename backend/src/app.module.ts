@@ -15,6 +15,8 @@ import { EventsModule } from './modules/events/events.module';
 import { SliderModule } from './modules/slider/slider.module';
 import { SetupModule } from './modules/setup/setup.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
+import { SettingsModule } from './modules/settings/settings.module';
+import { SupportModule } from './modules/support/support.module';
 import { FirebaseModule } from './common/firebase/firebase.module';
 
 @Module({
@@ -50,6 +52,8 @@ import { FirebaseModule } from './common/firebase/firebase.module';
     SliderModule,
     SetupModule,
     ReviewsModule,
+    SettingsModule,
+    SupportModule,
   ],
 })
 export class AppModule {}

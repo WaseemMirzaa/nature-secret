@@ -28,9 +28,11 @@ export function Header() {
               <Link href="/shop?category=herbal-oils" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Herbal Oils</Link>
               <Link href="/shop?category=skin-care" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Skin Care</Link>
               <Link href="/blog" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Blog</Link>
+              <Link href="/contact" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Contact</Link>
               {customer ? (
                 <>
                   <Link href="/account" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors">Account</Link>
+                  <Link href="/support" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors">Support</Link>
                   <button type="button" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors bg-transparent border-none cursor-pointer font-inherit" onClick={() => { useCustomerStore.getState().logout(); window.location.href = '/'; }}>Log out</button>
                 </>
               ) : (
@@ -78,9 +80,11 @@ export function Header() {
               <Link href="/shop?category=herbal-oils" className="py-3 text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Herbal Oils</Link>
               <Link href="/shop?category=skin-care" className="py-3 text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Skin Care</Link>
               <Link href="/blog" className="py-3 text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Blog</Link>
+              <Link href="/contact" className="py-3 text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Contact</Link>
               {customer ? (
                 <>
-                  <Link href="/account" className="py-3 text-neutral-600 hover:text-gold-600 font-medium border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Account</Link>
+                  <Link href="/account" className="py-3 text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Account</Link>
+                  <Link href="/support" className="py-3 text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Support</Link>
                   <button type="button" className="py-3 text-left text-neutral-600 hover:text-gold-600 font-medium w-full border-b border-neutral-100" onClick={() => { useCustomerStore.getState().logout(); setMenuOpen(false); window.location.href = '/'; }}>Log out</button>
                 </>
               ) : (

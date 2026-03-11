@@ -282,7 +282,7 @@ Follow prompts. Certbot will adjust Nginx for HTTPS.
 
 - Frontend: **https://yourdomain.com**
 - API: **https://api.yourdomain.com/api/v1**
-- Admin: **https://yourdomain.com/admin** (e.g. `admin@naturesecret.com` / `Admin123!`)
+- Admin: **https://yourdomain.com/admin** (e.g. `admin@naturesecret.pk` / `Admin123!`)
 
 ---
 

@@ -120,7 +120,7 @@ export class EmailService {
         itemsSummaryHtml: itemsSummaryHtml || '—',
       });
       const text = `Thank you for your order.\n\nOrder ID: ${order.id}\nConfirmation code: ${order.confirmationCode ?? '—'}\nTotal: ${totalFormatted}\n\n${itemsSummary}\n\nWe will notify you when your order is shipped.`;
-      const subject = `Order confirmed – Nature Secret #${order.id.slice(0, 8)}`;
+      const subject = `Order confirmed – Nature Secret #${order.id}`;
       await this.send(this.fromEmail, to, subject, text, html);
     } catch (e) {
       console.error('Email send failed:', e);

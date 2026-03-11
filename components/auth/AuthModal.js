@@ -32,14 +32,18 @@ export function AuthModal() {
         const auth = getFirebaseAuth();
         if (auth) {
           const { sendPasswordResetEmail } = await import('firebase/auth');
-          await sendPasswordResetEmail(auth, email.trim());
+          const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+          await sendPasswordResetEmail(auth, email.trim(), {
+            url: `${baseUrl}/reset-password`,
+            handleCodeInApp: true,
+          });
         } else {
           const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
           await customerForgotPassword(email.trim(), `${baseUrl}/reset-password`);
         }
         setForgotSent(true);
       } catch (err) {
-        const msg = err?.code ? getFirebaseAuthErrorMessage(err.code) : formatApiError(err, 'Something went wrong.');
+        const msg = err?.code ? getFirebaseAuthErrorMessage(err.code, err?.message) : formatApiError(err, 'Something went wrong.');
         setError(msg);
       } finally {
         setLoading(false);
@@ -81,7 +85,7 @@ export function AuthModal() {
       const returnUrl = (searchParams?.get('returnUrl') || '/account').replace(/^[^/]/, '/$&');
       router.push(returnUrl.startsWith('/') ? returnUrl : '/account');
     } catch (err) {
-      const msg = err?.code ? getFirebaseAuthErrorMessage(err.code) : formatApiError(err, 'Something went wrong. Please try again.');
+      const msg = err?.code ? getFirebaseAuthErrorMessage(err.code, err?.message) : formatApiError(err, 'Something went wrong. Please try again.');
       setError(msg);
     } finally {
       setLoading(false);

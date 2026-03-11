@@ -134,7 +134,7 @@ function ShopContent() {
               const inWishlist = wishlist.includes(product.id);
               return (
                 <article key={product.id} className="group animate-stagger-in opacity-0" style={{ animationDelay: `${index * 75}ms` }}>
-                  <Link href={`/shop/${product.id}`} className="block">
+                  <Link href={`/shop/${(product.slug && product.slug.trim()) ? product.slug : product.id}`} className="block">
                     <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100 relative ring-1 ring-neutral-200/80 group-hover:ring-gold-400/40 transition-all duration-300 shadow-soft group-hover:shadow-gold-sm">
                       {product.badge && (
                         <span className="absolute top-3 left-3 z-10 rounded-full bg-neutral-900 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white ring-1 ring-gold-500/60 shadow-gold-sm">
@@ -170,7 +170,7 @@ function ShopContent() {
                     </div>
                   </Link>
                   <div className="mt-4">
-                    <Link href={`/shop/${product.id}`}>
+                    <Link href={`/shop/${(product.slug && product.slug.trim()) ? product.slug : product.id}`}>
                       <p className="font-medium text-neutral-900">{product.name ?? product.slug ?? 'Product'}</p>
                     </Link>
                     <div className="mt-1 flex items-center gap-2">

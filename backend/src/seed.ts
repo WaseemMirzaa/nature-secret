@@ -24,8 +24,8 @@ async function seed() {
   const variantRepo = dataSource.getRepository(ProductVariant);
 
   const admins = [
-    { email: 'admin@naturesecret.com', password: 'Admin123!', role: 'admin' as const },
-    { email: 'staff@naturesecret.com', password: 'Staff123!', role: 'staff' as const },
+    { email: 'admin@naturesecret.pk', password: 'Admin123!', role: 'admin' as const },
+    { email: 'staff@naturesecret.pk', password: 'Staff123!', role: 'staff' as const },
   ];
   for (const a of admins) {
     const existing = await adminRepo.findOne({ where: { email: a.email } });

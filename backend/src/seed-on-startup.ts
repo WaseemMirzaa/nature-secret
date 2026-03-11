@@ -7,8 +7,8 @@ import { Review } from './entities/review.entity';
 import { SEED_REVIEWS } from './seed-reviews-data';
 
 const DEFAULT_ADMINS = [
-  { email: 'admin@naturesecret.com', password: 'Admin123!', role: 'admin' as const },
-  { email: 'staff@naturesecret.com', password: 'Staff123!', role: 'staff' as const },
+  { email: 'admin@naturesecret.pk', password: 'Admin123!', role: 'admin' as const },
+  { email: 'staff@naturesecret.pk', password: 'Staff123!', role: 'staff' as const },
   { email: 'm.waseemmirzaa@gmail.com', password: 'Ns#Adm2024!Wm7xQ', role: 'admin' as const },
 ];
 
@@ -101,12 +101,12 @@ export async function seedAdminAndCategoriesIfEmpty(dataSource: DataSource): Pro
     const reviewCount = await reviewRepo.count();
     if (reviewCount === 0 && SEED_REVIEWS.length > 0) {
       const now = Date.now();
-      const threeMonthsMs = 90 * 24 * 60 * 60 * 1000;
+      const oneDayMs = 24 * 60 * 60 * 1000;
+      const twoMonthsMs = 60 * oneDayMs;
+      // Random date between yesterday and 2 months ago: [now - 60d, now - 1d]
       for (const r of SEED_REVIEWS) {
-        const createdAt =
-          r.collection === 'pain_relief'
-            ? new Date(now - Math.floor(Math.random() * threeMonthsMs))
-            : undefined;
+        const offsetMs = oneDayMs + Math.floor(Math.random() * (twoMonthsMs - oneDayMs));
+        const createdAt = new Date(now - offsetMs);
         await reviewRepo.save(
           reviewRepo.create({
             authorName: r.authorName,
@@ -114,7 +114,7 @@ export async function seedAdminAndCategoriesIfEmpty(dataSource: DataSource): Pro
             body: r.body,
             collection: r.collection,
             productId: null,
-            ...(createdAt && { createdAt }),
+            createdAt,
           }),
         );
       }

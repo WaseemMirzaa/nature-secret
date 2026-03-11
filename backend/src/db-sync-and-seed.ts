@@ -51,8 +51,8 @@ const ALL_ENTITIES = [
 ];
 
 const DEFAULT_ADMINS = [
-  { email: 'admin@naturesecret.com', password: 'Admin123!', role: 'admin' as const },
-  { email: 'staff@naturesecret.com', password: 'Staff123!', role: 'staff' as const },
+  { email: 'admin@naturesecret.pk', password: 'Admin123!', role: 'admin' as const },
+  { email: 'staff@naturesecret.pk', password: 'Staff123!', role: 'staff' as const },
   { email: 'm.waseemmirzaa@gmail.com', password: 'Ns#Adm2024!Wm7xQ', role: 'admin' as const },
 ];
 

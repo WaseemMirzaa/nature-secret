@@ -34,7 +34,7 @@ curl -s "https://shifaefitrat.com/api/v1/blog/posts/slug/your-post-slug"
 # Admin login (returns access_token)
 curl -s -X POST "https://shifaefitrat.com/api/v1/auth/admin/login" \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@naturesecret.com","password":"Admin123!"}'
+  -d '{"email":"admin@naturesecret.pk","password":"Admin123!"}'
 
 # Customer login
 curl -s -X POST "https://shifaefitrat.com/api/v1/auth/customer/login" \
@@ -134,7 +134,7 @@ curl -s -X POST "https://shifaefitrat.com/api/v1/orders" \
 ```bash
 TOKEN=$(curl -s -X POST "https://shifaefitrat.com/api/v1/auth/admin/login" \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@naturesecret.com","password":"Admin123!"}' | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
+  -d '{"email":"admin@naturesecret.pk","password":"Admin123!"}' | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
 echo "Token: $TOKEN"
 curl -s "https://shifaefitrat.com/api/v1/admin/dashboard" -H "Authorization: Bearer $TOKEN"
 ```

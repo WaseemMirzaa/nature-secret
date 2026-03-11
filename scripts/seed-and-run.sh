@@ -25,5 +25,5 @@ npm run seed || echo "Seed failed (MySQL may not be ready or deps missing). Run 
 echo "==> Start backend with: cd backend && npm run start:dev"
 echo "==> Start frontend with: npm run dev"
 echo ""
-echo "Admin: admin@naturesecret.com / Admin123!"
-echo "Staff: staff@naturesecret.com / Staff123!"
+echo "Admin: admin@naturesecret.pk / Admin123!"
+echo "Staff: staff@naturesecret.pk / Staff123!"

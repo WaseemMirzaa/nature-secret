@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import * as twilio from 'twilio';
 import { Order } from '../../entities/order.entity';
 import { OrderStatusTimeline } from '../../entities/order-status-timeline.entity';
+import { WhatsAppLinkService } from './whatsapp-link.service';
 
 @Injectable()
 export class WhatsAppService {
@@ -13,6 +14,7 @@ export class WhatsAppService {
   constructor(
     @InjectRepository(Order) private orderRepo: Repository<Order>,
     @InjectRepository(OrderStatusTimeline) private timelineRepo: Repository<OrderStatusTimeline>,
+    private whatsappLink: WhatsAppLinkService,
   ) {
     const sid = process.env.TWILIO_ACCOUNT_SID;
     const token = process.env.TWILIO_AUTH_TOKEN;
@@ -24,7 +26,10 @@ export class WhatsAppService {
   }
 
   async sendOrderConfirmation(phone: string | null, orderId: string, confirmationCode: string | null) {
-    if (!this.client || !this.from || !phone) return;
+    if (!phone) return;
+    const sent = await this.whatsappLink.sendOrderConfirmation(phone, orderId, confirmationCode);
+    if (sent) return;
+    if (!this.client || !this.from) return;
     const normalized = phone.replace(/\D/g, '');
     const to = normalized.startsWith('92') ? `whatsapp:+${normalized}` : `whatsapp:+92${normalized}`;
     const codeMsg = confirmationCode ? ` Reply YES to confirm your order.` : '';

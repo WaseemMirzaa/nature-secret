@@ -17,15 +17,15 @@ const JSON_LD = {
     {
       '@type': 'Organization',
       name: 'Nature Secret',
-      url: 'https://naturesecret.com',
+      url: 'https://naturesecret.pk',
       description: 'Premium herbal oils for pain care and skincare. Painrex Oil and natural wellness products trusted in Pakistan.',
     },
     {
       '@type': 'WebSite',
       name: 'Nature Secret',
-      url: 'https://naturesecret.com',
+      url: 'https://naturesecret.pk',
       description: 'Shop premium herbal oils for pain relief and skincare. Painrex Oil—natural, trusted in Pakistan.',
-      potentialAction: { '@type': 'SearchAction', target: 'https://naturesecret.com/shop?q={search_term_string}', 'query-input': 'required name=search_term_string' },
+      potentialAction: { '@type': 'SearchAction', target: 'https://naturesecret.pk/shop?q={search_term_string}', 'query-input': 'required name=search_term_string' },
     },
   ],
 };

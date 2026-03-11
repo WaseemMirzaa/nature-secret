@@ -155,6 +155,7 @@ Optional: `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `TWILIO_*`, `SETUP_SECRET`, `WEBHO
   - `messagingSenderId` → `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
   - `appId` → `NEXT_PUBLIC_FIREBASE_APP_ID`
 - **FCM on web (optional):** Project settings → Cloud Messaging → Web Push certificates. If you add a key pair, set the key as `NEXT_PUBLIC_FIREBASE_VAPID_KEY` in `.env.local` so the admin “Order notifications” page can request a token. After changing any `NEXT_PUBLIC_*` you must **rebuild** the frontend (`npm run build`) and restart `nature-secret-web`.
+- **400 on sign-up / auth not working:** In Firebase Console go to **Authentication → Sign-in method** and enable **Email/Password**. If the API key has HTTP referrer restrictions in Google Cloud Console, add your site origin (e.g. your domain or `http://YOUR_DROPLET_IP`).
 
 **Frontend** (`/var/www/nature-secret/.env.local`)
 
@@ -460,8 +461,8 @@ After the seed runs (on first start or `node dist/db-sync-and-seed.js`), you can
 
 | Role  | Email                     | Password   |
 |-------|----------------------------|------------|
-| Admin | `admin@naturesecret.com`   | `Admin123!` |
-| Staff | `staff@naturesecret.com`  | `Staff123!` |
+| Admin | `admin@naturesecret.pk`   | `Admin123!` |
+| Staff | `staff@naturesecret.pk`  | `Staff123!` |
 
 Change these passwords after first login (or edit the seed in `backend/src/seed-on-startup.ts` and re-run seed if the DB is empty).
 
@@ -489,7 +490,7 @@ Expected: `{"ok":true,"ts":...}`
 ```bash
 curl -s -X POST http://YOUR_DROPLET_IP/api/v1/auth/admin/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@naturesecret.com","password":"Admin123!"}'
+  -d '{"email":"admin@naturesecret.pk","password":"Admin123!"}'
 ```
 Expected: JSON with `access_token` and `user`. If you get 401, the email/password are wrong or the admin user was not seeded.
 
@@ -509,7 +510,7 @@ If the browser shows: *Access to fetch at 'http://localhost:4000/...' from origi
 **"GET /api/v1/admin/* 401 (Unauthorized)"**
 
 1. **Nginx must forward the token:** In `location /api/` add `proxy_set_header Authorization $http_authorization;` (see section 7), then `sudo nginx -t && sudo systemctl reload nginx`.
-2. **Use a real login token:** In the browser, open DevTools → Application → Local Storage. If `nature_secret_admin` has no `access_token`, run `localStorage.removeItem('nature_secret_admin'); location.href='/admin/login';` then sign in with `admin@naturesecret.com` / `Admin123!` so the API returns and stores a token.
+2. **Use a real login token:** In the browser, open DevTools → Application → Local Storage. If `nature_secret_admin` has no `access_token`, run `localStorage.removeItem('nature_secret_admin'); location.href='/admin/login';` then sign in with `admin@naturesecret.pk` / `Admin123!` so the API returns and stores a token.
 3. **Backend:** Same `JWT_SECRET` in backend `.env` as when the token was issued; admin user must exist (re-run seed if needed: `cd backend && node dist/db-sync-and-seed.js`).
 
 **"WebSocket connection to .../api/v1/ws/ failed"**

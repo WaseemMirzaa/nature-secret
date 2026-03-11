@@ -1,5 +1,6 @@
 import Link from '@/components/Link';
 import { Logo } from '@/components/Logo';
+import { FooterContact } from '@/components/FooterContact';
 
 export function Footer() {
   return (
@@ -14,6 +15,7 @@ export function Footer() {
             <p className="mt-3 text-xs text-neutral-400">
               Nationwide delivery · Cash on delivery · Quality assured
             </p>
+            <FooterContact />
             <div className="mt-6 h-px w-12 bg-gold-400/60" aria-hidden />
           </div>
           <div>

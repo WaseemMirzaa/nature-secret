@@ -17,6 +17,11 @@ function randomCode(len = 6) {
   return s;
 }
 
+const ORDER_ID_LENGTH = 8;
+function generateOrderId(): string {
+  return randomCode(ORDER_ID_LENGTH);
+}
+
 @Injectable()
 export class OrdersService {
   constructor(
@@ -44,7 +49,18 @@ export class OrdersService {
       const customer = await this.customerRepo.findOne({ where: { id: dto.customerId } });
       if (customer?.blocked) throw new ForbiddenException('Account is blocked.');
     }
+    let orderId = '';
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const candidate = generateOrderId();
+      const existing = await this.orderRepo.findOne({ where: { id: candidate } });
+      if (!existing) {
+        orderId = candidate;
+        break;
+      }
+      if (attempt === 9) throw new BadRequestException('Could not generate unique order ID. Please try again.');
+    }
     const order = this.orderRepo.create({
+      id: orderId,
       customerId: dto.customerId ?? null,
       customerName: dto.customerName ?? null,
       email: dto.email ?? null,

@@ -12,6 +12,8 @@ import { AdminService } from './admin.service';
 import { OrdersModule } from '../orders/orders.module';
 import { ProductsModule } from '../products/products.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { SettingsModule } from '../settings/settings.module';
+import { SupportModule } from '../support/support.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { NotificationsModule } from '../notifications/notifications.module';
     OrdersModule,
     ProductsModule,
     NotificationsModule,
+    SettingsModule,
+    SupportModule,
   ],
   controllers: [AdminController, AdminProductUploadController, AdminBlogUploadController],
   providers: [AdminService],

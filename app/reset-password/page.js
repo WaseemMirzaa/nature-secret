@@ -5,11 +5,16 @@ import Link from '@/components/Link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Logo } from '@/components/Logo';
 import { customerResetPassword, formatApiError } from '@/lib/api';
+import { getFirebaseAuth, getFirebaseAuthErrorMessage, MIN_PASSWORD_LENGTH } from '@/lib/firebase';
 
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token') || '';
+  const oobCode = searchParams.get('oobCode') || '';
+  const mode = searchParams.get('mode') || '';
+  const isFirebase = mode === 'resetPassword' && !!oobCode;
+  const minLen = isFirebase ? MIN_PASSWORD_LENGTH : 8;
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
@@ -17,8 +22,8 @@ function ResetPasswordForm() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!token) setError('Invalid reset link.');
-  }, [token]);
+    if (!isFirebase && !token) setError('Invalid reset link.');
+  }, [isFirebase, token]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -27,17 +32,25 @@ function ResetPasswordForm() {
       setError('Passwords do not match.');
       return;
     }
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.');
+    if (password.length < minLen) {
+      setError(`Password must be at least ${minLen} characters.`);
       return;
     }
     setLoading(true);
     try {
-      await customerResetPassword(token, password);
+      if (isFirebase) {
+        const auth = getFirebaseAuth();
+        if (!auth) throw new Error('Sign-in not configured.');
+        const { confirmPasswordReset } = await import('firebase/auth');
+        await confirmPasswordReset(auth, oobCode, password);
+      } else {
+        await customerResetPassword(token, password);
+      }
       setDone(true);
       setTimeout(() => router.push('/login'), 2000);
     } catch (err) {
-      setError(formatApiError(err, 'Invalid or expired link.'));
+      const msg = err?.code ? getFirebaseAuthErrorMessage(err.code, err?.message) : formatApiError(err, 'Invalid or expired link.');
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -59,7 +72,7 @@ function ResetPasswordForm() {
                 <p className="text-sm font-medium text-gold-900">Password updated</p>
                 <p className="mt-1 text-sm text-gold-800">Redirecting you to login…</p>
               </div>
-            ) : !token ? (
+            ) : !isFirebase && !token ? (
               <div className="rounded-xl bg-red-50 border border-red-200 p-4">
                 <p className="text-sm font-medium text-red-800">Invalid reset link</p>
                 <p className="mt-1 text-sm text-red-700">This link is missing or invalid. Request a new one from the login page.</p>
@@ -69,7 +82,7 @@ function ResetPasswordForm() {
               </div>
             ) : (
               <>
-                <p className="text-neutral-600 text-sm">Enter your new password below. Use at least 8 characters.</p>
+                <p className="text-neutral-600 text-sm">Enter your new password below. Use at least {minLen} characters.</p>
                 <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                   <div>
                     <label htmlFor="password" className="block text-sm font-medium text-neutral-700 mb-1.5">New password</label>
@@ -79,7 +92,7 @@ function ResetPasswordForm() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      minLength={8}
+                      minLength={minLen}
                       placeholder="••••••••"
                       className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-gold-500/30 focus:border-gold-400/50"
                     />
@@ -92,7 +105,7 @@ function ResetPasswordForm() {
                       value={confirm}
                       onChange={(e) => setConfirm(e.target.value)}
                       required
-                      minLength={8}
+                      minLength={minLen}
                       placeholder="••••••••"
                       className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-gold-500/30 focus:border-gold-400/50"
                     />

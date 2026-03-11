@@ -149,7 +149,7 @@ export default function HomeContent() {
                 const price = variant?.price ?? product.price;
                 const compareAtPrice = product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice;
                 return (
-                  <Link key={product.id} href={`/shop/${product.id}`} className="group group/card">
+                  <Link key={product.id} href={`/shop/${(product.slug && product.slug.trim()) ? product.slug : product.id}`} className="group group/card">
                     <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100 relative ring-1 ring-neutral-200/80 group-hover/card:ring-gold-400/40 transition-all duration-300 shadow-soft group-hover/card:shadow-gold-sm">
                       <Image
                         src={img}

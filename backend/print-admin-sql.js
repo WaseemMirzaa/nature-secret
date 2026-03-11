@@ -5,8 +5,8 @@
 const bcrypt = require('bcryptjs');
 
 const admins = [
-  { email: 'admin@naturesecret.com', password: 'Admin123!', role: 'admin' },
-  { email: 'staff@naturesecret.com', password: 'Staff123!', role: 'staff' },
+  { email: 'admin@naturesecret.pk', password: 'Admin123!', role: 'admin' },
+  { email: 'staff@naturesecret.pk', password: 'Staff123!', role: 'staff' },
 ];
 
 async function main() {
@@ -17,7 +17,7 @@ async function main() {
       `INSERT INTO admin_users (id, email, passwordHash, role, twoFactorEnabled) VALUES (UUID(), '${a.email}', '${hash}', '${a.role}', 0);`
     );
   }
-  console.log('\n-- Then log in with admin@naturesecret.com / Admin123!');
+  console.log('\n-- Then log in with admin@naturesecret.pk / Admin123!');
 }
 
 main().catch((e) => {

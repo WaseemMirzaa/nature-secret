@@ -183,7 +183,7 @@ curl -s http://localhost:4000/api/v1/admin/products \
 # 1) Get token (use your admin email/password)
 TOKEN=$(curl -s -X POST http://localhost:4000/api/v1/auth/admin/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@naturesecret.com","password":"Admin123!"}' | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
+  -d '{"email":"admin@naturesecret.pk","password":"Admin123!"}' | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
 
 # 2) Create product (saved to DB)
 curl -s -X POST http://localhost:4000/api/v1/admin/products \

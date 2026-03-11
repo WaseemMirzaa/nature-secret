@@ -29,8 +29,8 @@ npm run seed:admin
 ```
 
 Admins:
-- **Admin:** `admin@naturesecret.com` / `Admin123!`
-- **Staff:** `staff@naturesecret.com` / `Staff123!`
+- **Admin:** `admin@naturesecret.pk` / `Admin123!`
+- **Staff:** `staff@naturesecret.pk` / `Staff123!`
 
 API: http://localhost:4000/api/v1
 
@@ -48,10 +48,10 @@ App: http://localhost:3000 (or next free port)
 
 ## 4. Admin login (after seed)
 
-- Email: `admin@naturesecret.com`  
+- Email: `admin@naturesecret.pk`  
 - Password: `Admin123!`
 
-Staff: `staff@naturesecret.com` / `Staff123!`
+Staff: `staff@naturesecret.pk` / `Staff123!`
 
 ## 5. New order notifications (admin)
 

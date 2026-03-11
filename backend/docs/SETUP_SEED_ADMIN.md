@@ -17,7 +17,7 @@ curl -X POST http://localhost:4000/api/v1/setup/seed-admin \
   -H "X-Setup-Secret: YOUR_SETUP_SECRET"
 ```
 
-Response: `{"ok":true,"created":1}` (or `created:2`). Then log in with `admin@naturesecret.com` / `Admin123!`.
+Response: `{"ok":true,"created":1}` (or `created:2`). Then log in with `admin@naturesecret.pk` / `Admin123!`.
 
 ---
 

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { Entity, PrimaryColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { Customer } from './customer.entity';
 import { OrderItem } from './order-item.entity';
 import { OrderStatusTimeline } from './order-status-timeline.entity';
@@ -6,7 +6,7 @@ import { encryptedTransformer } from '../common/encryption/encryption.util';
 
 @Entity('orders')
 export class Order {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn({ type: 'varchar', length: 8 })
   id: string;
 
   @Column({ type: 'varchar', length: 36, nullable: true })

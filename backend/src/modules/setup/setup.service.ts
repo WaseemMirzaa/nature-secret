@@ -7,8 +7,8 @@ import { Category } from '../../entities/category.entity';
 import { HeroSlide } from '../../entities/hero-slide.entity';
 
 const DEFAULT_ADMINS = [
-  { email: 'admin@naturesecret.com', password: 'Admin123!', role: 'admin' as const },
-  { email: 'staff@naturesecret.com', password: 'Staff123!', role: 'staff' as const },
+  { email: 'admin@naturesecret.pk', password: 'Admin123!', role: 'admin' as const },
+  { email: 'staff@naturesecret.pk', password: 'Staff123!', role: 'staff' as const },
 ];
 
 const DEFAULT_CATEGORIES = [

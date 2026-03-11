@@ -13,6 +13,8 @@ const ADMIN_NAV = [
   { href: '/admin/orders', label: 'Orders', adminOnly: false },
   { href: '/admin/customers', label: 'Customers', adminOnly: true },
   { href: '/admin/order-notifications', label: 'Order notifications', adminOnly: true },
+  { href: '/admin/whatsapp', label: 'WhatsApp & Contact', adminOnly: true },
+  { href: '/admin/support', label: 'Support tickets', adminOnly: true },
   { href: '/admin/slider', label: 'Home slider', adminOnly: true },
   { href: '/admin/blog', label: 'Blog', adminOnly: true },
   { href: '/admin/analytics', label: 'Analytics', adminOnly: true },
