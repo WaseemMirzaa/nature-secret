@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCustomerStore, useAuthModalStore } from '@/lib/store';
 import { Logo } from '@/components/Logo';
-import { customerLogin, customerRegister, formatApiError } from '@/lib/api';
+import { customerLogin, customerRegister, customerForgotPassword, formatApiError } from '@/lib/api';
 
 export function AuthModal() {
   const router = useRouter();
@@ -16,12 +16,26 @@ export function AuthModal() {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     if (!email.trim()) {
       setError('Enter your email.');
+      return;
+    }
+    if (mode === 'forgot') {
+      setLoading(true);
+      try {
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+        await customerForgotPassword(email.trim(), `${baseUrl}/reset-password`);
+        setForgotSent(true);
+      } catch (err) {
+        setError(formatApiError(err, 'Something went wrong.'));
+      } finally {
+        setLoading(false);
+      }
       return;
     }
     if (!password.trim()) {
@@ -65,62 +79,95 @@ export function AuthModal() {
           <Logo className="h-7" link={false} />
           <button type="button" onClick={close} className="p-1 text-neutral-400 hover:text-neutral-600" aria-label="Close">×</button>
         </div>
-        <h2 className="text-lg font-semibold text-neutral-900 mb-4">
-          {mode === 'signup' ? 'Create account' : 'Login'}
-        </h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === 'signup' && (
-            <div>
-              <label htmlFor="auth-name" className="block text-sm font-medium text-neutral-700">Name</label>
-              <input
-                id="auth-name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required={mode === 'signup'}
-                className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-neutral-900"
-                placeholder="Your name"
-              />
-            </div>
-          )}
-          <div>
-            <label htmlFor="auth-email" className="block text-sm font-medium text-neutral-700">Email</label>
-            <input
-              id="auth-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-neutral-900"
-            />
-          </div>
-          <div>
-            <label htmlFor="auth-password" className="block text-sm font-medium text-neutral-700">Password</label>
-            <input
-              id="auth-password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-neutral-900"
-            />
-            {mode === 'login' && (
-              <p className="mt-1 text-xs text-neutral-500">
-                <a href="/forgot-password" className="text-neutral-600 hover:text-neutral-900">Forgot password?</a>
-              </p>
+
+        {mode === 'forgot' ? (
+          <>
+            <h2 className="text-lg font-semibold text-neutral-900 mb-4">Forgot password</h2>
+            {forgotSent ? (
+              <p className="text-sm text-neutral-600 mb-4">If an account exists for that email, we&apos;ve sent a reset link. Check your inbox.</p>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label htmlFor="auth-forgot-email" className="block text-sm font-medium text-neutral-700">Email</label>
+                  <input
+                    id="auth-forgot-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-neutral-900"
+                  />
+                </div>
+                {error && <p className="text-sm text-red-600">{error}</p>}
+                <button type="submit" disabled={loading} className="w-full min-h-[44px] rounded-xl bg-neutral-900 py-3 text-sm font-medium text-white disabled:opacity-50">
+                  {loading ? 'Sending…' : 'Send reset link'}
+                </button>
+              </form>
             )}
-          </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <button type="submit" disabled={loading} className="w-full min-h-[44px] rounded-xl bg-neutral-900 py-3 text-sm font-medium text-white disabled:opacity-50">
-            {loading ? 'Please wait…' : mode === 'signup' ? 'Create account' : 'Sign in'}
-          </button>
-        </form>
-        <p className="mt-4 text-center text-sm text-neutral-500">
-          {mode === 'signup' ? (
-            <>Already have an account? <button type="button" onClick={() => useAuthModalStore.getState().openLogin()} className="font-medium text-neutral-900">Login</button></>
-          ) : (
-            <>New here? <button type="button" onClick={() => useAuthModalStore.getState().openSignup()} className="font-medium text-neutral-900">Create account</button></>
-          )}
-        </p>
+            <p className="mt-4 text-center text-sm text-neutral-500">
+              <button type="button" onClick={() => { useAuthModalStore.getState().openLogin(); setForgotSent(false); setEmail(''); setError(''); }} className="font-medium text-neutral-900">← Back to login</button>
+            </p>
+          </>
+        ) : (
+          <>
+            <h2 className="text-lg font-semibold text-neutral-900 mb-4">
+              {mode === 'signup' ? 'Create account' : 'Login'}
+            </h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {mode === 'signup' && (
+                <div>
+                  <label htmlFor="auth-name" className="block text-sm font-medium text-neutral-700">Name</label>
+                  <input
+                    id="auth-name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required={mode === 'signup'}
+                    className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-neutral-900"
+                    placeholder="Your name"
+                  />
+                </div>
+              )}
+              <div>
+                <label htmlFor="auth-email" className="block text-sm font-medium text-neutral-700">Email</label>
+                <input
+                  id="auth-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-neutral-900"
+                />
+              </div>
+              <div>
+                <label htmlFor="auth-password" className="block text-sm font-medium text-neutral-700">Password</label>
+                <input
+                  id="auth-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-neutral-900"
+                />
+                {mode === 'login' && (
+                  <p className="mt-1 text-xs text-neutral-500">
+                    <button type="button" onClick={() => useAuthModalStore.getState().openForgot()} className="text-neutral-600 hover:text-neutral-900">Forgot password?</button>
+                  </p>
+                )}
+              </div>
+              {error && <p className="text-sm text-red-600">{error}</p>}
+              <button type="submit" disabled={loading} className="w-full min-h-[44px] rounded-xl bg-neutral-900 py-3 text-sm font-medium text-white disabled:opacity-50">
+                {loading ? 'Please wait…' : mode === 'signup' ? 'Create account' : 'Sign in'}
+              </button>
+            </form>
+            <p className="mt-4 text-center text-sm text-neutral-500">
+              {mode === 'signup' ? (
+                <>Already have an account? <button type="button" onClick={() => useAuthModalStore.getState().openLogin()} className="font-medium text-neutral-900">Login</button></>
+              ) : (
+                <>New here? <button type="button" onClick={() => useAuthModalStore.getState().openSignup()} className="font-medium text-neutral-900">Create account</button></>
+              )}
+            </p>
+          </>
+        )}
       </div>
     </>
   );

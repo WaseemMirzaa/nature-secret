@@ -1,7 +1,6 @@
 'use client';
 
 import { Suspense, useState } from 'react';
-import Link from '@/components/Link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCustomerStore, useAuthModalStore } from '@/lib/store';
 import { Logo } from '@/components/Logo';
@@ -69,7 +68,7 @@ function LoginForm() {
             className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-neutral-900"
           />
           <p className="mt-1 text-xs text-neutral-500">
-            <Link href="/forgot-password" className="text-neutral-600 hover:text-neutral-900">Forgot password?</Link>
+            <button type="button" onClick={() => useAuthModalStore.getState().openForgot()} className="text-neutral-600 hover:text-neutral-900">Forgot password?</button>
           </p>
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
