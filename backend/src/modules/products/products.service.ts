@@ -14,6 +14,14 @@ function normalizeProductImages(p: Product): Product {
   if (Array.isArray(p.images) && p.images.length) {
     p.images = p.images.map(normalizeImageUrl);
   }
+  if (Array.isArray(p.variants)) {
+    p.variants = p.variants.map((v) => {
+      const images = Array.isArray(v.images) && v.images.length
+        ? v.images.map(normalizeImageUrl)
+        : (v.image ? [normalizeImageUrl(v.image)] : []);
+      return { ...v, images, image: v.image || images[0] || null };
+    });
+  }
   return p;
 }
 
@@ -60,9 +68,15 @@ export class ProductsService {
     const saved = await this.repo.save(product);
     this.logger.log(`Product saved to DB id=${saved.id}`);
     if (variants?.length) {
-      const variantEntities = variants.map((v) =>
-        this.variantRepo.create({ ...v, productId: saved.id }),
-      );
+      const variantEntities = variants.map((v) => {
+        const imgs = Array.isArray(v.images) ? v.images.filter(Boolean) : (v.image ? [v.image] : []);
+        return this.variantRepo.create({
+          ...v,
+          productId: saved.id,
+          images: imgs.length ? imgs : null,
+          image: imgs[0] || v.image || null,
+        });
+      });
       await this.variantRepo.save(variantEntities);
     }
     return this.findOne(saved.id);
@@ -77,9 +91,15 @@ export class ProductsService {
     if (variants !== undefined) {
       await this.variantRepo.delete({ productId: id });
       if (variants.length) {
-        const variantEntities = variants.map((v) =>
-          this.variantRepo.create({ ...v, productId: id }),
-        );
+        const variantEntities = variants.map((v) => {
+          const imgs = Array.isArray(v.images) ? v.images.filter(Boolean) : (v.image ? [v.image] : []);
+          return this.variantRepo.create({
+            ...v,
+            productId: id,
+            images: imgs.length ? imgs : null,
+            image: imgs[0] || v.image || null,
+          });
+        });
         await this.variantRepo.save(variantEntities);
       }
     }

@@ -8,7 +8,7 @@ import { useCartStore, useOrdersStore, useProductsStore, useCurrencyStore, useCu
 import { getDiscountCodes } from '@/lib/store';
 import { trackPurchase } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
-import { createOrder as apiCreateOrder, trackAnalytics, getCustomerToken } from '@/lib/api';
+import { createOrder as apiCreateOrder, trackAnalytics } from '@/lib/api';
 import { useProductsAndCategories } from '@/lib/useApiData';
 import { CustomerPageLoader } from '@/components/ui/PageLoader';
 
@@ -37,13 +37,6 @@ export default function CheckoutPage() {
 
   useEffect(() => setMounted(true), []);
   useEffect(() => {
-    if (!mounted) return;
-    if (!getCustomerToken()) {
-      router.replace(`/login?returnUrl=${encodeURIComponent('/checkout')}`);
-      return;
-    }
-  }, [mounted, router]);
-  useEffect(() => {
     if (!mounted || !customer) return;
     setForm((f) => ({
       ...f,
@@ -68,14 +61,14 @@ export default function CheckoutPage() {
   }
 
   const getProduct = (id) => (Array.isArray(products) ? products.find((p) => p.id === id) : null);
+  const getVariant = (productId, variantId) => {
+    const p = getProduct(productId);
+    return p?.variants?.find((v) => v.id === variantId);
+  };
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (items.length === 0) return;
-    if (!getCustomerToken()) {
-      router.replace('/login?returnUrl=' + encodeURIComponent('/checkout'));
-      return;
-    }
     setPlacing(true);
     setOrderError('');
     const addressStr = `${form.address}, ${form.city}, ${form.state} ${form.pincode}`;
@@ -106,9 +99,7 @@ export default function CheckoutPage() {
     router.push(`/checkout/confirmation?order=${orderId}`);
   }
 
-  if (!mounted || (mounted && !getCustomerToken())) {
-    return <CustomerPageLoader message="Checking login" />;
-  }
+  if (!mounted) return <CustomerPageLoader message="Loading" />;
 
   if (items.length === 0 && !placing) {
     return (
@@ -197,15 +188,19 @@ export default function CheckoutPage() {
             <ul className="space-y-3 mb-4">
               {items.map((i) => {
                 const p = getProduct(i.productId);
-                const imgSrc = p?.images?.[0] || '/assets/nature-secret-logo.svg';
+                const variant = getVariant(i.productId, i.variantId);
+                const imgSrc = variant?.image || p?.images?.[0] || '/assets/nature-secret-logo.svg';
                 return (
                   <li key={`${i.productId}-${i.variantId}`} className="flex gap-3">
                     <div className="relative h-14 w-14 rounded-lg overflow-hidden bg-white flex-shrink-0">
                       <Image src={imgSrc} alt="" fill className="object-cover" sizes="56px" unoptimized={!imgSrc.startsWith('http')} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-neutral-900 truncate">{p?.name ?? i.name ?? 'Product'}</p>
-                      <p className="text-xs text-neutral-500">Qty: {i.qty} · {formatPrice(i.price, currency)}</p>
+                      <p className="text-sm font-medium text-neutral-900 truncate">{p?.name ?? i.name ?? 'Product'}{variant ? ` (${variant.name})` : ''}</p>
+                      <p className="text-xs text-neutral-500">
+                        Qty: {i.qty} · {variant?.compareAtPrice && <span className="line-through text-neutral-400 mr-1">{formatPrice(variant.compareAtPrice, currency)}</span>}
+                        {formatPrice(i.price, currency)}
+                      </p>
                     </div>
                   </li>
                 );

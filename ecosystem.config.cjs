@@ -23,12 +23,13 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: process.env.API_PORT || 4000,
+        NODE_OPTIONS: '--max-old-space-size=512',
       },
       instances: 1,
       autorestart: true,
       max_restarts: 10,
       min_uptime: '10s',
-      max_memory_restart: '500M',
+      max_memory_restart: '600M',
     },
     {
       name: 'nature-secret-web',
@@ -40,12 +41,13 @@ module.exports = {
       env_file: '.env.local',
       env: {
         NODE_ENV: 'production',
+        NODE_OPTIONS: '--max-old-space-size=512',
       },
       instances: 1,
       autorestart: true,
       max_restarts: 10,
       min_uptime: '10s',
-      max_memory_restart: '500M',
+      max_memory_restart: '600M',
     },
   ],
 };

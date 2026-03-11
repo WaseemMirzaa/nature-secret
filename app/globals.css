@@ -91,3 +91,41 @@ html {
   color: #1c1917;
   font-weight: 600;
 }
+
+/* Product description — HTML content */
+.product-description {
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+.product-description p {
+  margin-bottom: 0.75em;
+}
+.product-description p:last-child {
+  margin-bottom: 0;
+}
+.product-description ul,
+.product-description ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+.product-description li {
+  margin-bottom: 0.25em;
+}
+.product-description h2,
+.product-description h3,
+.product-description h4 {
+  font-weight: 600;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  color: #1c1917;
+}
+.product-description a {
+  color: #9a7209;
+  text-decoration: none;
+}
+.product-description a:hover {
+  text-decoration: underline;
+}
+.product-description strong {
+  font-weight: 600;
+}

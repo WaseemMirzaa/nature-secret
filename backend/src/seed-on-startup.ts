@@ -100,7 +100,13 @@ export async function seedAdminAndCategoriesIfEmpty(dataSource: DataSource): Pro
     const reviewRepo = dataSource.getRepository(Review);
     const reviewCount = await reviewRepo.count();
     if (reviewCount === 0 && SEED_REVIEWS.length > 0) {
+      const now = Date.now();
+      const threeMonthsMs = 90 * 24 * 60 * 60 * 1000;
       for (const r of SEED_REVIEWS) {
+        const createdAt =
+          r.collection === 'pain_relief'
+            ? new Date(now - Math.floor(Math.random() * threeMonthsMs))
+            : undefined;
         await reviewRepo.save(
           reviewRepo.create({
             authorName: r.authorName,
@@ -108,6 +114,7 @@ export async function seedAdminAndCategoriesIfEmpty(dataSource: DataSource): Pro
             body: r.body,
             collection: r.collection,
             productId: null,
+            ...(createdAt && { createdAt }),
           }),
         );
       }

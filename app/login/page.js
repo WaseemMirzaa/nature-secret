@@ -4,7 +4,8 @@ import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCustomerStore, useAuthModalStore } from '@/lib/store';
 import { Logo } from '@/components/Logo';
-import { customerLogin, formatApiError } from '@/lib/api';
+import { customerFirebaseLogin, formatApiError } from '@/lib/api';
+import { getFirebaseAuth, getFirebaseAuthErrorMessage, MIN_PASSWORD_LENGTH } from '@/lib/firebase';
 import { CustomerPageLoader } from '@/components/ui/PageLoader';
 
 function LoginForm() {
@@ -19,20 +20,36 @@ function LoginForm() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-    if (!email.trim() || !password) {
-      setError('Enter email and password.');
+    if (!email.trim()) {
+      setError('Please enter your email.');
+      return;
+    }
+    if (!password) {
+      setError('Please enter your password.');
+      return;
+    }
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
+      return;
+    }
+    const auth = getFirebaseAuth();
+    if (!auth) {
+      setError('Sign-in is not configured. Please try again later.');
       return;
     }
     setLoading(true);
     try {
-      await customerLogin(email.trim(), password);
+      const { signInWithEmailAndPassword } = await import('firebase/auth');
+      const userCred = await signInWithEmailAndPassword(auth, email.trim(), password);
+      const idToken = await userCred.user.getIdToken();
+      await customerFirebaseLogin(idToken);
       const raw = typeof window !== 'undefined' ? localStorage.getItem('nature_secret_customer') : null;
       const customer = raw ? JSON.parse(raw) : { email: email.trim(), name: email.trim().split('@')[0] };
       login(customer);
       const returnUrl = (searchParams?.get('returnUrl') || '/account').replace(/^[^/]/, '/$&');
       router.push(returnUrl.startsWith('/') ? returnUrl : '/account');
     } catch (err) {
-      setError(formatApiError(err, 'Invalid email or password.'));
+      setError(err?.code ? getFirebaseAuthErrorMessage(err.code) : formatApiError(err, 'Invalid email or password.'));
     } finally {
       setLoading(false);
     }

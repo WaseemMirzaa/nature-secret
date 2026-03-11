@@ -1,14 +1,15 @@
 import { Body, Controller, ForbiddenException, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../../common/guards/optional-jwt-auth.guard';
 import { CreateOrderDto } from './dto/create-order.dto';
 
 @Controller('orders')
-@UseGuards(JwtAuthGuard)
 export class OrdersController {
   constructor(private service: OrdersService) {}
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   async list(@Req() req: { user: { id: string } }, @Query('limit') limit?: string, @Query('offset') offset?: string) {
     const opts = {
       limit: limit ? Math.min(100, Math.max(1, parseInt(limit, 10) || 50)) : 50,
@@ -18,9 +19,10 @@ export class OrdersController {
   }
 
   @Post()
-  async create(@Req() req: { user: { id: string } }, @Body() dto: CreateOrderDto) {
+  @UseGuards(OptionalJwtAuthGuard)
+  async create(@Req() req: { user?: { id: string } }, @Body() dto: CreateOrderDto) {
     const order = await this.service.create({
-      customerId: req.user.id,
+      customerId: req.user?.id ?? undefined,
       customerName: dto.customerName,
       email: dto.email,
       phone: dto.phone,
@@ -33,6 +35,7 @@ export class OrdersController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
   async findOne(@Req() req: { user: { id: string } }, @Param('id') id: string) {
     const order = await this.service.findOne(id);
     if (order.customerId !== req.user.id) throw new ForbiddenException('Not your order');

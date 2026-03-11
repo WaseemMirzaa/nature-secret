@@ -6,7 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useProductsStore } from '@/lib/store';
 import { getCategories, uploadProductImage, updateProduct as updateProductApi, formatApiError, getAdminReviews, assignReviewToProduct, unassignReview, setProductRating } from '@/lib/api';
 
-const emptyVariant = () => ({ id: `v-${Date.now()}`, name: '', volume: '', price: 0, image: '' });
+const emptyVariant = () => ({ id: `v-${Date.now()}`, name: '', volume: '', price: 0, compareAtPrice: null, images: [] });
 const emptyFaq = () => ({ q: '', a: '' });
 
 export default function EditProductPage() {
@@ -61,15 +61,22 @@ export default function EditProductPage() {
       e.target.value = '';
     }
   }
-  async function handleVariantImageUpload(e, variantIndex) {
+  async function handleVariantImageUpload(e, variantIndex, imageIndex) {
     const file = e?.target?.files?.[0];
     if (!file) return;
-    setUploadingIndex(`v-${variantIndex}`);
+    setUploadingIndex(`v-${variantIndex}-${imageIndex ?? 'new'}`);
     setUploadError('');
     try {
       const res = await uploadProductImage(file);
       const url = res.url?.startsWith('http') ? res.url : apiBase + (res.url || '');
-      updateVariant(variantIndex, 'image', url);
+      const v = variants[variantIndex];
+      const imgs = [...(v.images || [])];
+      if (imageIndex != null && imageIndex < imgs.length) {
+        imgs[imageIndex] = url;
+      } else {
+        imgs.push(url);
+      }
+      setVariantImages(variantIndex, imgs);
     } catch (err) {
       setUploadError(formatApiError(err));
     } finally {
@@ -95,7 +102,7 @@ export default function EditProductPage() {
     setInventory(product.inventory ?? 0);
     setBadge(product.badge || '');
     setBadgeSub(product.badgeSub || '');
-    setVariants(product.variants?.length ? product.variants.map((v) => ({ ...v, price: (v.price || 0) / 100 })) : [emptyVariant()]);
+    setVariants(product.variants?.length ? product.variants.map((v) => ({ ...v, price: (v.price || 0) / 100, compareAtPrice: v.compareAtPrice != null ? (v.compareAtPrice / 100).toString() : null, images: Array.isArray(v.images) ? v.images : (v.image ? [v.image] : []) })) : [emptyVariant()]);
     setFaq(product.faq?.length ? product.faq : [emptyFaq()]);
     setRating(product.rating ?? 4.5);
     setReviewCount(product.reviewCount ?? 0);
@@ -130,9 +137,34 @@ export default function EditProductPage() {
   }
   function addVariant() { setVariants((v) => [...v, emptyVariant()]); }
   function updateVariant(i, field, value) {
-    setVariants((v) => { const n = v.map((x, j) => j === i ? { ...x, [field]: field === 'price' ? Number(value) || 0 : value } : x); return n; });
+    setVariants((v) => {
+      const n = v.map((x, j) => {
+        if (j !== i) return x;
+        if (field === 'price') return { ...x, price: Number(value) || 0 };
+        if (field === 'compareAtPrice') return { ...x, compareAtPrice: value === '' || value == null ? null : value };
+        return { ...x, [field]: value };
+      });
+      return n;
+    });
   }
   function removeVariant(i) { setVariants((v) => v.filter((_, j) => j !== i)); }
+  function setVariantImages(variantIndex, imageList) {
+    setVariants((v) => v.map((x, j) => j === variantIndex ? { ...x, images: Array.isArray(imageList) ? imageList : (x.images || []) } : x));
+  }
+  function addVariantImage(variantIndex) {
+    setVariants((v) => v.map((x, j) => j === variantIndex ? { ...x, images: [...(x.images || []), ''] } : x));
+  }
+  function updateVariantImage(variantIndex, imageIndex, url) {
+    setVariants((v) => v.map((x, j) => {
+      if (j !== variantIndex) return x;
+      const imgs = [...(x.images || [])];
+      imgs[imageIndex] = url;
+      return { ...x, images: imgs };
+    }));
+  }
+  function removeVariantImage(variantIndex, imageIndex) {
+    setVariants((v) => v.map((x, j) => j === variantIndex ? { ...x, images: (x.images || []).filter((_, idx) => idx !== imageIndex) } : x));
+  }
   function addFaq() { setFaq((f) => [...f, emptyFaq()]); }
   function updateFaq(i, field, value) { setFaq((f) => { const n = [...f]; n[i] = { ...n[i], [field]: value }; return n; }); }
   function removeFaq(i) { setFaq((f) => f.filter((_, j) => j !== i)); }
@@ -162,11 +194,12 @@ export default function EditProductPage() {
         name: v.name,
         volume: v.volume,
         price: Math.round((v.price || 0) * 100) || basePrice,
-        image: v.image || images[0] || '',
+        compareAtPrice: variants.length > 1 && v.compareAtPrice != null && v.compareAtPrice !== '' ? Math.round(parseFloat(v.compareAtPrice) * 100) : null,
+        images: Array.isArray(v.images) ? v.images.filter(Boolean) : (v.image ? [v.image] : []),
       })),
       faq: faq.filter((f) => f.q && f.a),
     };
-    if (!updates.variants.length) updates.variants = [{ id: `v-${Date.now()}`, name: 'Default', volume: '-', price: basePrice, image: images[0] || '' }];
+    if (!updates.variants.length) updates.variants = [{ id: `v-${Date.now()}`, name: 'Default', volume: '-', price: basePrice, images: images[0] ? [images[0]] : [] }];
     setSubmitError('');
     setSubmitting(true);
     try {
@@ -220,8 +253,8 @@ export default function EditProductPage() {
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-1">Description</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900" />
+          <label className="block text-sm font-medium text-neutral-700 mb-1">Description (HTML allowed)</label>
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={5} placeholder="<p>...</p>, <strong>, <ul><li>...</li></ul>" className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900 font-mono text-sm" />
         </div>
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-1">Benefits</label>
@@ -263,16 +296,32 @@ export default function EditProductPage() {
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">Variants (name, volume, price ₹, image)</label>
+          <label className="block text-sm font-medium text-neutral-700 mb-2">Variants (name, volume, price ₹{variants.length > 1 ? ', compare at ₹' : ''}, images)</label>
           {variants.map((v, i) => (
-            <div key={i} className="flex flex-wrap gap-2 mb-2 items-center">
-              <input type="text" value={v.name} onChange={(e) => updateVariant(i, 'name', e.target.value)} className="w-24 rounded-lg border border-neutral-200 px-2 py-1.5 text-sm" />
-              <input type="text" value={v.volume} onChange={(e) => updateVariant(i, 'volume', e.target.value)} className="w-20 rounded-lg border border-neutral-200 px-2 py-1.5 text-sm" />
-              <input type="number" step="0.01" value={v.price || ''} onChange={(e) => updateVariant(i, 'price', e.target.value)} className="w-24 rounded-lg border border-neutral-200 px-2 py-1.5 text-sm" />
-              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(e) => handleVariantImageUpload(e, i)} disabled={uploadingIndex !== null} className="text-xs file:rounded file:border-0 file:bg-neutral-100 file:px-2 file:py-1" />
-              {uploadingIndex === `v-${i}` && <span className="text-xs text-neutral-500">Uploading…</span>}
-              <input type="text" value={v.image || ''} onChange={(e) => updateVariant(i, 'image', e.target.value)} placeholder="Or URL" className="flex-1 min-w-[100px] rounded-lg border border-neutral-200 px-2 py-1.5 text-sm" />
-              <button type="button" onClick={() => removeVariant(i)} className="text-neutral-500 hover:text-red-600">×</button>
+            <div key={i} className="border border-neutral-200 rounded-xl p-3 mb-3 space-y-2">
+              <div className="flex flex-wrap gap-2 items-center">
+                <input type="text" value={v.name} onChange={(e) => updateVariant(i, 'name', e.target.value)} className="w-24 rounded-lg border border-neutral-200 px-2 py-1.5 text-sm" />
+                <input type="text" value={v.volume} onChange={(e) => updateVariant(i, 'volume', e.target.value)} className="w-20 rounded-lg border border-neutral-200 px-2 py-1.5 text-sm" />
+                <input type="number" step="0.01" value={v.price || ''} onChange={(e) => updateVariant(i, 'price', e.target.value)} className="w-24 rounded-lg border border-neutral-200 px-2 py-1.5 text-sm" />
+                {variants.length > 1 && (
+                  <input type="number" step="0.01" value={v.compareAtPrice ?? ''} onChange={(e) => updateVariant(i, 'compareAtPrice', e.target.value)} placeholder="Was ₹" className="w-24 rounded-lg border border-neutral-200 px-2 py-1.5 text-sm" title="Original price for this variant" />
+                )}
+                <button type="button" onClick={() => removeVariant(i)} className="text-neutral-500 hover:text-red-600 ml-1">× Remove variant</button>
+              </div>
+              <div className="flex flex-wrap gap-2 items-center">
+                <span className="text-xs text-neutral-500 w-full">Images:</span>
+                {(v.images || []).map((url, imgIdx) => (
+                  <div key={imgIdx} className="flex items-center gap-1">
+                    <input type="text" value={url} onChange={(e) => updateVariantImage(i, imgIdx, e.target.value)} placeholder="URL" className="w-32 rounded-lg border border-neutral-200 px-2 py-1 text-xs" />
+                    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(e) => handleVariantImageUpload(e, i, imgIdx)} disabled={uploadingIndex !== null} className="text-xs file:rounded file:border-0 file:bg-neutral-100 file:px-2 file:py-0.5" title="Upload" />
+                    {uploadingIndex === `v-${i}-${imgIdx}` && <span className="text-xs text-neutral-500">Uploading…</span>}
+                    <button type="button" onClick={() => removeVariantImage(i, imgIdx)} className="text-neutral-400 hover:text-red-600">×</button>
+                  </div>
+                ))}
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(e) => handleVariantImageUpload(e, i, null)} disabled={uploadingIndex !== null} className="text-xs file:rounded file:border-0 file:bg-neutral-100 file:px-2 file:py-0.5" title="Add image" />
+                {uploadingIndex === `v-${i}-new` && <span className="text-xs text-neutral-500">Uploading…</span>}
+                <button type="button" onClick={() => addVariantImage(i)} className="text-xs text-neutral-600 hover:text-neutral-900 border border-dashed border-neutral-300 rounded-lg px-2 py-1">+ Add image</button>
+              </div>
             </div>
           ))}
           <button type="button" onClick={addVariant} className="text-sm text-neutral-600 hover:text-neutral-900">+ Add variant</button>

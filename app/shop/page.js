@@ -52,7 +52,7 @@ function ShopContent() {
       variantId: variant.id,
       price: variant.price,
       name: product.name,
-      image: variant.image || product.images?.[0],
+      image: (variant.images && variant.images[0]) || variant.image || product.images?.[0],
     });
     openCart();
     trackAddToCart(product.id, product.name, variant.price / 100, 1);
@@ -130,6 +130,7 @@ function ShopContent() {
             filtered.map((product, index) => {
               const variant = product.variants?.[0];
               const price = variant?.price ?? product.price;
+              const compareAtPrice = product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice;
               const inWishlist = wishlist.includes(product.id);
               return (
                 <article key={product.id} className="group animate-stagger-in opacity-0" style={{ animationDelay: `${index * 75}ms` }}>
@@ -177,8 +178,8 @@ function ShopContent() {
                       <span className="text-xs text-neutral-400">({product.reviewCount})</span>
                     </div>
                     <p className="mt-1 text-sm text-neutral-600">
-                      {product.compareAtPrice && (
-                        <span className="line-through text-neutral-400 mr-2">{formatPrice(product.compareAtPrice, 'PKR')}</span>
+                      {compareAtPrice && (
+                        <span className="line-through text-neutral-400 mr-2">{formatPrice(compareAtPrice, 'PKR')}</span>
                       )}
                       {formatPrice(price, 'PKR')}
                     </p>

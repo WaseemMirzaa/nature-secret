@@ -7,6 +7,7 @@ import { useParams } from 'next/navigation';
 import { useProductsStore, useCurrencyStore } from '@/lib/store';
 import { getCategories } from '@/lib/api';
 import { formatPrice } from '@/lib/currency';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 
 export default function AdminProductDetailPage() {
   const params = useParams();
@@ -89,7 +90,11 @@ export default function AdminProductDetailPage() {
 
         <section className="p-6">
           <h2 className="text-sm font-medium text-neutral-500 uppercase tracking-wider mb-2">Description</h2>
-          <p className="text-neutral-700 whitespace-pre-wrap">{product.description || '—'}</p>
+          {product.description ? (
+            <div className="text-neutral-700 product-description" dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }} />
+          ) : (
+            <p className="text-neutral-500">—</p>
+          )}
         </section>
         <section className="p-6">
           <h2 className="text-sm font-medium text-neutral-500 uppercase tracking-wider mb-2">Benefits</h2>

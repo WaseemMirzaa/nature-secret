@@ -11,6 +11,10 @@ export class Customer {
   @Column({ type: 'varchar', length: 255, unique: true })
   email: string;
 
+  /** Firebase Auth UID; set when customer signs in with Firebase. */
+  @Column({ type: 'varchar', length: 128, unique: true, nullable: true })
+  firebaseUid: string | null;
+
   @Column({ type: 'varchar', length: 2000, transformer: encryptedTransformer, nullable: true })
   name: string | null;
 
@@ -20,8 +24,8 @@ export class Customer {
   @Column({ type: 'text', transformer: encryptedTransformer, nullable: true })
   address: string | null;
 
-  @Column({ type: 'varchar', length: 255 })
-  passwordHash: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  passwordHash: string | null;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   resetToken: string | null;

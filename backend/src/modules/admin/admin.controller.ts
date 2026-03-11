@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Param, Patch, Delete, Body, Query, Req, UseGuards } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { ProductsService } from '../products/products.service';
-// import { PushService } from '../notifications/push.service'; // TODO: replace with Firebase FCM
+import { PushService } from '../notifications/push.service';
 import { CreateProductDto, UpdateProductDto } from '../products/dto/product.dto';
 import { CreateBlogPostDto, UpdateBlogPostDto } from './dto/blog.dto';
 import { AdminJwtAuthGuard } from '../../common/guards/admin-jwt.guard';
@@ -14,7 +14,7 @@ export class AdminController {
   constructor(
     private service: AdminService,
     private productsService: ProductsService,
-    // private pushService: PushService, // TODO: replace with Firebase FCM
+    private pushService: PushService,
   ) {}
 
   @Get('dashboard')
@@ -108,22 +108,18 @@ export class AdminController {
     return this.service.setCustomerBlocked(id, !!blocked);
   }
 
-  // --- VAPID push (commented out; use Firebase FCM later) ---
-  // @Get('push/vapid-public')
-  // @AdminOnly()
-  // async getVapidPublic() {
-  //   const key = this.pushService.getVapidPublicKey();
-  //   return { vapidPublicKey: key };
-  // }
-  // @Post('push/subscribe')
-  // @AdminOnly()
-  // async pushSubscribe(@Body() body: { subscription: { endpoint: string; keys: { p256dh: string; auth: string }; label?: string } }) {
-  //   if (!body?.subscription?.endpoint || !body?.subscription?.keys?.p256dh || !body?.subscription?.keys?.auth) {
-  //     return { ok: false };
-  //   }
-  //   this.pushService.addSubscription(body.subscription);
-  //   return { ok: true };
-  // }
+  @Get('push/fcm-supported')
+  @StaffOrAdmin()
+  fcmSupported() {
+    return { supported: true };
+  }
+
+  @Post('push/fcm-token')
+  @StaffOrAdmin()
+  registerFcmToken(@Body() body: { token?: string }) {
+    if (body?.token) this.pushService.addFcmToken(body.token);
+    return { ok: true };
+  }
 
   @Post('products')
   @AdminOnly()

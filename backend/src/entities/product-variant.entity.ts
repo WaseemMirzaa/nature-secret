@@ -22,6 +22,14 @@ export class ProductVariant {
   @Column({ type: 'int', default: 0 })
   price: number;
 
+  @Column({ type: 'int', nullable: true })
+  compareAtPrice: number | null;
+
+  /** First image URL (legacy); also set from images[0] when saving. */
   @Column({ type: 'varchar', length: 500, nullable: true })
   image: string | null;
+
+  /** Multiple image URLs for this variant. */
+  @Column({ type: 'json', nullable: true })
+  images: string[] | null;
 }

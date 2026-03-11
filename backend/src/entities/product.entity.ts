@@ -33,7 +33,7 @@ export class Product {
   @Column({ type: 'int', nullable: true })
   compareAtPrice: number | null;
 
-  /** Plain text for SEO (meta description, content). */
+  /** Description; can contain HTML (p, strong, ul, li, a, etc.). Rendered as HTML on frontend with sanitization. */
   @Column({ type: 'text', nullable: true })
   description: string | null;
 

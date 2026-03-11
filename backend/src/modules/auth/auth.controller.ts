@@ -1,7 +1,7 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from '../../common/decorators/public.decorator';
-import { AdminLoginDto, AdminRegisterDto, CustomerLoginDto, CustomerRegisterDto, ForgotPasswordDto, ResetPasswordDto } from './dto/auth.dto';
+import { AdminLoginDto, AdminRegisterDto, CustomerLoginDto, CustomerRegisterDto, ForgotPasswordDto, ResetPasswordDto, FirebaseLoginDto } from './dto/auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -29,6 +29,12 @@ export class AuthController {
   @Post('customer/login')
   async customerLogin(@Body() dto: CustomerLoginDto) {
     return this.authService.customerLogin(dto.email, dto.password);
+  }
+
+  @Public()
+  @Post('customer/firebase-login')
+  async firebaseLogin(@Body() dto: FirebaseLoginDto) {
+    return this.authService.firebaseLogin(dto.idToken, dto.name);
   }
 
   @Public()

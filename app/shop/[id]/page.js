@@ -9,6 +9,7 @@ import { useBreadcrumbLabel } from '@/lib/BreadcrumbContext';
 import { SHIPPING_POLICY, RETURN_POLICY } from '@/lib/constants';
 import { trackViewContent, trackAddToCart, trackOutOfStockView } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 import { getProductById, resolveImageUrl, getReviews } from '@/lib/api';
 
 export default function ProductPage() {
@@ -38,11 +39,14 @@ export default function ProductPage() {
   const [addCartVibrate, setAddCartVibrate] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [reviewsExpanded, setReviewsExpanded] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const variant = selectedVariant ?? product?.variants?.[0];
-  const price = variant?.price ?? product?.price;
-  const rawMain = variant?.image ?? product?.images?.[0] ?? '';
+  const variantImageList = (variant?.images && variant.images.length) ? variant.images : (variant?.image ? [variant.image] : product?.images || []);
+  useEffect(() => { setSelectedImageIndex(0); }, [variant?.id]);
+  const rawMain = variantImageList[selectedImageIndex] || variantImageList[0] || product?.images?.[0] || '';
   const mainImage = resolveImageUrl(rawMain) || '/assets/nature-secret-logo.svg';
+  const price = variant?.price ?? product?.price;
   const isApiImage = !!rawMain && (rawMain.startsWith('/') || rawMain.includes('/api/'));
   const productDisplayName = product?.name ?? product?.slug ?? 'Product';
   const currency = useCurrencyStore((s) => s.currency);
@@ -99,7 +103,7 @@ export default function ProductPage() {
       variantId: variant.id,
       price: variant.price,
       name: product.name,
-      image: variant.image || product.images?.[0],
+      image: (variant.images && variant.images[0]) || variant.image || product.images?.[0],
       qty: 1,
     });
     openCart();
@@ -126,17 +130,17 @@ export default function ProductPage() {
             />
           </div>
           <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
-            {[rawMain, ...(product.images || []).filter((u) => u !== rawMain)].slice(0, 4).map((url, i) => {
+            {variantImageList.map((url, i) => {
               const resolved = resolveImageUrl(url);
               return resolved ? (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setSelectedVariant(product.variants?.find((v) => v.image === url) ?? null)}
-                className="relative h-20 w-20 flex-shrink-0 rounded-xl overflow-hidden border-2 border-neutral-300"
-              >
-                <Image src={resolved} alt={product.imageAlts?.[i] ?? productDisplayName} fill className="object-cover" sizes="80px" unoptimized />
-              </button>
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setSelectedImageIndex(i)}
+                  className={`relative h-20 w-20 flex-shrink-0 rounded-xl overflow-hidden border-2 ${selectedImageIndex === i ? 'border-neutral-900 ring-2 ring-neutral-400' : 'border-neutral-300'}`}
+                >
+                  <Image src={resolved} alt={`${productDisplayName} ${i + 1}`} fill className="object-cover" sizes="80px" unoptimized />
+                </button>
               ) : null;
             })}
           </div>
@@ -165,12 +169,14 @@ export default function ProductPage() {
             <span className="text-sm text-neutral-500">({product.reviewCount} reviews)</span>
           </div>
           <p className="mt-4 text-2xl font-medium text-neutral-900">
-            {product.compareAtPrice && (
-              <span className="text-neutral-400 line-through mr-2">{formatPrice(product.compareAtPrice, currency)}</span>
+            {(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice) && (
+              <span className="text-neutral-400 line-through mr-2">{formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}</span>
             )}
             {formatPrice(price, currency)}
           </p>
-          <p className="mt-4 text-neutral-600">{product.description}</p>
+          {product.description && (
+            <div className="mt-4 text-neutral-600 product-description" dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }} />
+          )}
 
           {product.variants?.length > 1 && (
             <div className="mt-6">

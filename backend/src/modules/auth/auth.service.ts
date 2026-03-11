@@ -7,6 +7,7 @@ import { randomBytes } from 'crypto';
 import { AdminUser } from '../../entities/admin-user.entity';
 import { Customer } from '../../entities/customer.entity';
 import { EmailService } from '../notifications/email.service';
+import { FirebaseService } from '../../common/firebase/firebase.service';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +16,7 @@ export class AuthService {
     @InjectRepository(Customer) private customerRepo: Repository<Customer>,
     private jwtService: JwtService,
     private emailService: EmailService,
+    private firebaseService: FirebaseService,
   ) {}
 
   async findAdminById(id: string): Promise<AdminUser | null> {
@@ -56,7 +58,7 @@ export class AuthService {
 
   async validateCustomer(email: string, password: string): Promise<Customer | null> {
     const customer = await this.customerRepo.findOne({ where: { email: email.trim().toLowerCase() } });
-    if (!customer || !(await bcrypt.compare(password, customer.passwordHash))) return null;
+    if (!customer || !customer.passwordHash || !(await bcrypt.compare(password, customer.passwordHash))) return null;
     return customer;
   }
 
@@ -108,5 +110,46 @@ export class AuthService {
     const hash = await bcrypt.hash(newPassword, 10);
     await this.customerRepo.update(customer.id, { passwordHash: hash, resetToken: null, resetTokenExpires: null });
     return { ok: true };
+  }
+
+  async firebaseLogin(idToken: string, name?: string) {
+    let decoded: { uid: string; email?: string };
+    try {
+      decoded = await this.firebaseService.verifyIdToken(idToken);
+    } catch {
+      throw new UnauthorizedException('Invalid or expired sign-in. Please try again.');
+    }
+    if (!decoded.uid) throw new UnauthorizedException('Invalid token.');
+    let customer = await this.customerRepo.findOne({ where: { firebaseUid: decoded.uid } });
+    if (customer) {
+      if (customer.blocked) throw new UnauthorizedException('Account is blocked.');
+    } else {
+      const email = (decoded.email || '').trim().toLowerCase();
+      if (!email) throw new UnauthorizedException('Email not provided by sign-in.');
+      customer = await this.customerRepo.findOne({ where: { email } });
+      if (customer) {
+        await this.customerRepo.update(customer.id, { firebaseUid: decoded.uid });
+        if (customer.blocked) throw new UnauthorizedException('Account is blocked.');
+      } else {
+        customer = this.customerRepo.create({
+          email,
+          firebaseUid: decoded.uid,
+          name: name?.trim() || null,
+          passwordHash: null,
+        });
+        await this.customerRepo.save(customer);
+      }
+    }
+    const payload = { sub: customer.id, email: customer.email, type: 'customer' };
+    return {
+      access_token: this.jwtService.sign(payload),
+      customer: {
+        id: customer.id,
+        email: customer.email,
+        name: customer.name,
+        phone: customer.phone,
+        address: customer.address,
+      },
+    };
   }
 }

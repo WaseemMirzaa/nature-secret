@@ -5,7 +5,7 @@
     "node": ">=18.0.0 <23"
   },
   "scripts": {
-    "build": "npx nest build && (cp -r public dist/ 2>/dev/null || true)",
+    "build": "NODE_OPTIONS='--max-old-space-size=2048' npx nest build && (cp -r public dist/ 2>/dev/null || true)",
     "start": "node dist/main.js",
     "start:prod": "node dist/main.js",
     "start:staging": "NODE_ENV=production node server.js",
@@ -43,6 +43,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "compression": "^1.7.4",
+    "firebase-admin": "^13.7.0",
     "googleapis": "^171.4.0",
     "mysql2": "^3.6.5",
     "nodemailer": "^6.9.8",

@@ -15,10 +15,12 @@ import { EventsModule } from './modules/events/events.module';
 import { SliderModule } from './modules/slider/slider.module';
 import { SetupModule } from './modules/setup/setup.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
+import { FirebaseModule } from './common/firebase/firebase.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: ['.env', '../.env'] }),
+    FirebaseModule,
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     TypeOrmModule.forRoot({
       type: 'mysql',

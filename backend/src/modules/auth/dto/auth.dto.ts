@@ -72,3 +72,14 @@ export class ResetPasswordDto {
   @Matches(/^(?=.*[a-zA-Z])(?=.*[0-9])/, { message: 'Password must contain letters and numbers' })
   newPassword: string;
 }
+
+export class FirebaseLoginDto {
+  @IsString()
+  @MinLength(1, { message: 'Firebase token is required' })
+  idToken: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  name?: string;
+}

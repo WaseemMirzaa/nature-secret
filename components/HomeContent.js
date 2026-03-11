@@ -145,6 +145,9 @@ export default function HomeContent() {
               {bestsellerProducts.map((product) => {
                 const img = (product.images && product.images[0]) || product.image || '/assets/nature-secret-logo.svg';
                 const name = product.name ?? product.slug ?? 'Product';
+                const variant = product.variants?.[0];
+                const price = variant?.price ?? product.price;
+                const compareAtPrice = product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice;
                 return (
                   <Link key={product.id} href={`/shop/${product.id}`} className="group group/card">
                     <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100 relative ring-1 ring-neutral-200/80 group-hover/card:ring-gold-400/40 transition-all duration-300 shadow-soft group-hover/card:shadow-gold-sm">
@@ -164,7 +167,10 @@ export default function HomeContent() {
                     </div>
                     <div className="mt-4">
                       <p className="font-medium text-neutral-900 group-hover/card:text-gold-700 transition-colors">{name}</p>
-                      <p className="mt-1 text-sm font-medium text-gold-700/90">{formatPrice(product.price, 'PKR')}</p>
+                      <p className="mt-1 text-sm font-medium text-gold-700/90">
+                        {compareAtPrice && <span className="line-through text-neutral-400 mr-2">{formatPrice(compareAtPrice, 'PKR')}</span>}
+                        {formatPrice(price, 'PKR')}
+                      </p>
                     </div>
                   </Link>
                 );

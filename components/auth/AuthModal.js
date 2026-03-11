@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCustomerStore, useAuthModalStore } from '@/lib/store';
 import { Logo } from '@/components/Logo';
-import { customerLogin, customerRegister, customerForgotPassword, formatApiError } from '@/lib/api';
+import { customerFirebaseLogin, customerForgotPassword, formatApiError } from '@/lib/api';
+import { getFirebaseAuth, getFirebaseAuthErrorMessage, MIN_PASSWORD_LENGTH } from '@/lib/firebase';
 
 export function AuthModal() {
   const router = useRouter();
@@ -22,37 +23,54 @@ export function AuthModal() {
     e.preventDefault();
     setError('');
     if (!email.trim()) {
-      setError('Enter your email.');
+      setError('Please enter your email.');
       return;
     }
     if (mode === 'forgot') {
       setLoading(true);
       try {
-        const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-        await customerForgotPassword(email.trim(), `${baseUrl}/reset-password`);
+        const auth = getFirebaseAuth();
+        if (auth) {
+          const { sendPasswordResetEmail } = await import('firebase/auth');
+          await sendPasswordResetEmail(auth, email.trim());
+        } else {
+          const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+          await customerForgotPassword(email.trim(), `${baseUrl}/reset-password`);
+        }
         setForgotSent(true);
       } catch (err) {
-        setError(formatApiError(err, 'Something went wrong.'));
+        const msg = err?.code ? getFirebaseAuthErrorMessage(err.code) : formatApiError(err, 'Something went wrong.');
+        setError(msg);
       } finally {
         setLoading(false);
       }
       return;
     }
     if (!password.trim()) {
-      setError('Enter your password.');
+      setError('Please enter your password.');
+      return;
+    }
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
       return;
     }
     if (mode === 'signup' && !name.trim()) {
-      setError('Enter your name.');
+      setError('Please enter your name.');
+      return;
+    }
+    const auth = getFirebaseAuth();
+    if (!auth) {
+      setError('Sign-in is not configured. Please try again later.');
       return;
     }
     setLoading(true);
     try {
-      if (mode === 'signup') {
-        await customerRegister(email.trim(), password, name.trim());
-      } else {
-        await customerLogin(email.trim(), password);
-      }
+      const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = await import('firebase/auth');
+      const userCred = mode === 'signup'
+        ? await createUserWithEmailAndPassword(auth, email.trim(), password)
+        : await signInWithEmailAndPassword(auth, email.trim(), password);
+      const idToken = await userCred.user.getIdToken();
+      await customerFirebaseLogin(idToken, mode === 'signup' ? name.trim() : undefined);
       const raw = localStorage.getItem('nature_secret_customer');
       const customer = raw ? JSON.parse(raw) : null;
       login(customer || { email: email.trim(), name: name.trim() || email.trim().split('@')[0] });
@@ -63,7 +81,8 @@ export function AuthModal() {
       const returnUrl = (searchParams?.get('returnUrl') || '/account').replace(/^[^/]/, '/$&');
       router.push(returnUrl.startsWith('/') ? returnUrl : '/account');
     } catch (err) {
-      setError(formatApiError(err, 'Invalid email or password.'));
+      const msg = err?.code ? getFirebaseAuthErrorMessage(err.code) : formatApiError(err, 'Something went wrong. Please try again.');
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -147,6 +166,7 @@ export function AuthModal() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-neutral-900"
+                  placeholder={mode === 'signup' ? `At least ${MIN_PASSWORD_LENGTH} characters` : ''}
                 />
                 {mode === 'login' && (
                   <p className="mt-1 text-xs text-neutral-500">

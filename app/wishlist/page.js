@@ -41,6 +41,8 @@ export default function WishlistPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {products.map((p) => {
           const v = p.variants?.[0];
+          const price = v?.price ?? p.price;
+          const compareAtPrice = p.variants?.length > 1 ? v?.compareAtPrice : p.compareAtPrice;
           const img = p.images?.[0] || '/assets/nature-secret-logo.svg';
           const name = p.name ?? p.slug ?? 'Product';
           return (
@@ -50,7 +52,10 @@ export default function WishlistPage() {
                   <Image src={img} alt={name} width={300} height={400} className="h-full w-full object-cover" unoptimized={!img.startsWith('http')} />
                 </div>
                 <p className="mt-3 font-medium text-neutral-900">{name}</p>
-                <p className="text-sm text-neutral-500">{formatPrice(v?.price ?? p.price, 'PKR')}</p>
+                <p className="text-sm text-neutral-500">
+                  {compareAtPrice && <span className="line-through text-neutral-400 mr-1">{formatPrice(compareAtPrice, 'PKR')}</span>}
+                  {formatPrice(price, 'PKR')}
+                </p>
               </Link>
               <div className="flex gap-2 mt-2">
                 <button

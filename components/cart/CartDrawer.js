@@ -69,7 +69,10 @@ export function CartDrawer() {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-neutral-900 truncate">{displayName}</p>
                       {variant && <p className="text-xs text-neutral-500">{variant.name}</p>}
-                      <p className="text-sm text-neutral-600 mt-1">{formatPrice(item.price, currency)} × {item.qty}</p>
+                      <p className="text-sm text-neutral-600 mt-1">
+                        {variant?.compareAtPrice && <span className="line-through text-neutral-400 mr-1">{formatPrice(variant.compareAtPrice, currency)}</span>}
+                        {formatPrice(item.price, currency)} × {item.qty}
+                      </p>
                       <div className="flex items-center gap-2 mt-2">
                         <button type="button" onClick={() => updateQty(item.productId, item.variantId, item.qty - 1)} className="w-7 h-7 rounded border border-neutral-300 text-neutral-600">−</button>
                         <span className="w-6 text-center text-sm">{item.qty}</span>

@@ -119,6 +119,11 @@ UPLOAD_ROOT=/var/www/nature-secret-uploads
 # Run: openssl rand -base64 32 (for key) and openssl rand -base64 32 (for salt)
 ENCRYPTION_KEY=your-32-char-or-longer-secret-key-change-in-production
 ENCRYPTION_SALT=your-32-char-or-longer-salt-change-in-production
+
+# Firebase Admin (customer auth + FCM). From Firebase Console → Service accounts → JSON.
+# FIREBASE_PROJECT_ID=
+# FIREBASE_CLIENT_EMAIL=
+# FIREBASE_PRIVATE_KEY=
 ```
 
 Generate random encryption key and salt (run once, then paste into `.env`):
@@ -136,11 +141,36 @@ The backend serves static files from `backend/public/assets` at the `/assets` pa
 
 Optional: `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `TWILIO_*`, `SETUP_SECRET`, `WEBHOOK_SECRET` — see backend code/docs if you use email, WhatsApp, or setup endpoints.
 
+**Firebase (customer login + FCM order notifications)**
+
+- **Backend** (`backend/.env`): needed to verify customer ID tokens and send FCM. In [Firebase Console](https://console.firebase.google.com) → Project settings → Service accounts → Generate new private key. From the downloaded JSON use:
+  - `project_id` → `FIREBASE_PROJECT_ID`
+  - `client_email` → `FIREBASE_CLIENT_EMAIL`
+  - `private_key` → `FIREBASE_PRIVATE_KEY` (paste the full key; keep newlines or use `\n` in one line)
+- **Frontend** (`.env.local`): from Project settings → General (Your apps). Add the web app or use existing; copy the config values:
+  - `apiKey` → `NEXT_PUBLIC_FIREBASE_API_KEY`
+  - `authDomain` → `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+  - `projectId` → `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+  - `storageBucket` → `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+  - `messagingSenderId` → `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+  - `appId` → `NEXT_PUBLIC_FIREBASE_APP_ID`
+- **FCM on web (optional):** Project settings → Cloud Messaging → Web Push certificates. If you add a key pair, set the key as `NEXT_PUBLIC_FIREBASE_VAPID_KEY` in `.env.local` so the admin “Order notifications” page can request a token. After changing any `NEXT_PUBLIC_*` you must **rebuild** the frontend (`npm run build`) and restart `nature-secret-web`.
+
 **Frontend** (`/var/www/nature-secret/.env.local`)
 
 ```bash
 # Replace with your droplet IP. Use http until you add a domain and SSL. Do not add :4000 — Nginx listens on 80 and proxies /api to the backend.
 NEXT_PUBLIC_API_URL=http://YOUR_DROPLET_IP
+
+# Firebase (customer auth + FCM). From Firebase Console → Project settings.
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+# Optional: Cloud Messaging → Web Push certificates (for admin order notifications)
+# NEXT_PUBLIC_FIREBASE_VAPID_KEY=
 ```
 
 Example: if your droplet IPv4 is `165.232.123.45`, use `http://165.232.123.45` (no trailing slash, **no port**). The browser will call `http://165.232.123.45/api/v1/...` on port 80; Nginx proxies that to the backend on :4000. Use **IPv4** in env; if you use IPv6, put it in brackets: `http://[2604:a880::1]`.
@@ -538,12 +568,26 @@ The repo includes a workflow (`.github/workflows/deploy.yml`) that builds and de
 
 ## 11. Manual deploy (without CI/CD)
 
+**From your machine (push + deploy in one go):**
+```bash
+# Set your droplet IP (and user if not root), then:
+VPS_HOST=YOUR_DROPLET_IP VPS_USER=root ./scripts/deploy.sh
+```
+This pushes `main` to origin, then SSHs to the droplet and runs pull → build (backend + frontend) → PM2 restart.
+
+**Only on the server (e.g. you already pushed, or you SSH in and run deploy there):**
+```bash
+cd /var/www/nature-secret
+./scripts/deploy-pull-run.sh
+```
+Or step by step:
 ```bash
 cd /var/www/nature-secret
 git pull
 cd backend && npm ci && npm run build && cd ..
-npm ci && npm run build
-pm2 restart all
+npm ci && rm -rf .next && npm run build
+pm2 restart nature-secret-api nature-secret-web
+pm2 save
 ```
 
 If you use uploads, ensure `UPLOAD_ROOT` points outside the repo so uploads are not overwritten.

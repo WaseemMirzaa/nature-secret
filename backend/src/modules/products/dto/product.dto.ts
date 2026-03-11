@@ -31,9 +31,19 @@ export class ProductVariantDto {
   price?: number;
 
   @IsOptional()
+  @IsInt()
+  @Min(0)
+  compareAtPrice?: number;
+
+  @IsOptional()
   @IsString()
   @MaxLength(500)
   image?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  images?: string[];
 }
 
 export class ProductFaqDto {
