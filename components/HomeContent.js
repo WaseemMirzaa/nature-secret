@@ -137,7 +137,7 @@ export default function HomeContent() {
                 <h2 className="text-2xl sm:text-3xl font-semibold text-neutral-900 mt-1">Bestsellers</h2>
                 <p className="mt-1 text-neutral-500">Herbal oils and skincare—most loved by our community</p>
               </div>
-              <Link href="/shop" className="text-sm font-medium text-neutral-900 border-b-2 border-gold-500/40 pb-0.5 hover:border-gold-500 transition-colors">
+              <Link href="/shop" className="text-sm font-medium text-neutral-900 border-b-2 border-gold-500/40 pb-0.5 hover:border-gold-500 transition-colors whitespace-nowrap flex-shrink-0">
                 View all
               </Link>
             </div>

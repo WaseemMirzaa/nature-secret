@@ -80,9 +80,12 @@ export default function ProductPage() {
   const { setLastSegmentLabel } = useBreadcrumbLabel() || {};
 
   useEffect(() => {
-    if (product) setLastSegmentLabel?.(productDisplayName);
+    if (product) {
+      const slugLabel = product.slug && String(product.slug).trim() ? String(product.slug).replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : productDisplayName;
+      setLastSegmentLabel?.(slugLabel);
+    }
     return () => setLastSegmentLabel?.(null);
-  }, [product, productDisplayName, setLastSegmentLabel]);
+  }, [product, product?.slug, productDisplayName, setLastSegmentLabel]);
 
   const related = useMemo(() => {
     if (!product) return [];

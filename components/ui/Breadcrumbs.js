@@ -20,7 +20,8 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 function segmentLabel(segment, nextSegment, overrideLabel) {
   if (segment === '') return 'Home';
   if (LABELS[segment]) return LABELS[segment];
-  if (overrideLabel && UUID_REGEX.test(segment)) return overrideLabel;
+  if (overrideLabel) return overrideLabel;
+  if (UUID_REGEX.test(segment)) return 'Product';
   const readable = decodeURIComponent(segment).replace(/-/g, ' ');
   if (nextSegment === undefined) return readable.charAt(0).toUpperCase() + readable.slice(1);
   return readable.charAt(0).toUpperCase() + readable.slice(1);
