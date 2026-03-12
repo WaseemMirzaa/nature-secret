@@ -156,9 +156,9 @@ export default function AdminWhatsAppPage() {
         </div>
       )}
 
-      <div className="mt-6 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm">
-        <p className="font-medium">Incoming messages (optional)</p>
-        <p className="mt-1">To receive and reply to WhatsApp messages in this app, configure Twilio (backend .env: TWILIO_*, WEBHOOK_SECRET) and set your Twilio WhatsApp webhook URL to your API: <code className="bg-amber-100 px-1 rounded">/api/v1/notifications/whatsapp</code>. Order confirmations are sent via the QR-linked WhatsApp above (or Twilio as fallback).</p>
+      <div className="mt-6 p-4 rounded-xl bg-neutral-100 border border-neutral-200 text-neutral-700 text-sm">
+        <p className="font-medium">Free WhatsApp integration</p>
+        <p className="mt-1">Order confirmations and messaging use the QR-linked WhatsApp above only. No Twilio or paid API needed. Connect once by scanning the QR; the session is saved so you stay linked after restart.</p>
       </div>
     </div>
   );

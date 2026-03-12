@@ -10,7 +10,7 @@ import { SHIPPING_POLICY, RETURN_POLICY } from '@/lib/constants';
 import { trackViewContent, trackAddToCart, trackOutOfStockView } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
 import { sanitizeHtml } from '@/lib/sanitizeHtml';
-import { getProductById, getProductBySlug, resolveImageUrl, getReviews } from '@/lib/api';
+import { getProductById, getProductBySlug, resolveImageUrl, getReviews, productPath } from '@/lib/api';
 
 const isUuid = (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 
@@ -313,7 +313,7 @@ export default function ProductPage() {
               const img = resolveImageUrl(p.images?.[0]) || '/assets/nature-secret-logo.svg';
               const name = p.name ?? p.slug ?? 'Product';
               return (
-                <Link key={p.id} href={`/shop/${(p.slug && p.slug.trim()) ? p.slug : p.id}`} className="group animate-stagger-in opacity-0" style={{ animationDelay: `${i * 100}ms` }}>
+                <Link key={p.id} href={`/shop/${productPath(p)}`} className="group animate-stagger-in opacity-0" style={{ animationDelay: `${i * 100}ms` }}>
                   <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100">
                     <Image src={img} alt={name} width={300} height={400} className="h-full w-full object-cover group-hover:scale-105 transition duration-300" unoptimized />
                   </div>

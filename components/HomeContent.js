@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { useProductsStore } from '@/lib/store';
 import { useProductsAndCategories } from '@/lib/useApiData';
 import { formatPrice } from '@/lib/currency';
-import { getSlider, resolveImageUrl } from '@/lib/api';
+import { getSlider, resolveImageUrl, productPath } from '@/lib/api';
 import { TRUST_BADGES } from '@/lib/constants';
 
 export default function HomeContent() {
@@ -149,7 +149,7 @@ export default function HomeContent() {
                 const price = variant?.price ?? product.price;
                 const compareAtPrice = product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice;
                 return (
-                  <Link key={product.id} href={`/shop/${(product.slug && product.slug.trim()) ? product.slug : product.id}`} className="group group/card">
+                  <Link key={product.id} href={`/shop/${productPath(product)}`} className="group group/card">
                     <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100 relative ring-1 ring-neutral-200/80 group-hover/card:ring-gold-400/40 transition-all duration-300 shadow-soft group-hover/card:shadow-gold-sm">
                       <Image
                         src={img}

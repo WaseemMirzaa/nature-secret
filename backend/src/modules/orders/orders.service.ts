@@ -52,6 +52,7 @@ export class OrdersService {
     let orderId = '';
     for (let attempt = 0; attempt < 10; attempt++) {
       const candidate = generateOrderId();
+      if (!candidate || candidate.length !== ORDER_ID_LENGTH) continue;
       const existing = await this.orderRepo.findOne({ where: { id: candidate } });
       if (!existing) {
         orderId = candidate;
@@ -59,6 +60,7 @@ export class OrdersService {
       }
       if (attempt === 9) throw new BadRequestException('Could not generate unique order ID. Please try again.');
     }
+    if (!orderId) throw new BadRequestException('Could not generate order ID. Please try again.');
     const order = this.orderRepo.create({
       id: orderId,
       customerId: dto.customerId ?? null,

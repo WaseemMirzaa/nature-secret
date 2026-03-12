@@ -7,6 +7,7 @@ import { useCartStore, useCartOpenStore } from '@/lib/store';
 import { HeartIcon } from '@/components/icons/HeartIcon';
 import { formatPrice } from '@/lib/currency';
 import { useProductsAndCategories } from '@/lib/useApiData';
+import { productPath } from '@/lib/api';
 
 export default function WishlistPage() {
   const productIds = useWishlistStore((s) => s.productIds);
@@ -47,7 +48,7 @@ export default function WishlistPage() {
           const name = p.name ?? p.slug ?? 'Product';
           return (
             <article key={p.id} className="group relative">
-              <Link href={`/shop/${(p.slug && p.slug.trim()) ? p.slug : p.id}`}>
+              <Link href={`/shop/${productPath(p)}`}>
                 <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100">
                   <Image src={img} alt={name} width={300} height={400} className="h-full w-full object-cover" unoptimized={!img.startsWith('http')} />
                 </div>

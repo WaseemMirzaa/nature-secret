@@ -571,6 +571,42 @@ pm2 save
 
 The backend now rejects invalid date query params. If you still see this on an old deploy, pull the latest code and rebuild the backend, then `pm2 restart nature-secret-api`.
 
+**API error: "Duplicate entry '' for key 'orders.PRIMARY'" / "Unable to connect to the database. Retrying"**
+
+The API fails if the `orders` table is missing the `id` column or has invalid primary key data. Fix it on the server:
+
+1. **Ensure MySQL is running:** `sudo systemctl status mysql` (or `sudo systemctl start mysql`).
+2. **If `orders` has no `id` column** (check with `SHOW COLUMNS FROM orders;`), add it and fix child tables:
+
+```bash
+mysql -u nature_secret -p nature_secret << 'EOSQL'
+-- Child tables: remove rows that reference bad/missing order ids
+DELETE FROM order_status_timeline WHERE orderId = '' OR orderId IS NULL;
+DELETE FROM order_items WHERE orderId = '' OR orderId IS NULL;
+
+-- Add id column if missing (e.g. old schema)
+ALTER TABLE orders ADD COLUMN id VARCHAR(8) NULL FIRST;
+
+-- Give existing rows unique 8-char ids (skip if table is empty)
+SET @r = 0;
+UPDATE orders SET id = UPPER(SUBSTRING(SHA2(CONCAT(@r := @r + 1, RAND()), 256), 1, 8)) WHERE id IS NULL;
+
+-- Remove any rows that still have no id, then enforce primary key
+DELETE FROM order_status_timeline WHERE orderId NOT IN (SELECT id FROM orders WHERE id IS NOT NULL AND id != '');
+DELETE FROM order_items WHERE orderId NOT IN (SELECT id FROM orders WHERE id IS NOT NULL AND id != '');
+DELETE FROM orders WHERE id IS NULL OR id = '';
+
+ALTER TABLE orders MODIFY COLUMN id VARCHAR(8) NOT NULL;
+ALTER TABLE orders ADD PRIMARY KEY (id);
+EOSQL
+```
+
+(If `ALTER TABLE orders ADD COLUMN` fails with "Duplicate column name 'id'", the column already exists — then run only the `DELETE` and `UPDATE`/`ALTER` lines that apply.)
+
+3. **Restart the API:** `pm2 restart nature-secret-api && pm2 save`.
+
+If you still see "Unable to connect to the database", check `backend/.env`: `MYSQL_HOST`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE` must match your MySQL setup.
+
 ---
 
 ## 10. CI/CD with GitHub Actions
