@@ -39,7 +39,7 @@ export default function BlogPostPage() {
   if (!mounted || (slug && apiLoading && !apiPost && !postFromStore)) {
     return (
       <div className="min-h-screen bg-neutral-50/40">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-16">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
           <div className="h-5 w-24 rounded bg-neutral-200 animate-pulse" />
           <div className="mt-8 h-10 w-3/4 rounded bg-neutral-200 animate-pulse" />
           <div className="mt-4 h-4 w-1/2 rounded bg-neutral-100 animate-pulse" />
@@ -51,7 +51,7 @@ export default function BlogPostPage() {
   if (!slug || !post) {
     return (
       <div className="min-h-screen bg-neutral-50/40">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-16">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
           <Link href="/blog" className="text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/40 pb-0.5 inline-flex items-center gap-1">
             ← Journal
           </Link>
@@ -67,12 +67,12 @@ export default function BlogPostPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50/40">
-      <article className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
-        <Link href="/blog" className="text-sm font-medium text-neutral-500 hover:text-gold-600 transition-colors inline-flex items-center gap-1 mb-10">
+      <article className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-6 sm:py-12 lg:py-20">
+        <Link href="/blog" className="text-sm font-medium text-neutral-500 hover:text-gold-600 transition-colors inline-flex items-center gap-1 mb-6 sm:mb-10">
           ← Journal
         </Link>
 
-        <header className="mb-10">
+        <header className="mb-6 sm:mb-10">
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-600">
             {getTemplateLabel(post.template)}
           </p>
@@ -89,7 +89,7 @@ export default function BlogPostPage() {
         </header>
 
         {post.image && (
-          <div className="aspect-[16/9] rounded-2xl overflow-hidden bg-neutral-100 mb-12 ring-1 ring-neutral-200/60 shadow-soft">
+          <div className="aspect-[16/9] rounded-2xl overflow-hidden bg-neutral-100 mb-6 sm:mb-12 ring-1 ring-neutral-200/60 shadow-soft">
             <Image src={resolveImageUrl(post.image)} alt={post.imageAlt || post.title || ''} width={1200} height={675} className="h-full w-full object-cover" priority />
           </div>
         )}

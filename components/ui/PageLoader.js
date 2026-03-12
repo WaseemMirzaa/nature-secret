@@ -20,6 +20,16 @@ export function Spinner({ className = '' }) {
   );
 }
 
+/** Inline loader: spinner + optional label for page content areas */
+export function InlineLoader({ label = 'Loading', className = '' }) {
+  return (
+    <div className={`flex items-center justify-center gap-2 py-8 text-neutral-500 ${className}`} aria-busy="true">
+      <div className="h-6 w-6 flex-shrink-0 rounded-full border-2 border-neutral-200 border-t-neutral-600 animate-spin" />
+      <span className="text-sm">{label}</span>
+    </div>
+  );
+}
+
 export function CustomerPageLoader({ message = 'Loading...' }) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-20 flex flex-col items-center justify-center" aria-busy="true">

@@ -13,6 +13,7 @@ import { HeartIcon } from '@/components/icons/HeartIcon';
 import { trackAddToCart } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
 import { resolveImageUrl, productPath } from '@/lib/api';
+import { InlineLoader } from '@/components/ui/PageLoader';
 
 const SORT_OPTIONS = [
   { value: 'featured', label: 'Featured' },
@@ -59,8 +60,8 @@ function ShopContent() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-      <div className="flex flex-col lg:flex-row gap-8">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-12">
+      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
         <aside className="lg:w-56 flex-shrink-0 animate-slide-up">
           <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-gold-700/90 mb-4">Category</h3>
           <ul className="space-y-1">
@@ -86,7 +87,7 @@ function ShopContent() {
         </aside>
 
         <div className="flex-1 min-w-0">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-8">
             <div>
               <h1 className="text-2xl font-semibold text-neutral-900">
                 {categorySlug ? (categories || []).find((c) => c.slug === categorySlug)?.name || 'Shop' : 'Shop'}
@@ -110,7 +111,7 @@ function ShopContent() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {apiLoading && (!products || products.length === 0) ? (
               Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="rounded-2xl overflow-hidden bg-neutral-100 border border-neutral-200/80">
@@ -169,7 +170,7 @@ function ShopContent() {
                       </button>
                     </div>
                   </Link>
-                  <div className="mt-4">
+                  <div className="mt-2 sm:mt-4">
                     <Link href={`/shop/${productPath(product)}`}>
                       <p className="font-medium text-neutral-900">{product.name ?? product.slug ?? 'Product'}</p>
                     </Link>
@@ -215,7 +216,7 @@ function ShopContent() {
 
 export default function ShopPage() {
   return (
-    <Suspense fallback={<div className="mx-auto max-w-7xl px-4 py-12 text-neutral-500">Loading…</div>}>
+    <Suspense fallback={<div className="mx-auto max-w-7xl px-4 py-6 sm:py-12"><InlineLoader /></div>}>
       <ShopContent />
     </Suspense>
   );

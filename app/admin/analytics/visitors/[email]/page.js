@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
 import { useAnalyticsStore, useProductsStore, useOrdersStore } from '@/lib/store';
 import { getEventLabel } from '@/lib/analytics-labels';
+import { InlineLoader } from '@/components/ui/PageLoader';
 
 export default function AnalyticsVisitorDetailPage() {
   const params = useParams();
@@ -87,7 +88,7 @@ export default function AnalyticsVisitorDetailPage() {
     return (
       <div>
         <Link href="/admin/analytics" className="text-sm text-neutral-500 hover:text-neutral-900">← Analytics</Link>
-        <p className="mt-4 text-neutral-500">Loading…</p>
+        <div className="mt-4"><InlineLoader /></div>
       </div>
     );
   }

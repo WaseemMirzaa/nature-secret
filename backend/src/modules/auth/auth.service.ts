@@ -116,7 +116,13 @@ export class AuthService {
     let decoded: { uid: string; email?: string };
     try {
       decoded = await this.firebaseService.verifyIdToken(idToken);
-    } catch {
+    } catch (e) {
+      const msg = (e as Error)?.message ?? '';
+      if (msg.includes('Firebase not configured') || msg.includes('credential')) {
+        console.error('[Auth] Firebase backend not configured. Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY in backend .env from Firebase Console → Service accounts → Generate key.');
+      } else {
+        console.error('[Auth] Firebase token verification failed:', msg);
+      }
       throw new UnauthorizedException('Invalid or expired sign-in. Please try again.');
     }
     if (!decoded.uid) throw new UnauthorizedException('Invalid token.');

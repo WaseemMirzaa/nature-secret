@@ -8,6 +8,7 @@ import { generateInvoicePDF } from '@/lib/invoice';
 import { formatPrice } from '@/lib/currency';
 import { getAdminOrder, getAdminOrdersSameDay, updateOrderStatus as apiUpdateOrderStatus, getAdminProducts } from '@/lib/api';
 import { useAdminRealtime } from '@/context/AdminRealtimeContext';
+import { InlineLoader } from '@/components/ui/PageLoader';
 
 function _format(amount, currency) {
   return formatPrice(amount, currency || 'PKR');
@@ -93,7 +94,7 @@ export default function AdminOrderDetailPage() {
   if (!mounted || loading) {
     return (
       <div className="min-h-[200px] flex items-center justify-center">
-        <p className="text-neutral-500">Loading…</p>
+        <InlineLoader />
       </div>
     );
   }

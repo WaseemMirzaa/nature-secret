@@ -67,7 +67,7 @@ export default function AccountOrderDetailPage() {
 
   if (!order) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12 text-center">
+      <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12 text-center">
         <p className="text-neutral-600">Order not found.</p>
         <Link href="/account" className="mt-4 inline-flex items-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800">Back to Orders</Link>
       </div>
@@ -81,7 +81,7 @@ export default function AccountOrderDetailPage() {
   const shipping = (order.total ?? 0) - subtotal;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12">
+    <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8 lg:py-12">
       <Link href="/account" className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 transition-colors">
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         Back to Orders
@@ -98,7 +98,7 @@ export default function AccountOrderDetailPage() {
       </div>
 
       {timeline.length > 0 && (
-        <div className="mt-8 rounded-2xl border border-neutral-200 bg-white p-5">
+        <div className="mt-5 sm:mt-8 rounded-2xl border border-neutral-200 bg-white p-4 sm:p-5">
           <h2 className="text-sm font-semibold text-neutral-900 mb-4">Order Timeline</h2>
           <div className="relative pl-6 space-y-4">
             <div className="absolute left-[7px] top-1 bottom-1 w-px bg-neutral-200" />
@@ -165,7 +165,7 @@ export default function AccountOrderDetailPage() {
         </div>
       )}
 
-      <div className="mt-8 flex flex-wrap gap-3">
+      <div className="mt-5 sm:mt-8 flex flex-wrap gap-3">
         <button type="button" onClick={handleReorder} className="inline-flex items-center rounded-xl bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 transition-colors">
           Reorder Items
         </button>

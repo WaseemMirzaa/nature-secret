@@ -56,13 +56,13 @@ function LoginForm() {
   }
 
   return (
-    <div className="mx-auto max-w-sm px-4 py-16">
-      <div className="flex justify-center mb-8">
+    <div className="mx-auto max-w-sm px-4 py-8 sm:py-16">
+      <div className="flex justify-center mb-5 sm:mb-8">
         <Logo className="h-10" />
       </div>
       <h1 className="text-2xl font-semibold text-neutral-900">Customer login</h1>
       <p className="mt-1 text-sm text-neutral-500">Sign in to your account</p>
-      <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+      <form onSubmit={handleSubmit} className="mt-5 sm:mt-8 space-y-3 sm:space-y-4">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-neutral-700">Email</label>
           <input

@@ -108,7 +108,7 @@ export default function CheckoutPage() {
 
   if (items.length === 0 && !placing) {
     return (
-      <div className="mx-auto max-w-lg px-4 py-16 text-center">
+      <div className="mx-auto max-w-lg px-4 py-8 sm:py-16 text-center">
         <p className="text-neutral-600">Your cart is empty.</p>
         <Link href="/shop" className="mt-4 inline-block font-medium text-neutral-900">Continue shopping</Link>
       </div>
@@ -116,12 +116,12 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-12 animate-slide-up">
-      <div className="mb-8">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-12 animate-slide-up">
+      <div className="mb-4 sm:mb-8">
         <h1 className="text-2xl font-semibold text-neutral-900">Checkout</h1>
         <p className="mt-1 text-sm text-neutral-500">Complete your order. We&apos;ll confirm via email.</p>
       </div>
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
         <div>
           <h2 className="text-sm font-medium text-neutral-900 mb-4">Contact & delivery</h2>
           <div className="space-y-4">

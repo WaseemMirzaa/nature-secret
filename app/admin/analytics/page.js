@@ -3,7 +3,7 @@
 import Link from '@/components/Link';
 import { useMemo, useState, useEffect } from 'react';
 import { useAnalyticsStore, useProductsStore } from '@/lib/store';
-import { TableSkeleton } from '@/components/ui/PageLoader';
+import { TableSkeleton, InlineLoader } from '@/components/ui/PageLoader';
 
 const PAGE_SIZE = 50;
 
@@ -164,7 +164,7 @@ export default function AdminAnalyticsPage() {
     return (
       <div>
         <h1 className="text-2xl font-semibold text-neutral-900">Visitor analytics</h1>
-        <p className="mt-1 text-sm text-neutral-500">Loading…</p>
+        <div className="mt-2"><InlineLoader className="py-2" /></div>
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="rounded-2xl border border-neutral-200 bg-white p-6">

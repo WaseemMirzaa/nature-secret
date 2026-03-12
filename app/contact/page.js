@@ -6,6 +6,7 @@ import { Logo } from '@/components/Logo';
 import { getContactSettings, createSupportTicket, formatApiError } from '@/lib/api';
 import { DEFAULT_CONTACT } from '@/lib/constants';
 import { useCustomerStore } from '@/lib/store';
+import { InlineLoader } from '@/components/ui/PageLoader';
 
 function whatsappUrl(number) {
   const n = (number || '').replace(/\D/g, '');
@@ -56,18 +57,18 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col items-center px-4 py-16">
+    <div className="min-h-screen bg-neutral-50 flex flex-col items-center px-4 py-8 sm:py-16">
       <div className="w-full max-w-md">
         <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm overflow-hidden">
-          <div className="bg-neutral-900 px-8 py-6 text-center">
+          <div className="bg-neutral-900 px-5 sm:px-8 py-4 sm:py-6 text-center">
             <Link href="/" className="inline-block">
               <Logo className="h-9 text-gold-500" link={false} />
             </Link>
             <p className="mt-2 text-xs font-medium text-neutral-400 tracking-wider uppercase">Contact</p>
           </div>
-          <div className="p-8">
+          <div className="p-5 sm:p-8">
             {loading ? (
-              <p className="text-neutral-500 text-sm">Loading…</p>
+              <InlineLoader className="py-4" />
             ) : (
               <>
                 <p className="text-neutral-700 text-sm leading-relaxed">
@@ -89,7 +90,7 @@ export default function ContactPage() {
               </>
             )}
 
-            <div className="mt-8 pt-6 border-t border-neutral-200">
+            <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-neutral-200">
               <h2 className="text-sm font-semibold text-neutral-900">Send a support ticket</h2>
               <p className="mt-1 text-xs text-neutral-500">We&apos;ll get back to you via email.</p>
               <form onSubmit={handleSubmit} className="mt-4 space-y-3">

@@ -117,7 +117,7 @@ export default function AdminCustomersPage() {
         <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="rounded-xl border border-neutral-200 px-4 py-2 text-sm" />
       </div>
       <p className="mt-2 text-sm text-neutral-500">
-        {loading ? 'Loading…' : `Showing ${total ? (pageIndex - 1) * PAGE_SIZE + 1 : 0}–${Math.min(pageIndex * PAGE_SIZE, total)} of ${total.toLocaleString()}`}
+        {loading ? <span className="inline-flex items-center gap-1.5"><span className="h-4 w-4 rounded-full border-2 border-neutral-200 border-t-neutral-600 animate-spin inline-block" /> Loading</span> : `Showing ${total ? (pageIndex - 1) * PAGE_SIZE + 1 : 0}–${Math.min(pageIndex * PAGE_SIZE, total)} of ${total.toLocaleString()}`}
       </p>
       <div className="mt-4 rounded-2xl border border-neutral-200 bg-white overflow-hidden flex flex-col max-h-[calc(100vh-16rem)]">
         <div className="overflow-y-auto overflow-x-auto min-h-0 flex-1">

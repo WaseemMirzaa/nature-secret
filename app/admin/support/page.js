@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from '@/components/Link';
 import { getAdminSupportTickets, updateAdminSupportTicket, formatApiError } from '@/lib/api';
+import { InlineLoader } from '@/components/ui/PageLoader';
 
 export default function AdminSupportPage() {
   const [tickets, setTickets] = useState([]);
@@ -73,7 +74,7 @@ export default function AdminSupportPage() {
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
       {loading ? (
-        <p className="mt-6 text-neutral-500">Loading…</p>
+        <div className="mt-6"><InlineLoader /></div>
       ) : tickets.length === 0 ? (
         <p className="mt-6 text-neutral-500">No tickets.</p>
       ) : (

@@ -156,6 +156,7 @@ Optional: `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `TWILIO_*`, `SETUP_SECRET`, `WEBHO
   - `appId` → `NEXT_PUBLIC_FIREBASE_APP_ID`
 - **FCM on web (optional):** Project settings → Cloud Messaging → Web Push certificates. If you add a key pair, set the key as `NEXT_PUBLIC_FIREBASE_VAPID_KEY` in `.env.local` so the admin “Order notifications” page can request a token. After changing any `NEXT_PUBLIC_*` you must **rebuild** the frontend (`npm run build`) and restart `nature-secret-web`.
 - **400 on sign-up / auth not working:** In Firebase Console go to **Authentication → Sign-in method** and enable **Email/Password**. If the API key has HTTP referrer restrictions in Google Cloud Console, add your site origin (e.g. your domain or `http://YOUR_DROPLET_IP`).
+- **"Invalid or expired sign-in. Please try again."** after creating account or logging in: the **backend** could not verify the Firebase token. Add the **service account** keys to `backend/.env` (not the frontend keys): `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` from Firebase Console → Project settings → Service accounts → Generate new private key (use `project_id`, `client_email`, `private_key` from the JSON). Restart the API (`pm2 restart nature-secret-api`) and try again. Check API logs: `pm2 logs nature-secret-api` for the exact error.
 
 **Frontend** (`/var/www/nature-secret/.env.local`)
 

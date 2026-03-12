@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { useOrdersStore, useCustomerNotesStore, useCurrencyStore } from '@/lib/store';
 import { formatPrice } from '@/lib/currency';
 import { getAdminCustomer, setCustomerBlocked } from '@/lib/api';
+import { InlineLoader } from '@/components/ui/PageLoader';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -58,7 +59,7 @@ export default function AdminCustomerDetailPage() {
     return (
       <div>
         <Link href="/admin/customers" className="text-sm text-neutral-500 hover:text-neutral-900">← Customers</Link>
-        <p className="mt-4 text-neutral-500">Loading…</p>
+        <div className="mt-4"><InlineLoader /></div>
       </div>
     );
   }

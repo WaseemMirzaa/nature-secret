@@ -20,7 +20,7 @@ export default function WishlistPage() {
 
   if (productIds.length === 0) {
     return (
-      <div className="mx-auto max-w-lg px-4 py-20 text-center">
+      <div className="mx-auto max-w-lg px-4 py-10 sm:py-20 text-center">
         <p className="text-neutral-600">Your wishlist is empty.</p>
         <Link href="/shop" className="mt-4 inline-block font-medium text-neutral-900">Discover products</Link>
       </div>
@@ -29,7 +29,7 @@ export default function WishlistPage() {
 
   if (products.length === 0) {
     return (
-      <div className="mx-auto max-w-lg px-4 py-20 text-center">
+      <div className="mx-auto max-w-lg px-4 py-10 sm:py-20 text-center">
         <p className="text-neutral-600">We couldn&apos;t load your wishlist items right now. Try again later.</p>
         <Link href="/shop" className="mt-4 inline-block font-medium text-neutral-900">Browse shop</Link>
       </div>
@@ -37,8 +37,8 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-semibold text-neutral-900 mb-8">Wishlist</h1>
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+      <h1 className="text-xl sm:text-2xl font-semibold text-neutral-900 mb-4 sm:mb-8">Wishlist</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {products.map((p) => {
           const v = p.variants?.[0];

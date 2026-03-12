@@ -20,7 +20,7 @@ export default function BlogPage() {
   return (
     <div className="min-h-screen">
       <section className="border-b border-neutral-200 bg-neutral-50/60">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-20">
           <div className="absolute left-4 sm:left-6 lg:left-8 top-[7rem] w-16 h-px bg-gradient-to-r from-gold-400/50 to-transparent" aria-hidden />
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-3">Journal</p>
           <h1 className="text-3xl sm:text-4xl font-semibold text-neutral-900 tracking-tight">Stories & insights</h1>
@@ -30,10 +30,10 @@ export default function BlogPage() {
         </div>
       </section>
 
-      <section className="py-16 lg:py-24">
+      <section className="py-8 sm:py-12 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {loading && (!posts || posts.length === 0) ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-10">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="rounded-2xl overflow-hidden bg-white border border-neutral-200/80">
                   <div className="aspect-[4/3] bg-neutral-200 animate-pulse" />
@@ -52,7 +52,7 @@ export default function BlogPage() {
               <Link href="/" className="mt-4 inline-block text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/40 pb-0.5">Back to home</Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-10">
               {sortedPosts.map((post) => (
                 <Link
                   key={post.id}

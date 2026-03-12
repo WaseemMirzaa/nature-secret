@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Logo } from '@/components/Logo';
 import { customerResetPassword, formatApiError } from '@/lib/api';
 import { getFirebaseAuth, getFirebaseAuthErrorMessage, MIN_PASSWORD_LENGTH } from '@/lib/firebase';
+import { InlineLoader } from '@/components/ui/PageLoader';
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -57,7 +58,7 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center px-4 py-8 sm:py-12">
       <div className="w-full max-w-md">
         <div className="rounded-2xl border border-neutral-200 bg-white shadow-premium overflow-hidden">
           <div className="bg-neutral-900 px-8 py-6 text-center">
@@ -136,7 +137,7 @@ export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
-        <p className="text-neutral-500 text-sm">Loading…</p>
+        <InlineLoader />
       </div>
     }>
       <ResetPasswordForm />

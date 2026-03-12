@@ -40,7 +40,7 @@ export default function HomeContent() {
       {/* Hero */}
       <section className="relative bg-neutral-50 overflow-hidden">
         <div className="absolute left-0 top-24 w-24 h-px bg-gradient-to-r from-gold-400/60 to-transparent" aria-hidden />
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-20 lg:py-32">
           <div className="max-w-2xl">
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold-600 mb-5">
               Premium herbal oils for pain care
@@ -51,7 +51,7 @@ export default function HomeContent() {
             <p className="mt-6 text-lg text-neutral-600 max-w-md leading-relaxed">
               Our hero product is Painrex Oil—natural relief for muscle, joint and back pain. Skincare range coming soon. Clean ingredients, trusted in Pakistan.
             </p>
-            <div className="mt-10 flex flex-wrap gap-4">
+            <div className="mt-6 sm:mt-10 flex flex-wrap gap-3 sm:gap-4">
               <Link
                 href="/shop"
                 className="inline-flex items-center justify-center rounded-2xl bg-neutral-900 px-8 py-3.5 text-sm font-medium text-white shadow-premium transition hover:bg-neutral-800 hover:shadow-gold-md focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:ring-offset-2"
@@ -106,8 +106,8 @@ export default function HomeContent() {
 
       {/* Trust badges */}
       <section className="border-y border-neutral-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-7">
-          <ul className="flex flex-wrap justify-center gap-8 sm:gap-14 text-sm text-neutral-500">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-7">
+          <ul className="flex flex-wrap justify-center gap-4 sm:gap-8 lg:gap-14 text-sm text-neutral-500">
             {TRUST_BADGES.map((b) => (
               <li key={b.id} className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-gold-400/70 shrink-0" aria-hidden />
@@ -120,18 +120,18 @@ export default function HomeContent() {
 
       {/* Bestsellers */}
       {productsError && bestsellerProducts.length === 0 ? (
-        <section className="py-20 lg:py-28">
+        <section className="py-10 sm:py-14 lg:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="rounded-2xl border border-neutral-200 bg-neutral-50/80 p-12 text-center">
+            <div className="rounded-2xl border border-neutral-200 bg-neutral-50/80 p-6 sm:p-12 text-center">
               <p className="text-neutral-600">Unable to load products right now. Try again later.</p>
               <Link href="/shop" className="mt-4 inline-block text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/40 pb-0.5">View shop</Link>
             </div>
           </div>
         </section>
       ) : bestsellerProducts.length > 0 ? (
-        <section className="py-20 lg:py-28">
+        <section className="py-10 sm:py-14 lg:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex items-end justify-between mb-12">
+            <div className="flex items-end justify-between mb-6 sm:mb-12">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Curated</p>
                 <h2 className="text-2xl sm:text-3xl font-semibold text-neutral-900 mt-1">Bestsellers</h2>
@@ -141,7 +141,7 @@ export default function HomeContent() {
                 View all
               </Link>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
               {bestsellerProducts.map((product) => {
                 const img = (product.images && product.images[0]) || product.image || '/assets/nature-secret-logo.svg';
                 const name = product.name ?? product.slug ?? 'Product';
@@ -165,7 +165,7 @@ export default function HomeContent() {
                         </span>
                       )}
                     </div>
-                    <div className="mt-4">
+                    <div className="mt-2 sm:mt-4">
                       <p className="font-medium text-neutral-900 group-hover/card:text-gold-700 transition-colors">{name}</p>
                       <p className="mt-1 text-sm font-medium text-gold-700/90">
                         {compareAtPrice && <span className="line-through text-neutral-400 mr-2">{formatPrice(compareAtPrice, 'PKR')}</span>}
@@ -182,19 +182,19 @@ export default function HomeContent() {
 
       {/* Featured categories */}
       {productsError && featuredCategories.length === 0 ? (
-        <section className="py-20 lg:py-28 bg-neutral-100/90">
+        <section className="py-10 sm:py-14 lg:py-28 bg-neutral-100/90">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="rounded-2xl border border-neutral-200 bg-white p-12 text-center">
+            <div className="rounded-2xl border border-neutral-200 bg-white p-6 sm:p-12 text-center">
               <p className="text-neutral-600">Unable to load collections. Try again later.</p>
             </div>
           </div>
         </section>
       ) : featuredCategories.length > 0 ? (
-        <section className="py-20 lg:py-28 bg-neutral-100/90">
+        <section className="py-10 sm:py-14 lg:py-28 bg-neutral-100/90">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-2">Explore</p>
-            <h2 className="text-2xl sm:text-3xl font-semibold text-neutral-900 mb-12">Collections</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-neutral-900 mb-6 sm:mb-12">Collections</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
               {featuredCategories.map((cat) => {
                 const firstProduct = Array.isArray(products) ? products.find((p) => p.categoryId === cat.id) : null;
                 return (
@@ -227,18 +227,18 @@ export default function HomeContent() {
       ) : null}
 
       {/* Brand story */}
-      <section className="py-20 lg:py-28 bg-white">
+      <section className="py-10 sm:py-14 lg:py-28 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mx-auto text-center">
-            <div className="inline-block w-10 h-px bg-gold-400/50 mb-5" aria-hidden />
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-4">Our story</p>
-            <h2 className="text-3xl sm:text-4xl font-semibold text-neutral-900 tracking-tight">
+            <div className="inline-block w-10 h-px bg-gold-400/50 mb-4 sm:mb-5" aria-hidden />
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-3 sm:mb-4">Our story</p>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-neutral-900 tracking-tight">
               Oils first. Skincare next.
             </h2>
-            <p className="mt-6 text-neutral-600 leading-relaxed">
+            <p className="mt-4 sm:mt-6 text-neutral-600 leading-relaxed">
               We started with premium herbal oils for pain and wellness—our hero product Painrex Oil is trusted across Pakistan. We are now bringing the same clean, minimal approach to skincare: serums and care products coming soon.
             </p>
-            <Link href="/about" className="mt-8 inline-block text-sm font-medium text-neutral-900 border-b-2 border-gold-500/50 pb-1 hover:border-gold-600 transition-colors">
+            <Link href="/about" className="mt-5 sm:mt-8 inline-block text-sm font-medium text-neutral-900 border-b-2 border-gold-500/50 pb-1 hover:border-gold-600 transition-colors">
               Learn more
             </Link>
           </div>
@@ -247,16 +247,16 @@ export default function HomeContent() {
 
 
       {/* CTA */}
-      <section className="py-20 lg:py-28">
+      <section className="py-10 sm:py-14 lg:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-2xl bg-neutral-900 px-6 py-16 sm:py-20 text-center relative overflow-hidden">
+          <div className="rounded-2xl bg-neutral-900 px-4 sm:px-6 py-10 sm:py-16 lg:py-20 text-center relative overflow-hidden">
             <div className="absolute inset-0 opacity-20" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(203,168,71,0.4) 0%, transparent 50%)' }} aria-hidden />
             <div className="relative">
               <h2 className="text-2xl sm:text-3xl font-semibold text-white">Try our best-selling pain relief oil</h2>
               <p className="mt-3 text-neutral-300 max-w-md mx-auto">Painrex Oil—trusted across Pakistan for muscle, joint and back pain. Skincare range coming soon.</p>
               <Link
                 href="/shop"
-                className="mt-8 inline-flex items-center justify-center rounded-2xl bg-gold-500 px-8 py-3.5 text-sm font-semibold text-neutral-900 transition hover:bg-gold-400 shadow-gold-md focus:outline-none focus:ring-2 focus:ring-gold-400 focus:ring-offset-2 focus:ring-offset-neutral-900"
+                className="mt-5 sm:mt-8 inline-flex items-center justify-center rounded-2xl bg-gold-500 px-8 py-3.5 text-sm font-semibold text-neutral-900 transition hover:bg-gold-400 shadow-gold-md focus:outline-none focus:ring-2 focus:ring-gold-400 focus:ring-offset-2 focus:ring-offset-neutral-900"
               >
                 Shop herbal oils
               </Link>

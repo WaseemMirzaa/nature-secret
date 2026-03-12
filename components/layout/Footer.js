@@ -5,8 +5,8 @@ import { FooterContact } from '@/components/FooterContact';
 export function Footer() {
   return (
     <footer className="border-t border-neutral-200 bg-neutral-50/80 mt-24">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 sm:gap-10 lg:gap-12">
           <div className="md:col-span-2">
             <Logo className="h-10" />
             <p className="mt-5 text-sm text-neutral-500 max-w-sm leading-relaxed">
@@ -37,7 +37,7 @@ export function Footer() {
         </div>
         <div className="mt-14 pt-8 border-t border-neutral-200/80 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-xs text-neutral-400">© {new Date().getFullYear()} Nature Secret. All rights reserved.</p>
-          <div className="flex gap-8">
+          <div className="flex gap-4 sm:gap-6 lg:gap-8">
             <Link href="/privacy" className="text-xs text-neutral-400 hover:text-gold-600 transition-colors">Privacy</Link>
             <Link href="/terms" className="text-xs text-neutral-400 hover:text-gold-600 transition-colors">Terms</Link>
           </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from '@/components/Link';
 import { getAdminContactSettings, updateAdminContactSettings, getAdminWhatsAppQR, formatApiError } from '@/lib/api';
+import { InlineLoader } from '@/components/ui/PageLoader';
 
 function whatsappUrl(number) {
   const n = (number || '').replace(/\D/g, '');
@@ -76,7 +77,7 @@ export default function AdminWhatsAppPage() {
   if (loading) {
     return (
       <div className="p-6">
-        <p className="text-neutral-500">Loading…</p>
+        <InlineLoader />
       </div>
     );
   }

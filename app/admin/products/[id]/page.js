@@ -5,6 +5,7 @@ import Link from '@/components/Link';
 import { useRouter, useParams } from 'next/navigation';
 import { useProductsStore } from '@/lib/store';
 import { getCategories, uploadProductImage, updateProduct as updateProductApi, formatApiError, getAdminReviews, assignReviewToProduct, unassignReview, setProductRating } from '@/lib/api';
+import { Spinner } from '@/components/ui/PageLoader';
 
 const emptyVariant = () => ({ id: `v-${Date.now()}`, name: '', volume: '', price: 0, compareAtPrice: null, images: [] });
 const emptyFaq = () => ({ q: '', a: '' });
@@ -361,7 +362,7 @@ export default function EditProductPage() {
           </div>
           <p className="text-sm text-neutral-600 mb-1">Assigned ({assignedReviews.length}):</p>
           <ul className="mb-3 max-h-32 overflow-y-auto rounded-lg border border-neutral-200 p-2 space-y-1">
-            {reviewsLoading && !assignedReviews.length ? <li className="text-sm text-neutral-500">Loading…</li> : null}
+            {reviewsLoading && !assignedReviews.length ? <li className="flex items-center gap-2 text-sm text-neutral-500"><Spinner className="h-4 w-4" /> Loading</li> : null}
             {assignedReviews.map((r) => (
               <li key={r.id} className="flex justify-between items-start gap-2 text-sm">
                 <span className="truncate flex-1">{r.body?.slice(0, 50)}… — {r.authorName}</span>
