@@ -37,6 +37,11 @@ export default function CheckoutPage() {
 
   useEffect(() => setMounted(true), []);
   useEffect(() => {
+    const onPop = () => router.back();
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [router]);
+  useEffect(() => {
     if (!mounted || !customer) return;
     setForm((f) => ({
       ...f,

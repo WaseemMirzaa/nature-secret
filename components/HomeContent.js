@@ -15,7 +15,7 @@ export default function HomeContent() {
   const [slideIndex, setSlideIndex] = useState(0);
   const [heroSlides, setHeroSlides] = useState([]);
   const [sliderError, setSliderError] = useState(false);
-  const bestsellerProducts = Array.isArray(products) ? products.slice(0, 4) : [];
+  const bestsellerProducts = Array.isArray(products) ? products.filter((p) => (p.inventory ?? 1) > 0).slice(0, 4) : [];
   const featuredCategories = Array.isArray(categories) ? categories.slice(0, 2) : [];
 
   useEffect(() => {

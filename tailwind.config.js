@@ -57,6 +57,7 @@ module.exports = {
         'cta-lift': 'ctaLift 2s ease-in-out infinite',
         'vibrate': 'vibrate 0.35s ease-out',
         'stagger-in': 'staggerIn 0.5s ease-out forwards',
+        'gold-pulse': 'goldPulse 1.8s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
@@ -71,6 +72,7 @@ module.exports = {
         ctaGlow: { '0%, 100%': { boxShadow: '0 0 0 0 rgba(28, 25, 23, 0.3)' }, '50%': { boxShadow: '0 0 20px 2px rgba(212, 168, 74, 0.25)' } },
         ctaLift: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-2px)' } },
         vibrate: { '0%, 100%': { transform: 'translateX(0) scale(1)' }, '15%': { transform: 'translateX(-4px) scale(1.02)' }, '35%': { transform: 'translateX(4px) scale(0.98)' }, '55%': { transform: 'translateX(-3px) scale(1.01)' }, '75%': { transform: 'translateX(3px) scale(0.99)' }, '90%': { transform: 'translateX(-1px) scale(1)' } },
+        goldPulse: { '0%, 100%': { boxShadow: '0 4px 14px rgba(203,168,71,0.35)', transform: 'scale(1)' }, '50%': { boxShadow: '0 6px 24px rgba(203,168,71,0.5), 0 0 0 4px rgba(203,168,71,0.2)', transform: 'scale(1.02)' } },
         staggerIn: { '0%': { opacity: '0', transform: 'translateY(12px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
       },
     },

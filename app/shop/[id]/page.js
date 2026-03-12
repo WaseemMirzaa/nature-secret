@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useState, useMemo, useEffect } from 'react';
 import Link from '@/components/Link';
 import Image from 'next/image';
@@ -46,10 +46,14 @@ export default function ProductPage() {
   const [reviews, setReviews] = useState([]);
   const [reviewsExpanded, setReviewsExpanded] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [qty, setQty] = useState(1);
+  const [orderNowVibrate, setOrderNowVibrate] = useState(false);
+  const router = useRouter();
 
   const variant = selectedVariant ?? product?.variants?.[0];
   const variantImageList = (variant?.images && variant.images.length) ? variant.images : (variant?.image ? [variant.image] : product?.images || []);
   useEffect(() => { setSelectedImageIndex(0); }, [variant?.id]);
+  useEffect(() => { setQty(1); }, [variant?.id]);
   const rawMain = variantImageList[selectedImageIndex] || variantImageList[0] || product?.images?.[0] || '';
   const mainImage = resolveImageUrl(rawMain) || '/assets/nature-secret-logo.svg';
   const price = variant?.price ?? product?.price;
@@ -102,6 +106,8 @@ export default function ProductPage() {
     );
   }
 
+  const effectiveQty = Math.max(1, Math.min(99, Number(qty) || 1));
+
   function handleAddToCart() {
     if (!variant) return;
     addToCart({
@@ -110,10 +116,24 @@ export default function ProductPage() {
       price: variant.price,
       name: product.name,
       image: (variant.images && variant.images[0]) || variant.image || product.images?.[0],
-      qty: 1,
+      qty: effectiveQty,
     });
     openCart();
-    trackAddToCart(product.id, product.name, variant.price / 100, 1);
+    trackAddToCart(product.id, product.name, variant.price / 100, effectiveQty);
+  }
+
+  function handleOrderNow() {
+    if (!variant) return;
+    addToCart({
+      productId: product.id,
+      variantId: variant.id,
+      price: variant.price,
+      name: product.name,
+      image: (variant.images && variant.images[0]) || variant.image || product.images?.[0],
+      qty: effectiveQty,
+    });
+    trackAddToCart(product.id, product.name, variant.price / 100, effectiveQty);
+    router.push('/checkout');
   }
 
   return (
@@ -152,48 +172,31 @@ export default function ProductPage() {
           </div>
         </div>
 
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-gold-600">{product.categoryId}</p>
-          {(product.badge || product.badgeSub) && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {product.badge && (
-                <span className="inline-block rounded-full bg-neutral-900 px-3 py-1 text-xs font-medium uppercase tracking-wider text-white ring-1 ring-gold-500/50">
-                  {product.badge}
-                </span>
-              )}
-              {product.badgeSub && (
-                <span className="inline-block rounded-full border border-gold-500/60 bg-gold-50 px-3 py-1 text-xs font-medium uppercase tracking-wider text-neutral-900">
-                  {product.badgeSub}
-                </span>
-              )}
-            </div>
-          )}
-          <h1 className="mt-2 text-3xl font-semibold text-neutral-900">{productDisplayName}</h1>
-          <div className="mt-2 flex items-center gap-2">
-            <span className="text-gold-600">{'★'.repeat(Math.min(5, Math.round(Number(product.rating) || 0)))}</span>
-            <span className="text-neutral-400">{'★'.repeat(5 - Math.min(5, Math.round(Number(product.rating) || 0)))}</span>
+        <div className="space-y-6">
+          {/* Rating + price first */}
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-gold-600 text-lg">{'★'.repeat(Math.min(5, Math.round(Number(product.rating) || 0)))}</span>
+            <span className="text-neutral-300">{'★'.repeat(5 - Math.min(5, Math.round(Number(product.rating) || 0)))}</span>
             <span className="text-sm text-neutral-500">({product.reviewCount} reviews)</span>
           </div>
-          <p className="mt-4 text-2xl font-medium text-neutral-900">
+          <p className="text-2xl font-semibold text-neutral-900">
             {(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice) && (
-              <span className="text-neutral-400 line-through mr-2">{formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}</span>
+              <span className="text-neutral-400 line-through mr-2 text-lg">{formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}</span>
             )}
             {formatPrice(price, currency)}
           </p>
-          {product.description && (
-            <div className="mt-4 text-neutral-600 product-description" dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }} />
-          )}
 
+          {/* Size / variant */}
           {product.variants?.length > 1 && (
-            <div className="mt-6">
-              <p className="text-sm font-medium text-neutral-700 mb-2">Variant</p>
+            <div>
+              <p className="text-sm font-medium text-neutral-700 mb-2">Size / Variant</p>
               <div className="flex flex-wrap gap-2">
                 {product.variants.map((v) => (
                   <button
                     key={v.id}
                     type="button"
                     onClick={() => setSelectedVariant(v)}
-                    className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${
+                    className={`rounded-xl border-2 px-4 py-2.5 text-sm font-medium transition ${
                       variant?.id === v.id ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-300 text-neutral-700 hover:border-neutral-400'
                     }`}
                   >
@@ -204,106 +207,106 @@ export default function ProductPage() {
             </div>
           )}
 
-          <div className="mt-8 flex flex-wrap gap-4">
-            {product.inventory === 0 ? (
-              <span className="flex-1 min-w-[200px] rounded-2xl border border-neutral-200 bg-neutral-100 py-3.5 text-center text-sm font-medium text-neutral-500">Out of stock</span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => { handleAddToCart(); setAddCartVibrate(true); setTimeout(() => setAddCartVibrate(false), 400); }}
-                className={`flex-1 min-w-[200px] rounded-2xl bg-neutral-900 py-3.5 text-sm font-medium text-white hover:bg-neutral-800 transition ${addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'}`}
-              >
-                Add to cart
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => toggleWishlist(product.id)}
-              className="p-3 rounded-2xl border border-neutral-300 hover:bg-neutral-50"
-              aria-label="Wishlist"
-            >
-              <svg className="w-5 h-5 text-neutral-600" fill={wishlist.includes(product.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-              </svg>
-            </button>
+          {/* Quantity */}
+          <div>
+            <p className="text-sm font-medium text-neutral-700 mb-2">Quantity</p>
+            <div className="inline-flex items-center rounded-xl border-2 border-neutral-200">
+              <button type="button" onClick={() => setQty((n) => Math.max(1, (n || 1) - 1))} className="w-12 h-12 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 rounded-l-lg" aria-label="Decrease">−</button>
+              <input type="number" min={1} max={99} value={effectiveQty} onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))} className="w-14 h-12 text-center text-neutral-900 font-medium border-0 border-y border-neutral-200 bg-transparent [appearance:textfield]" />
+              <button type="button" onClick={() => setQty((n) => Math.min(99, (n || 1) + 1))} className="w-12 h-12 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 rounded-r-lg" aria-label="Increase">+</button>
+            </div>
           </div>
 
-          <ul className="mt-8 space-y-2">
-            {(product.benefits || []).map((b, i) => (
-              <li key={i} className="flex items-center gap-2 text-sm text-neutral-600">
-                <span className="text-gold-600">✓</span> {b}
+          {/* Add to cart + Order Now + Wishlist */}
+          <div className="flex flex-col gap-3 pt-2">
+            <p className="text-sm font-medium text-neutral-600">Free shipping</p>
+            {product.inventory === 0 ? (
+              <span className="rounded-2xl border border-neutral-200 bg-neutral-100 py-3.5 text-center text-sm font-medium text-neutral-500">Out of stock</span>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => { handleAddToCart(); setAddCartVibrate(true); setTimeout(() => setAddCartVibrate(false), 400); }}
+                  className={`w-full rounded-2xl bg-neutral-900 py-3.5 text-sm font-semibold text-white hover:bg-neutral-800 transition ${addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'}`}
+                >
+                  Add to cart
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { handleOrderNow(); setOrderNowVibrate(true); setTimeout(() => setOrderNowVibrate(false), 400); }}
+                  className={`w-full rounded-2xl bg-gold-500 py-3.5 text-sm font-semibold text-neutral-900 hover:bg-gold-400 transition shadow-gold-sm ${orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'}`}
+                >
+                  Order now — Cash on delivery
+                </button>
+              </>
+            )}
+            <button type="button" onClick={() => toggleWishlist(product.id)} className="self-start p-2 rounded-xl border border-neutral-200 hover:bg-neutral-50" aria-label="Wishlist">
+              <svg className="w-5 h-5 text-neutral-600" fill={wishlist.includes(product.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Product details: name, description, FAQs */}
+      <section className="mt-16 pt-12 border-t border-neutral-200">
+        <h2 className="text-xl font-semibold text-neutral-900">{productDisplayName}</h2>
+        {(product.badge || product.badgeSub) && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {product.badge && <span className="rounded-full bg-neutral-900 px-3 py-1 text-xs font-medium text-white">{product.badge}</span>}
+            {product.badgeSub && <span className="rounded-full border border-gold-500/60 bg-gold-50 px-3 py-1 text-xs font-medium text-neutral-900">{product.badgeSub}</span>}
+          </div>
+        )}
+        {product.description && (
+          <div className="mt-4 text-neutral-600 product-description" dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }} />
+        )}
+        <ul className="mt-4 space-y-2">
+          {(product.benefits || []).map((b, i) => (
+            <li key={i} className="flex items-center gap-2 text-sm text-neutral-600"><span className="text-gold-600">✓</span> {b}</li>
+          ))}
+        </ul>
+        <div className="mt-8">
+          <h3 className="text-sm font-semibold text-neutral-900 mb-3">FAQ</h3>
+          <ul className="space-y-2">
+            {(product.faq || []).map((item, i) => (
+              <li key={i} className="border-b border-neutral-100">
+                <button type="button" onClick={() => setFaqOpen(faqOpen === i ? null : i)} className="w-full py-3 text-left text-sm font-medium text-neutral-700 flex justify-between">
+                  {item.q}<span>{faqOpen === i ? '−' : '+'}</span>
+                </button>
+                {faqOpen === i && <p className="pb-3 text-sm text-neutral-500">{item.a}</p>}
               </li>
             ))}
           </ul>
-
-          <div className="mt-10 border-t border-neutral-200 pt-8">
-            <h3 className="text-sm font-medium text-neutral-900 mb-3">FAQ</h3>
-            <ul className="space-y-2">
-              {(product.faq || []).map((item, i) => (
-                <li key={i} className="border-b border-neutral-100">
-                  <button
-                    type="button"
-                    onClick={() => setFaqOpen(faqOpen === i ? null : i)}
-                    className="w-full py-3 text-left text-sm font-medium text-neutral-700 flex justify-between"
-                  >
-                    {item.q}
-                    <span>{faqOpen === i ? '−' : '+'}</span>
-                  </button>
-                  {faqOpen === i && <p className="pb-3 text-sm text-neutral-500">{item.a}</p>}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="mt-8 rounded-2xl bg-neutral-100 p-4 text-sm text-neutral-600 space-y-2">
-            <p><strong>Shipping:</strong> {SHIPPING_POLICY}</p>
-            <p><strong>Returns:</strong> {RETURN_POLICY}</p>
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-4 text-xs text-neutral-500">
-            <span>Secure payment</span>
-            <span>Authentic & organic</span>
-            <span>30-day returns</span>
-          </div>
-
-          {reviews.length > 0 && (
-            <div className="mt-10 border-t border-neutral-200 pt-8">
-              <button
-                type="button"
-                onClick={() => setReviewsExpanded((e) => !e)}
-                className="flex w-full items-center justify-between text-left rounded-xl border border-neutral-200 bg-white px-4 py-3 hover:bg-neutral-50 transition"
-                aria-expanded={reviewsExpanded}
-              >
-                <span className="text-lg font-medium text-neutral-900">Customer reviews ({reviews.length})</span>
-                <span className="text-neutral-400">{reviewsExpanded ? '▼' : '▶'}</span>
-              </button>
-              {reviewsExpanded && (
-                <ul className="space-y-4 mt-4">
-                  {reviews.map((r, i) => (
-                    <li
-                      key={r.id}
-                      className="rounded-xl border border-neutral-100 bg-neutral-50/50 p-4 animate-stagger-in opacity-0"
-                      style={{ animationDelay: `${i * 75}ms` }}
-                    >
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <span className="text-gold-600">{'★'.repeat(Math.min(5, r.rating || 0))}</span>
-                        <span className="text-neutral-400">{'★'.repeat(5 - Math.min(5, r.rating || 0))}</span>
-                        <span className="text-sm font-medium text-neutral-700">{r.authorName}</span>
-                        {r.createdAt && (
-                          <span className="text-xs text-neutral-500 ml-auto">
-                            {new Date(r.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-neutral-600">{r.body}</p>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
         </div>
-      </div>
+        <div className="mt-8 rounded-2xl bg-neutral-100 p-4 text-sm text-neutral-600 space-y-2">
+          <p><strong>Shipping:</strong> {SHIPPING_POLICY}</p>
+          <p><strong>Returns:</strong> {RETURN_POLICY}</p>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-4 text-xs text-neutral-500">
+          <span>Secure payment</span><span>Authentic & organic</span><span>30-day returns</span>
+        </div>
+      </section>
+
+      {/* Write review + recent reviews */}
+      <section className="mt-12 pt-12 border-t border-neutral-200">
+        <h3 className="text-lg font-semibold text-neutral-900 mb-4">Reviews</h3>
+        <p className="text-sm text-neutral-500 mb-4">Share your experience (review submission can be added here).</p>
+        {reviews.length > 0 && (
+          <div className="space-y-4">
+            <p className="text-sm font-medium text-neutral-700">Recent reviews</p>
+            {reviews.slice(0, 5).map((r, i) => (
+              <div key={r.id} className="rounded-xl border border-neutral-100 bg-neutral-50/50 p-4">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <span className="text-gold-600">{'★'.repeat(Math.min(5, r.rating || 0))}</span>
+                  <span className="text-neutral-400">{'★'.repeat(5 - Math.min(5, r.rating || 0))}</span>
+                  <span className="text-sm font-medium text-neutral-700">{r.authorName}</span>
+                  {r.createdAt && <span className="text-xs text-neutral-500 ml-auto">{new Date(r.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</span>}
+                </div>
+                <p className="text-sm text-neutral-600">{r.body}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {related.length > 0 && (
         <section className="mt-20 pt-16 border-t border-neutral-200">
