@@ -1,5 +1,9 @@
 {
   "projects": {
-    "default": "nature-secret-pk"
-  }
+    "default": "nature-secret-pk",
+    ".production": "nature-secret-pk",
+    "nature_secret": "nature-secret-pk"
+  },
+  "targets": {},
+  "etags": {}
 }

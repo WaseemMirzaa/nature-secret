@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { google } from 'googleapis';
 import * as nodemailer from 'nodemailer';
+import axios from 'axios';
+import * as crypto from 'crypto';
 import { renderOrderConfirmationEmail } from './templates/order-confirmation.template';
 import { renderResetPasswordEmail } from './templates/reset-password.template';
 
@@ -14,7 +16,7 @@ interface OrderForEmail {
   address?: string | null;
 }
 
-type SendStrategy = 'gmail-api' | 'nodemailer' | null;
+type SendStrategy = 'gmail-api' | 'nodemailer' | 'cloud-function' | null;
 
 function encodeRfc2047(value: string): string {
   return '=?UTF-8?B?' + Buffer.from(value, 'utf8').toString('base64') + '?=';
@@ -53,8 +55,19 @@ export class EmailService {
   private transporter: nodemailer.Transporter | null = null;
   private gmail: ReturnType<typeof google.gmail> | null = null;
   private fromEmail: string = '';
+  private fnUrl: string | null = null;
+  private fnSecret: string | null = null;
 
   constructor() {
+    const fnUrl = process.env.SEND_ORDER_EMAIL_URL;
+    const fnSecret = process.env.EMAIL_FN_SECRET;
+    if (fnUrl && fnSecret) {
+      this.strategy = 'cloud-function';
+      this.fnUrl = fnUrl;
+      this.fnSecret = fnSecret;
+      this.fromEmail = process.env.GMAIL_USER || 'no-reply@naturesecret.pk';
+      return;
+    }
     const user = process.env.GMAIL_USER;
     const pass = process.env.GMAIL_APP_PASSWORD || process.env.GMAIL_PASS;
     const clientId = process.env.GMAIL_CLIENT_ID;
@@ -87,6 +100,17 @@ export class EmailService {
   }
 
   private async send(from: string, to: string, subject: string, text: string, html: string): Promise<void> {
+    if (this.strategy === 'cloud-function' && this.fnUrl && this.fnSecret) {
+      const body = Buffer.from(JSON.stringify({ ts: Date.now() })).toString('base64url');
+      const sig = crypto.createHmac('sha256', this.fnSecret).update(body).digest('base64url');
+      const authToken = `${body}.${sig}`;
+      await axios.post(
+        this.fnUrl,
+        { authToken, to, subject, html },
+        { timeout: 10000 }
+      );
+      return;
+    }
     if (this.strategy === 'gmail-api' && this.gmail) {
       const raw = toBase64Url(buildMime(from, to, subject, text, html));
       await this.gmail.users.messages.send({ userId: 'me', requestBody: { raw } });
