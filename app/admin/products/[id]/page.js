@@ -45,8 +45,6 @@ export default function EditProductPage() {
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [customerReviews, setCustomerReviews] = useState([]);
   const [customerReviewsLoading, setCustomerReviewsLoading] = useState(false);
-  const [customerReviews, setCustomerReviews] = useState([]);
-  const [customerReviewsLoading, setCustomerReviewsLoading] = useState(false);
 
   const apiBase = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') : '';
   async function handleImageUpload(e, index) {
