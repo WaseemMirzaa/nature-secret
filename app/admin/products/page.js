@@ -115,7 +115,17 @@ export default function AdminProductsPage() {
                   </div>
                 </td>
                 <td className="p-4 text-neutral-600">{categories.find((c) => c.id === p.categoryId)?.name ?? p.categoryId}</td>
-                <td className="p-4">{formatPrice(p.price, currency)}</td>
+                <td className="p-4">
+                  {(() => {
+                    const variants = Array.isArray(p.variants) ? p.variants : [];
+                    const defaultVariant = variants.reduce(
+                      (best, v) => (best == null || (v.price ?? 0) < (best.price ?? 0) ? v : best),
+                      null,
+                    );
+                    const price = defaultVariant?.price ?? p.price;
+                    return formatPrice(price, currency);
+                  })()}
+                </td>
                 <td className="p-4">{p.inventory ?? 0}</td>
                 <td className="p-4">
                   <Link href={`/admin/products/${p.id}/view`} className="text-neutral-600 hover:text-neutral-900 mr-3">View</Link>

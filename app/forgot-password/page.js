@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from '@/components/Link';
 import { Logo } from '@/components/Logo';
 import { customerForgotPassword, formatApiError } from '@/lib/api';
+import { getFirebaseAuth, getFirebaseAuthErrorMessage } from '@/lib/firebase';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -21,10 +22,22 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     try {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-      await customerForgotPassword(email.trim(), `${baseUrl}/reset-password`);
+      const auth = getFirebaseAuth();
+      if (auth) {
+        const { sendPasswordResetEmail } = await import('firebase/auth');
+        await sendPasswordResetEmail(auth, email.trim(), {
+          url: `${baseUrl}/reset-password`,
+          handleCodeInApp: true,
+        });
+      } else {
+        await customerForgotPassword(email.trim(), `${baseUrl}/reset-password`);
+      }
       setSent(true);
     } catch (err) {
-      setError(formatApiError(err, 'Something went wrong.'));
+      const msg = err?.code
+        ? getFirebaseAuthErrorMessage(err.code, err?.message)
+        : formatApiError(err, 'Something went wrong.');
+      setError(msg);
     } finally {
       setLoading(false);
     }

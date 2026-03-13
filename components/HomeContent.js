@@ -152,9 +152,14 @@ export default function HomeContent() {
               {bestsellerProducts.map((product) => {
                 const img = (product.images && product.images[0]) || product.image || '/assets/nature-secret-logo.svg';
                 const name = product.name ?? product.slug ?? 'Product';
-                const variant = product.variants?.[0];
-                const price = variant?.price ?? product.price;
-                const compareAtPrice = product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice;
+                const variants = Array.isArray(product.variants) ? product.variants : [];
+                const defaultVariant = variants.reduce(
+                  (best, v) => (best == null || (v.price ?? 0) < (best.price ?? 0) ? v : best),
+                  null,
+                );
+                const price = defaultVariant?.price ?? product.price;
+                const compareAtPrice =
+                  variants.length > 1 ? defaultVariant?.compareAtPrice : product.compareAtPrice;
                 return (
                   <Link key={product.id} href={`/shop/${productPath(product)}`} className="group group/card">
                     <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100 relative ring-1 ring-neutral-200/80 group-hover/card:ring-gold-400/40 transition-all duration-300 shadow-soft group-hover/card:shadow-gold-sm">

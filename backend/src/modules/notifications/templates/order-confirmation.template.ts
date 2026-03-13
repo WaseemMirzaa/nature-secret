@@ -56,16 +56,26 @@ export function renderOrderConfirmationEmail(data: OrderConfirmationData): strin
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 560px;">
           <!-- Header -->
           <tr>
-            <td style="background-color: #1c1917; padding: 28px 32px; border-radius: 16px 16px 0 0;">
+            <td style="background-color: #0b0b0a; padding: 28px 32px; border-radius: 18px 18px 0 0; border: 1px solid #262523;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <td>
-                    <span style="font-size: 22px; font-weight: 600; color: #cba847; letter-spacing: 0.02em;">Nature Secret</span>
+                  <td align="left" style="vertical-align: middle;">
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                      <tr>
+                        <td style="padding-right: 10px;">
+                          <img src="https://naturesecret.pk/assets/nature-secret-logo.svg" alt="Nature Secret" width="40" height="40" style="display:block; border-radius: 999px; border: 1px solid rgba(202,138,4,0.5);" />
+                        </td>
+                        <td>
+                          <div style="font-size: 22px; font-weight: 600; color: #f5f5f4; letter-spacing: 0.06em; text-transform: uppercase;">Nature Secret</div>
+                          <div style="margin-top: 2px; font-size: 11px; color: rgba(250,250,249,0.7); letter-spacing: 0.32em; text-transform: uppercase;">Premium herbal oils &amp; skincare</div>
+                        </td>
+                      </tr>
+                    </table>
                   </td>
-                </tr>
-                <tr>
-                  <td style="padding-top: 6px;">
-                    <span style="font-size: 13px; color: rgba(250,250,249,0.85); letter-spacing: 0.05em; text-transform: uppercase;">Order confirmed</span>
+                  <td align="right" style="vertical-align: middle;">
+                    <span style="display:inline-block; padding: 6px 14px; border-radius: 999px; background: rgba(202,168,71,0.12); border: 1px solid rgba(202,168,71,0.6); font-size: 11px; font-weight: 600; color: #facc15; letter-spacing: 0.16em; text-transform: uppercase;">
+                      Order confirmed
+                    </span>
                   </td>
                 </tr>
               </table>
@@ -125,9 +135,20 @@ export function renderOrderConfirmationEmail(data: OrderConfirmationData): strin
           </tr>
           <!-- Footer -->
           <tr>
-            <td style="background-color: #1c1917; padding: 24px 32px; border-radius: 0 0 16px 16px; border: 1px solid #1c1917;">
-              <p style="margin: 0; font-size: 12px; color: rgba(250,250,249,0.75); line-height: 1.5;">We'll notify you when your order is shipped.</p>
-              <p style="margin: 12px 0 0; font-size: 12px; color: rgba(250,250,249,0.6);">Nature Secret · Premium Herbal Oils &amp; Skincare</p>
+            <td style="background-color: #0b0b0a; padding: 24px 32px; border-radius: 0 0 18px 18px; border: 1px solid #262523;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td style="font-size: 12px; color: rgba(250,250,249,0.78); line-height: 1.6;">
+                    We'll notify you when your order is shipped.<br />
+                    For any questions, reply to this email or message us on WhatsApp.
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-top: 10px; font-size: 11px; color: rgba(250,250,249,0.55);">
+                    Nature Secret · Premium Herbal Oils &amp; Skincare · naturesecret.pk
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
         </table>

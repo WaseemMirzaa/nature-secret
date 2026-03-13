@@ -41,9 +41,14 @@ export default function WishlistPage() {
       <h1 className="text-xl sm:text-2xl font-semibold text-neutral-900 mb-4 sm:mb-8">Wishlist</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {products.map((p) => {
-          const v = p.variants?.[0];
+          const variants = Array.isArray(p.variants) ? p.variants : [];
+          const defaultVariant = variants.reduce(
+            (best, v) => (best == null || (v.price ?? 0) < (best.price ?? 0) ? v : best),
+            null,
+          );
+          const v = defaultVariant;
           const price = v?.price ?? p.price;
-          const compareAtPrice = p.variants?.length > 1 ? v?.compareAtPrice : p.compareAtPrice;
+          const compareAtPrice = variants.length > 1 ? v?.compareAtPrice : p.compareAtPrice;
           const img = p.images?.[0] || '/assets/nature-secret-logo.svg';
           const name = p.name ?? p.slug ?? 'Product';
           return (
