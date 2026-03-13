@@ -169,8 +169,8 @@ export default function ProductPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-8 lg:py-12">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-10 animate-slide-up">
-        <div className="relative">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-10 animate-slide-up items-start">
+        <div className="relative lg:max-w-md">
           <div
             className="aspect-[3/4] lg:aspect-[4/5] rounded-xl sm:rounded-2xl overflow-hidden bg-neutral-100 relative"
             onMouseEnter={() => setZoom(true)}
@@ -185,7 +185,12 @@ export default function ProductPage() {
               priority
               unoptimized={isApiImage || !String(mainImage).startsWith('http')}
             />
-            <button type="button" onClick={() => toggleWishlist(product.id)} className="absolute top-3 right-3 z-10 p-2.5 rounded-full bg-white/90 backdrop-blur-sm shadow-md border border-neutral-200/80 hover:bg-white hover:shadow-lg transition lg:hidden" aria-label="Wishlist">
+            <button
+              type="button"
+              onClick={() => toggleWishlist(product.id)}
+              className="absolute top-3 right-3 z-10 p-2.5 rounded-full bg-white/90 backdrop-blur-sm shadow-md border border-neutral-200/80 hover:bg-white hover:shadow-lg transition"
+              aria-label="Wishlist"
+            >
               <svg className="w-5 h-5 text-neutral-700" fill={wishlist.includes(product.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
             </button>
           </div>
@@ -220,6 +225,21 @@ export default function ProductPage() {
             {formatPrice(price, currency)}
           </p>
 
+          {/* Description + benefits (desktop only) */}
+          {product.description && (
+            <div className="hidden lg:block mt-3 text-sm text-neutral-600 leading-relaxed product-description" dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }} />
+          )}
+          {(product.benefits || []).length > 0 && (
+            <ul className="hidden lg:block mt-3 space-y-1.5 text-sm text-neutral-600">
+              {(product.benefits || []).map((b, i) => (
+                <li key={i} className="flex items-center gap-2">
+                  <span className="text-gold-600">✓</span>
+                  {b}
+                </li>
+              ))}
+            </ul>
+          )}
+
           {/* Size / variant */}
           {product.variants?.length > 1 && (
             <div>
@@ -246,7 +266,14 @@ export default function ProductPage() {
             <p className="text-xs sm:text-sm font-medium text-neutral-700 mb-1 sm:mb-1.5">Quantity</p>
             <div className="inline-flex items-center rounded-lg sm:rounded-xl border-2 border-neutral-200">
               <button type="button" onClick={() => setQty((n) => Math.max(1, (n || 1) - 1))} className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 rounded-l-md sm:rounded-l-lg" aria-label="Decrease">−</button>
-              <input type="number" min={1} max={99} value={effectiveQty} onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))} className="w-12 sm:w-14 h-10 sm:h-12 text-center text-sm sm:text-base text-neutral-900 font-medium border-0 border-y border-neutral-200 bg-transparent [appearance:textfield]" />
+              <input
+                type="number"
+                min={1}
+                max={99}
+                value={effectiveQty}
+                onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
+                className="w-12 sm:w-14 h-10 sm:h-12 text-center text-sm sm:text-base leading-none text-neutral-900 font-medium border-0 border-y border-neutral-200 bg-transparent [appearance:textfield]"
+              />
               <button type="button" onClick={() => setQty((n) => Math.min(99, (n || 1) + 1))} className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 rounded-r-md sm:rounded-r-lg" aria-label="Increase">+</button>
             </div>
           </div>
@@ -277,15 +304,12 @@ export default function ProductPage() {
                 </button>
               </>
             )}
-            <button type="button" onClick={() => toggleWishlist(product.id)} className="hidden lg:flex self-start p-3 rounded-2xl border border-neutral-300 hover:bg-neutral-50 items-center justify-center" aria-label="Wishlist">
-              <svg className="w-5 h-5 text-neutral-600" fill={wishlist.includes(product.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
-            </button>
           </div>
         </div>
       </div>
 
-      {/* Product details: name, description, FAQs */}
-      <section className="mt-8 sm:mt-12 lg:mt-16 pt-8 sm:pt-12 border-t border-neutral-200">
+      {/* Product details: name, description, FAQs (mobile / tablet) */}
+      <section className="mt-8 sm:mt-12 lg:mt-16 pt-8 sm:pt-12 border-t border-neutral-200 lg:hidden">
         <h2 className="text-xl font-semibold text-neutral-900">{productDisplayName}</h2>
         {(product.badge || product.badgeSub) && (
           <div className="mt-2 flex flex-wrap gap-2">
