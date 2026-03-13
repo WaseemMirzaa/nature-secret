@@ -56,24 +56,26 @@ export function renderOrderConfirmationEmail(data: OrderConfirmationData): strin
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px;">
           <!-- Header -->
           <tr>
-            <td style="background-color:#ffffff; padding:20px 24px; border-radius:18px 18px 0 0; border:1px solid #e5e5e0; border-bottom:none;">
+            <td style="background-color:#ffffff; padding:18px 20px 16px; border-radius:18px 18px 0 0; border:1px solid #e5e5e0; border-bottom:none;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
                   <td align="left" style="vertical-align: middle;">
                     <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                       <tr>
                         <td style="padding-right: 10px;">
-                          <img src="https://nature-secret.pk/assets/nature-secret-logo.svg" alt="Nature Secret" width="40" height="40" style="display:block; border-radius:0; border:none; max-width:40px; height:auto;" />
+                          <img src="https://naturesecret.pk/assets/nature-secret-logo.svg" alt="Nature Secret" width="40" height="40" style="display:block; border-radius:0; border:none; max-width:40px; height:auto;" />
                         </td>
                         <td>
-                          <div style="font-size: 20px; font-weight: 600; color:#111827; letter-spacing: 0.05em; text-transform: uppercase;">Nature Secret</div>
-                          <div style="margin-top: 2px; font-size: 11px; color:#6b7280; letter-spacing:0.18em; text-transform: uppercase;">Premium herbal oils &amp; skincare</div>
+                          <div style="font-size: 18px; font-weight: 600; color:#111827; letter-spacing: 0.04em; text-transform: uppercase; line-height:1.3;">Nature Secret</div>
+                          <div style="margin-top: 1px; font-size: 11px; color:#6b7280; letter-spacing:0.16em; text-transform: uppercase;">Premium herbal oils &amp; skincare</div>
                         </td>
                       </tr>
                     </table>
                   </td>
-                  <td align="right" style="vertical-align: middle;">
-                    <span style="display:inline-block; padding: 6px 14px; border-radius: 999px; background:#fef9c3; border:1px solid #eab308; font-size: 11px; font-weight: 600; color:#854d0e; letter-spacing: 0.16em; text-transform: uppercase;">
+                </tr>
+                <tr>
+                  <td colSpan="2" align="left" style="padding-top:10px;">
+                    <span style="display:inline-block; padding: 5px 12px; border-radius: 999px; background:#fef9c3; border:1px solid #eab308; font-size: 10px; font-weight: 600; color:#854d0e; letter-spacing: 0.14em; text-transform: uppercase;">
                       Order confirmed
                     </span>
                   </td>
@@ -140,7 +142,7 @@ export function renderOrderConfirmationEmail(data: OrderConfirmationData): strin
                 We’ll notify you when your order is shipped. For questions, simply reply to this email or reach us via WhatsApp.
               </p>
               <p style="margin: 8px 0 0; font-size: 11px; color:#9ca3af;">
-                Nature Secret · Premium Herbal Oils &amp; Skincare · <a href="https://nature-secret.pk" style="color:#4b5563; text-decoration:none;">nature-secret.pk</a>
+                Nature Secret · Premium Herbal Oils &amp; Skincare · <a href="https://naturesecret.pk" style="color:#4b5563; text-decoration:none;">naturesecret.pk</a>
               </p>
             </td>
           </tr>
