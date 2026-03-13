@@ -336,7 +336,7 @@ export default function ProductPage() {
             <div className="hidden lg:block mt-3">
               <div
                 className={`text-sm text-neutral-600 leading-relaxed product-description transition-all ${
-                  descriptionExpanded ? '' : 'max-h-40 overflow-hidden'
+                  descriptionExpanded ? '' : 'max-h-64 overflow-hidden'
                 }`}
                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }}
               />
@@ -458,10 +458,10 @@ export default function ProductPage() {
           </div>
         )}
         {product.description && (
-          <div className="mt-4">
+            <div className="mt-4">
             <div
               className={`text-neutral-600 product-description transition-all ${
-                descriptionExpanded ? '' : 'max-h-40 overflow-hidden'
+                descriptionExpanded ? '' : 'max-h-64 overflow-hidden'
               }`}
               dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }}
             />
