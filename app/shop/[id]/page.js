@@ -40,6 +40,15 @@ export default function ProductPage() {
   );
   const product = apiProduct ?? productFromStore;
   const products = apiProduct ? [apiProduct, ...storeProducts.filter((p) => p.id !== apiProduct.id)] : storeProducts;
+  const variantsForProduct = Array.isArray(product?.variants) ? product.variants : [];
+  const defaultVariant = useMemo(
+    () => (variantsForProduct.length ? variantsForProduct.reduce(
+      (best, v) => (best == null || (v.price ?? 0) < (best.price ?? 0) ? v : best),
+      null,
+    ) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [product?.id, variantsForProduct.length],
+  );
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [faqOpen, setFaqOpen] = useState(null);
   const [zoom, setZoom] = useState(false);
@@ -57,7 +66,7 @@ export default function ProductPage() {
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewMessage, setReviewMessage] = useState('');
 
-  const variant = selectedVariant ?? product?.variants?.[0];
+  const variant = selectedVariant ?? defaultVariant ?? product?.variants?.[0];
   const variantImageList = (variant?.images && variant.images.length) ? variant.images : (variant?.image ? [variant.image] : product?.images || []);
   useEffect(() => { setSelectedImageIndex(0); }, [variant?.id]);
   useEffect(() => { setQty(1); }, [variant?.id]);

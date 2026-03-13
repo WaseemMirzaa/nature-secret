@@ -63,7 +63,7 @@ export function renderOrderConfirmationEmail(data: OrderConfirmationData): strin
                     <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                       <tr>
                         <td style="padding-right: 10px;">
-                          <img src="https://naturesecret.pk/assets/nature-secret-logo.svg" alt="Nature Secret" width="40" height="40" style="display:block; border-radius:0; border:none; max-width:40px; height:auto;" />
+                          <img src="https://nature-secret.pk/assets/nature-secret-logo.svg" alt="Nature Secret" width="40" height="40" style="display:block; border-radius:0; border:none; max-width:40px; height:auto;" />
                         </td>
                         <td>
                           <div style="font-size: 20px; font-weight: 600; color:#111827; letter-spacing: 0.05em; text-transform: uppercase;">Nature Secret</div>
@@ -140,7 +140,7 @@ export function renderOrderConfirmationEmail(data: OrderConfirmationData): strin
                 We’ll notify you when your order is shipped. For questions, simply reply to this email or reach us via WhatsApp.
               </p>
               <p style="margin: 8px 0 0; font-size: 11px; color:#9ca3af;">
-                Nature Secret · Premium Herbal Oils &amp; Skincare · <a href="https://naturesecret.pk" style="color:#4b5563; text-decoration:none;">naturesecret.pk</a>
+                Nature Secret · Premium Herbal Oils &amp; Skincare · <a href="https://nature-secret.pk" style="color:#4b5563; text-decoration:none;">nature-secret.pk</a>
               </p>
             </td>
           </tr>
