@@ -13,7 +13,7 @@ export class ReviewsService {
 
   async findByProductId(productId: string): Promise<Review[]> {
     return this.reviewRepo.find({
-      where: { productId },
+      where: { productId, approved: true },
       order: { createdAt: 'DESC' },
     });
   }
@@ -31,15 +31,30 @@ export class ReviewsService {
     return qb.orderBy('r.createdAt', 'DESC').getMany();
   }
 
-  async create(dto: { authorName: string; rating: number; body: string; collection: string; productId?: string }): Promise<Review> {
+  async create(dto: { authorName: string; rating: number; body: string; collection: string; productId?: string; approved?: boolean }): Promise<Review> {
     const review = this.reviewRepo.create({
       authorName: dto.authorName,
       rating: Math.min(5, Math.max(1, dto.rating || 5)),
       body: dto.body,
       collection: dto.collection || 'quality',
       productId: dto.productId || null,
+      approved: dto.approved ?? true,
     });
     return this.reviewRepo.save(review);
+  }
+
+  async createUserReview(dto: { productId: string; authorName: string; rating: number; body: string }): Promise<Review> {
+    const review = this.reviewRepo.create({
+      authorName: dto.authorName,
+      rating: Math.min(5, Math.max(1, dto.rating || 5)),
+      body: dto.body,
+      collection: 'user',
+      productId: dto.productId,
+      approved: false,
+    });
+    const saved = await this.reviewRepo.save(review);
+    // do not update product stats until approved
+    return saved;
   }
 
   async assignToProduct(reviewId: string, productId: string): Promise<Review> {
@@ -61,6 +76,17 @@ export class ReviewsService {
     return review;
   }
 
+  async setApproval(reviewId: string, approved: boolean): Promise<Review> {
+    const review = await this.reviewRepo.findOne({ where: { id: reviewId } });
+    if (!review) throw new Error('Review not found');
+    review.approved = !!approved;
+    const saved = await this.reviewRepo.save(review);
+    if (review.productId) {
+      await this.updateProductReviewStats(review.productId);
+    }
+    return saved;
+  }
+
   async setProductRating(productId: string, rating: number, reviewCount?: number): Promise<void> {
     const product = await this.productRepo.findOne({ where: { id: productId } });
     if (!product) return;
@@ -70,7 +96,7 @@ export class ReviewsService {
   }
 
   async updateProductReviewStats(productId: string): Promise<void> {
-    const reviews = await this.reviewRepo.find({ where: { productId } });
+    const reviews = await this.reviewRepo.find({ where: { productId, approved: true } });
     const count = reviews.length;
     const avg = count ? reviews.reduce((s, r) => s + r.rating, 0) / count : 0;
     const product = await this.productRepo.findOne({ where: { id: productId } });

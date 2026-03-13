@@ -47,4 +47,11 @@ export class AdminReviewsController {
     await this.service.setProductRating(productId, body.rating ?? 5, body.reviewCount);
     return { ok: true };
   }
+
+  @Patch(':id/approve')
+  @StaffOrAdmin()
+  async approve(@Param('id') id: string, @Body() body: { approved: boolean }) {
+    const updated = await this.service.setApproval(id, body.approved ?? true);
+    return updated;
+  }
 }

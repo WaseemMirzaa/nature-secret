@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from '@/components/Link';
 import { useRouter, useParams } from 'next/navigation';
 import { useProductsStore } from '@/lib/store';
-import { getCategories, uploadProductImage, updateProduct as updateProductApi, formatApiError, getAdminReviews, assignReviewToProduct, unassignReview, setProductRating } from '@/lib/api';
+import { getCategories, uploadProductImage, updateProduct as updateProductApi, formatApiError, getAdminReviews, assignReviewToProduct, unassignReview, setProductRating, approveReview } from '@/lib/api';
 import { Spinner } from '@/components/ui/PageLoader';
 
 const emptyVariant = () => ({ id: `v-${Date.now()}`, name: '', volume: '', price: 0, compareAtPrice: null, images: [] });
@@ -43,6 +43,10 @@ export default function EditProductPage() {
   const [poolReviews, setPoolReviews] = useState([]);
   const [reviewCollection, setReviewCollection] = useState('quality');
   const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [customerReviews, setCustomerReviews] = useState([]);
+  const [customerReviewsLoading, setCustomerReviewsLoading] = useState(false);
+  const [customerReviews, setCustomerReviews] = useState([]);
+  const [customerReviewsLoading, setCustomerReviewsLoading] = useState(false);
 
   const apiBase = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') : '';
   async function handleImageUpload(e, index) {
@@ -125,6 +129,15 @@ export default function EditProductPage() {
       .catch(() => setPoolReviews([]))
       .finally(() => setReviewsLoading(false));
   }, [reviewCollection]);
+
+  useEffect(() => {
+    if (!product?.id) return;
+    setCustomerReviewsLoading(true);
+    getAdminReviews({ productId: product.id })
+      .then((list) => setCustomerReviews(Array.isArray(list) ? list : []))
+      .catch(() => setCustomerReviews([]))
+      .finally(() => setCustomerReviewsLoading(false));
+  }, [product?.id]);
 
   function addBenefit() { setBenefits((b) => [...b, '']); }
   function updateBenefit(i, v) { setBenefits((b) => { const n = [...b]; n[i] = v; return n; }); }
@@ -399,7 +412,82 @@ export default function EditProductPage() {
             </select>
           </div>
         </div>
-        <div className="flex gap-4">
+
+        <div className="mt-8">
+          <h3 className="text-sm font-medium text-neutral-800 mb-2">Customer reviews (submitted on site)</h3>
+          {customerReviewsLoading ? (
+            <p className="text-sm text-neutral-500">Loading reviews…</p>
+          ) : customerReviews.length === 0 ? (
+            <p className="text-sm text-neutral-500">No customer reviews yet.</p>
+          ) : (
+            <ul className="space-y-2 max-h-56 overflow-y-auto rounded-xl border border-neutral-200 p-2">
+              {customerReviews.map((r) => (
+                <li key={r.id} className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 text-sm">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gold-600">{'★'.repeat(Math.min(5, r.rating || 0))}</span>
+                      <span className="text-xs text-neutral-500">{r.authorName}</span>
+                      <span className="text-xs text-neutral-400">
+                        {r.createdAt ? new Date(r.createdAt).toLocaleString() : ''}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-neutral-700 break-words">{r.body}</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide ${
+                      r.approved ? 'bg-emerald-100 text-emerald-800' : 'bg-neutral-100 text-neutral-600'
+                    }`}>
+                      {r.approved ? 'Approved' : 'Pending'}
+                    </span>
+                    {!r.approved ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              const updated = await approveReview(r.id, true);
+                              setCustomerReviews((prev) => prev.map((x) => (x.id === r.id ? updated : x)));
+                            } catch (_) {}
+                          }}
+                          className="rounded-lg bg-emerald-600 text-white px-2.5 py-1 text-xs font-medium hover:bg-emerald-500"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              const updated = await approveReview(r.id, false);
+                              setCustomerReviews((prev) => prev.map((x) => (x.id === r.id ? updated : x)));
+                            } catch (_) {}
+                          }}
+                          className="rounded-lg border border-red-300 text-red-700 px-2.5 py-1 text-xs font-medium hover:bg-red-50"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            const updated = await approveReview(r.id, false);
+                            setCustomerReviews((prev) => prev.map((x) => (x.id === r.id ? updated : x)));
+                          } catch (_) {}
+                        }}
+                        className="rounded-lg border border-neutral-300 text-neutral-700 px-2.5 py-1 text-xs font-medium hover:bg-neutral-50"
+                      >
+                        Mark pending
+                      </button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="flex gap-4 mt-8">
           <button type="submit" disabled={submitting} className="rounded-xl bg-neutral-900 text-white px-6 py-2.5 text-sm font-medium disabled:opacity-50">Save changes</button>
           <Link href="/admin/products" className="rounded-xl border border-neutral-300 px-6 py-2.5 text-sm font-medium text-neutral-900">Cancel</Link>
         </div>

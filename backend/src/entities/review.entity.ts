@@ -26,6 +26,9 @@ export class Review {
   @Column({ type: 'varchar', length: 50, default: 'quality' })
   collection: string;
 
+  @Column({ type: 'boolean', default: true })
+  approved: boolean;
+
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 }
