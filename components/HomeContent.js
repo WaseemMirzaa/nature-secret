@@ -43,13 +43,13 @@ export default function HomeContent() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-20 lg:py-32">
           <div className="max-w-2xl">
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold-600 mb-5">
-              Premium herbal oils for pain care
+              Natural care, refined
             </p>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-neutral-900 tracking-tight leading-[1.08]">
-              Nature, refined.
+              Natural Care, Refined
             </h1>
             <p className="mt-6 text-lg text-neutral-600 max-w-md leading-relaxed">
-              Our hero product is Painrex Oil—natural relief for muscle, joint and back pain. Skincare range coming soon. Clean ingredients, trusted in Pakistan.
+              Premium herbal solutions for pain relief and skin wellness. Featuring Painrex Oil—trusted relief for muscle, joint, neck, knee, arthritis, and back pain.
             </p>
             <div className="mt-6 sm:mt-10 flex flex-wrap gap-3 sm:gap-4">
               <Link
@@ -233,14 +233,31 @@ export default function HomeContent() {
             <div className="inline-block w-10 h-px bg-gold-400/50 mb-4 sm:mb-5" aria-hidden />
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-3 sm:mb-4">Our story</p>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-neutral-900 tracking-tight">
-              Oils first. Skincare next.
+              Our journey began at home.
             </h2>
-            <p className="mt-4 sm:mt-6 text-neutral-600 leading-relaxed">
-              We started with premium herbal oils for pain and wellness—our hero product Painrex Oil is trusted across Pakistan. We are now bringing the same clean, minimal approach to skincare: serums and care products coming soon.
-            </p>
-            <Link href="/about" className="mt-5 sm:mt-8 inline-block text-sm font-medium text-neutral-900 border-b-2 border-gold-500/50 pb-1 hover:border-gold-600 transition-colors">
-              Learn more
-            </Link>
+            <div className="mt-4 sm:mt-6 space-y-3 text-sm sm:text-base text-neutral-600 leading-relaxed text-left sm:text-center">
+              <p>
+                Like many families in Pakistan, we often saw loved ones struggling with pain in their knees, back, joints, and muscles.
+                Wanting a natural way to ease this discomfort, our father carefully created a herbal oil using traditional knowledge and
+                ingredients we trusted.
+              </p>
+              <p>
+                At first, it was only for our own family. Over time, we shared the oil with friends and relatives who were facing similar
+                pain. The feedback was overwhelmingly positive. Many told us the oil brought them real comfort and relief.
+              </p>
+              <p>
+                Encouraged by their experiences — and our own — we realized this simple formula could help more people. That is how Painrex
+                Oil was born.
+              </p>
+              <p>
+                Today, we are proud to share the same oil that started in our home with people across Pakistan. And this is just the
+                beginning. Inspired by the same belief in natural care, we are now working on skincare serums and wellness products that
+                will soon join our collection.
+              </p>
+              <p className="font-medium text-neutral-700">
+                From our home to yours — care you can trust.
+              </p>
+            </div>
           </div>
         </div>
       </section>
