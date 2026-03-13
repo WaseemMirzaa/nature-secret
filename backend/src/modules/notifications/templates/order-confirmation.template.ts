@@ -49,31 +49,31 @@ export function renderOrderConfirmationEmail(data: OrderConfirmationData): strin
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Order confirmed – Nature Secret</title>
 </head>
-<body style="margin:0; padding:0; background-color:#fafaf9; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#fafaf9;">
+<body style="margin:0; padding:0; background-color:#f4f4f2; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f4f4f2;">
     <tr>
       <td align="center" style="padding: 40px 20px;">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 560px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px;">
           <!-- Header -->
           <tr>
-            <td style="background-color: #0b0b0a; padding: 28px 32px; border-radius: 18px 18px 0 0; border: 1px solid #262523;">
+            <td style="background-color:#ffffff; padding:20px 24px; border-radius:18px 18px 0 0; border:1px solid #e5e5e0; border-bottom:none;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
                   <td align="left" style="vertical-align: middle;">
                     <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                       <tr>
                         <td style="padding-right: 10px;">
-                          <img src="https://naturesecret.pk/assets/nature-secret-logo.svg" alt="Nature Secret" width="40" height="40" style="display:block; border-radius: 999px; border: 1px solid rgba(202,138,4,0.5);" />
+                          <img src="https://naturesecret.pk/assets/nature-secret-logo.svg" alt="Nature Secret" width="40" height="40" style="display:block; border-radius:0; border:none; max-width:40px; height:auto;" />
                         </td>
                         <td>
-                          <div style="font-size: 22px; font-weight: 600; color: #f5f5f4; letter-spacing: 0.06em; text-transform: uppercase;">Nature Secret</div>
-                          <div style="margin-top: 2px; font-size: 11px; color: rgba(250,250,249,0.7); letter-spacing: 0.32em; text-transform: uppercase;">Premium herbal oils &amp; skincare</div>
+                          <div style="font-size: 20px; font-weight: 600; color:#111827; letter-spacing: 0.05em; text-transform: uppercase;">Nature Secret</div>
+                          <div style="margin-top: 2px; font-size: 11px; color:#6b7280; letter-spacing:0.18em; text-transform: uppercase;">Premium herbal oils &amp; skincare</div>
                         </td>
                       </tr>
                     </table>
                   </td>
                   <td align="right" style="vertical-align: middle;">
-                    <span style="display:inline-block; padding: 6px 14px; border-radius: 999px; background: rgba(202,168,71,0.12); border: 1px solid rgba(202,168,71,0.6); font-size: 11px; font-weight: 600; color: #facc15; letter-spacing: 0.16em; text-transform: uppercase;">
+                    <span style="display:inline-block; padding: 6px 14px; border-radius: 999px; background:#fef9c3; border:1px solid #eab308; font-size: 11px; font-weight: 600; color:#854d0e; letter-spacing: 0.16em; text-transform: uppercase;">
                       Order confirmed
                     </span>
                   </td>
@@ -83,12 +83,12 @@ export function renderOrderConfirmationEmail(data: OrderConfirmationData): strin
           </tr>
           <!-- Body -->
           <tr>
-            <td style="background-color: #ffffff; padding: 32px; border-left: 1px solid #e7e5e4; border-right: 1px solid #e7e5e4;">
-              <p style="margin: 0 0 24px; font-size: 16px; color: #44403c; line-height: 1.6;">Hello ${name},</p>
-              <p style="margin: 0 0 24px; font-size: 16px; color: #44403c; line-height: 1.6;">Thank you for your order. We've received it and will notify you when it ships.</p>
+            <td style="background-color:#ffffff; padding: 28px 24px 24px; border-left: 1px solid #e5e5e0; border-right: 1px solid #e5e5e0; border-bottom:1px solid #e5e5e0;">
+              <p style="margin: 0 0 18px; font-size: 16px; color:#111827; line-height: 1.6;">Hello ${name},</p>
+              <p style="margin: 0 0 22px; font-size: 14px; color:#4b5563; line-height: 1.6;">Thank you for your order with Nature Secret. We’ve received it and will notify you when it ships.</p>
 
               <!-- Order details card -->
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #fafaf9; border-radius: 12px; border: 1px solid #e7e5e4; margin-bottom: 24px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f9fafb; border-radius: 12px; border: 1px solid #e5e7eb; margin-bottom: 24px;">
                 <tr>
                   <td style="padding: 20px 24px;">
                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
@@ -99,11 +99,11 @@ export function renderOrderConfirmationEmail(data: OrderConfirmationData): strin
                       </tr>
                       <tr>
                         <td style="padding-top: 16px;">
-                          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="font-size: 14px; color: #44403c;">
-                            <tr><td style="padding: 6px 0;"><span style="color: #78716c;">Order ID</span></td><td align="right" style="padding: 6px 0; font-weight: 500;">${escapeHtml(orderId)}</td></tr>
-                            <tr><td style="padding: 6px 0;"><span style="color: #78716c;">Confirmation code</span></td><td align="right" style="padding: 6px 0; font-weight: 600; color: #cba847;">${code}</td></tr>
-                            <tr><td style="padding: 6px 0;"><span style="color: #78716c;">Date</span></td><td align="right" style="padding: 6px 0;">${escapeHtml(createdAtFormatted)}</td></tr>
-                            <tr><td style="padding: 6px 0;"><span style="color: #78716c;">Payment</span></td><td align="right" style="padding: 6px 0;">${payLabel}</td></tr>
+                          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="font-size: 14px; color:#374151;">
+                            <tr><td style="padding: 6px 0;"><span style="color:#6b7280;">Order ID</span></td><td align="right" style="padding: 6px 0; font-weight: 500; color:#111827;">${escapeHtml(orderId)}</td></tr>
+                            <tr><td style="padding: 6px 0;"><span style="color:#6b7280;">Confirmation code</span></td><td align="right" style="padding: 6px 0; font-weight: 600; color:#ca8a04;">${code}</td></tr>
+                            <tr><td style="padding: 6px 0;"><span style="color:#6b7280;">Date</span></td><td align="right" style="padding: 6px 0;">${escapeHtml(createdAtFormatted)}</td></tr>
+                            <tr><td style="padding: 6px 0;"><span style="color:#6b7280;">Payment</span></td><td align="right" style="padding: 6px 0;">${payLabel}</td></tr>
                           </table>
                         </td>
                       </tr>
@@ -113,42 +113,35 @@ export function renderOrderConfirmationEmail(data: OrderConfirmationData): strin
               </table>
 
               <!-- Items -->
-              <p style="margin: 0 0 8px; font-size: 11px; font-weight: 600; color: #78716c; letter-spacing: 0.08em; text-transform: uppercase;">Items</p>
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="font-size: 14px; color: #44403c; margin-bottom: 20px;">
+              <p style="margin: 0 0 8px; font-size: 11px; font-weight: 600; color:#6b7280; letter-spacing: 0.08em; text-transform: uppercase;">Items</p>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="font-size: 14px; color:#374151; margin-bottom: 20px;">
                 <tr>
-                  <td style="padding: 12px 0; border-bottom: 1px solid #e7e5e4; line-height: 1.5;">${itemsSummaryHtml}</td>
+                  <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb; line-height: 1.6;">${itemsSummaryHtml}</td>
                 </tr>
               </table>
 
               <!-- Total -->
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <td style="padding: 16px 0; border-top: 2px solid #e7e5e4;">
-                    <span style="font-size: 15px; font-weight: 600; color: #1c1917;">Total</span>
-                    <span style="float: right; font-size: 18px; font-weight: 700; color: #cba847;">${escapeHtml(totalFormatted)}</span>
+                  <td style="padding: 16px 0; border-top: 2px solid #e5e7eb;">
+                    <span style="font-size: 15px; font-weight: 600; color:#111827;">Total</span>
+                    <span style="float: right; font-size: 18px; font-weight: 700; color:#ca8a04;">${escapeHtml(totalFormatted)}</span>
                   </td>
                 </tr>
               </table>
 
-              ${address ? `<p style="margin: 24px 0 0; font-size: 12px; color: #78716c; line-height: 1.5;"><strong style="color: #57534e;">Delivery address</strong><br>${addressBr}</p>` : ''}
+              ${address ? `<p style="margin: 24px 0 0; font-size: 12px; color:#6b7280; line-height: 1.5;"><strong style="color:#374151;">Delivery address</strong><br>${addressBr}</p>` : ''}
             </td>
           </tr>
           <!-- Footer -->
           <tr>
-            <td style="background-color: #0b0b0a; padding: 24px 32px; border-radius: 0 0 18px 18px; border: 1px solid #262523;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-                <tr>
-                  <td style="font-size: 12px; color: rgba(250,250,249,0.78); line-height: 1.6;">
-                    We'll notify you when your order is shipped.<br />
-                    For any questions, reply to this email or message us on WhatsApp.
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding-top: 10px; font-size: 11px; color: rgba(250,250,249,0.55);">
-                    Nature Secret · Premium Herbal Oils &amp; Skincare · naturesecret.pk
-                  </td>
-                </tr>
-              </table>
+            <td style="background-color:#f9fafb; padding: 18px 24px; border-radius: 0 0 18px 18px; border:1px solid #e5e7eb; border-top:none;">
+              <p style="margin: 0; font-size: 12px; color:#6b7280; line-height: 1.6;">
+                We’ll notify you when your order is shipped. For questions, simply reply to this email or reach us via WhatsApp.
+              </p>
+              <p style="margin: 8px 0 0; font-size: 11px; color:#9ca3af;">
+                Nature Secret · Premium Herbal Oils &amp; Skincare · <a href="https://naturesecret.pk" style="color:#4b5563; text-decoration:none;">naturesecret.pk</a>
+              </p>
             </td>
           </tr>
         </table>

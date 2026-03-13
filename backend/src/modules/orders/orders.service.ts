@@ -5,6 +5,7 @@ import { Order } from '../../entities/order.entity';
 import { OrderItem } from '../../entities/order-item.entity';
 import { OrderStatusTimeline } from '../../entities/order-status-timeline.entity';
 import { Customer } from '../../entities/customer.entity';
+import { Product } from '../../entities/product.entity';
 import { EmailService } from '../notifications/email.service';
 import { WhatsAppService } from '../notifications/whatsapp.service';
 import { PushService } from '../notifications/push.service';
@@ -29,6 +30,7 @@ export class OrdersService {
     @InjectRepository(OrderItem) private itemRepo: Repository<OrderItem>,
     @InjectRepository(OrderStatusTimeline) private timelineRepo: Repository<OrderStatusTimeline>,
     @InjectRepository(Customer) private customerRepo: Repository<Customer>,
+    @InjectRepository(Product) private productRepo: Repository<Product>,
     private emailService: EmailService,
     private whatsappService: WhatsAppService,
     private pushService: PushService,
@@ -79,7 +81,19 @@ export class OrdersService {
       this.timelineRepo.create({ orderId: order.id, status: 'pending', changedBy: 'system' }),
     );
     const full = await this.findOne(order.id);
-    const itemsSummary = (full.items || []).map((i) => `- ${i.productId} x${i.qty} = PKR ${((i.price * i.qty) / 100).toLocaleString()}`).join('\n');
+    const items = full.items || [];
+    const productIds = Array.from(new Set(items.map((i) => i.productId).filter(Boolean)));
+    const products = productIds.length
+      ? await this.productRepo.find({ where: { id: productIds.length === 1 ? productIds[0] : productIds as any } })
+      : [];
+    const productNameMap = new Map(products.map((p) => [p.id, p.name]));
+    const itemsSummary = items
+      .map((i) => {
+        const name = productNameMap.get(i.productId) || i.productId;
+        const lineTotal = ((i.price * i.qty) / 100).toLocaleString();
+        return `- ${name} x${i.qty} = PKR ${lineTotal}`;
+      })
+      .join('\n');
     if (full.email) this.emailService.sendOrderConfirmation(full.email, full, itemsSummary).catch(() => {});
     if (full.phone) this.whatsappService.sendOrderConfirmation(full.phone, full.id, full.confirmationCode).catch(() => {});
     this.eventsGateway.emitOrderCreated({ id: full.id, status: full.status, createdAt: full.createdAt?.toISOString?.() });
