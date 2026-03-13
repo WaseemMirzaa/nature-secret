@@ -4,15 +4,13 @@ import { Order } from '../../entities/order.entity';
 import { OrderItem } from '../../entities/order-item.entity';
 import { OrderStatusTimeline } from '../../entities/order-status-timeline.entity';
 import { Customer } from '../../entities/customer.entity';
+import { Product } from '../../entities/product.entity';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Order, OrderItem, OrderStatusTimeline, Customer]),
-    NotificationsModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Order, OrderItem, OrderStatusTimeline, Customer, Product]), NotificationsModule],
   controllers: [OrdersController],
   providers: [OrdersService],
   exports: [OrdersService],
