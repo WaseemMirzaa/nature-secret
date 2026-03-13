@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { useProductsStore } from '@/lib/store';
 import { useProductsAndCategories } from '@/lib/useApiData';
 import { formatPrice } from '@/lib/currency';
-import { getSlider, resolveImageUrl, productPath } from '@/lib/api';
+import { getSlider, resolveImageUrl, productPath, getHighlightReviews } from '@/lib/api';
 import { TRUST_BADGES } from '@/lib/constants';
 
 export default function HomeContent() {
@@ -15,6 +15,7 @@ export default function HomeContent() {
   const [slideIndex, setSlideIndex] = useState(0);
   const [heroSlides, setHeroSlides] = useState([]);
   const [sliderError, setSliderError] = useState(false);
+  const [highlightReviews, setHighlightReviews] = useState([]);
   const bestsellerProducts = Array.isArray(products) ? products.filter((p) => (p.inventory ?? 1) > 0).slice(0, 4) : [];
   const featuredCategories = Array.isArray(categories) ? categories.slice(0, 2) : [];
 
@@ -26,6 +27,12 @@ export default function HomeContent() {
         }
       })
       .catch(() => setSliderError(true));
+  }, []);
+
+  useEffect(() => {
+    getHighlightReviews()
+      .then((list) => setHighlightReviews(Array.isArray(list) ? list : []))
+      .catch(() => setHighlightReviews([]));
   }, []);
 
   useEffect(() => {
@@ -261,6 +268,38 @@ export default function HomeContent() {
           </div>
         </div>
       </section>
+
+      {/* Customer reviews strip */}
+      {highlightReviews.length > 0 && (
+        <section className="py-8 sm:py-10 bg-neutral-50 border-y border-neutral-200/80">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-3">
+              What customers say
+            </p>
+            <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-neutral-300">
+              {highlightReviews.map((r) => (
+                <div
+                  key={r.id}
+                  className="min-w-[220px] max-w-xs rounded-2xl border border-neutral-200 bg-white px-4 py-3 shadow-sm flex-shrink-0"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-gold-600 text-sm">
+                      {'★'.repeat(Math.min(5, r.rating || 0))}
+                    </span>
+                    <span className="text-neutral-300 text-sm">
+                      {'★'.repeat(5 - Math.min(5, r.rating || 0))}
+                    </span>
+                  </div>
+                  <p className="text-xs font-medium text-neutral-800 line-clamp-2">{r.body}</p>
+                  <p className="mt-2 text-[11px] text-neutral-500 truncate">
+                    {r.authorName || 'Customer'}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
 
       {/* CTA */}

@@ -98,6 +98,15 @@ export default function ProductPage() {
     return products.filter((p) => p.categoryId === product.categoryId && p.id !== product.id).slice(0, 4);
   }, [product, products]);
 
+  const fiveStarReviews = useMemo(
+    () => (Array.isArray(reviews) ? reviews.filter((r) => (r.rating || 0) >= 5) : []),
+    [reviews]
+  );
+  const primaryReviews = fiveStarReviews.length > 0 ? fiveStarReviews : reviews;
+  const visibleReviews = primaryReviews
+    ? (reviewsExpanded ? primaryReviews : primaryReviews.slice(0, 3))
+    : [];
+
   if (productLoading) {
     return (
       <div className="mx-auto max-w-7xl px-4">
@@ -225,19 +234,9 @@ export default function ProductPage() {
             {formatPrice(price, currency)}
           </p>
 
-          {/* Description + benefits (desktop only) */}
+          {/* Description (desktop only) */}
           {product.description && (
             <div className="hidden lg:block mt-3 text-sm text-neutral-600 leading-relaxed product-description" dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }} />
-          )}
-          {(product.benefits || []).length > 0 && (
-            <ul className="hidden lg:block mt-3 space-y-1.5 text-sm text-neutral-600">
-              {(product.benefits || []).map((b, i) => (
-                <li key={i} className="flex items-center gap-2">
-                  <span className="text-gold-600">✓</span>
-                  {b}
-                </li>
-              ))}
-            </ul>
           )}
 
           {/* Size / variant */}
@@ -320,24 +319,21 @@ export default function ProductPage() {
         {product.description && (
           <div className="mt-4 text-neutral-600 product-description" dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }} />
         )}
-        <ul className="mt-4 space-y-2">
-          {(product.benefits || []).map((b, i) => (
-            <li key={i} className="flex items-center gap-2 text-sm text-neutral-600"><span className="text-gold-600">✓</span> {b}</li>
-          ))}
-        </ul>
-        <div className="mt-8">
-          <h3 className="text-sm font-semibold text-neutral-900 mb-3">FAQ</h3>
-          <ul className="space-y-2">
-            {(product.faq || []).map((item, i) => (
-              <li key={i} className="border-b border-neutral-100">
-                <button type="button" onClick={() => setFaqOpen(faqOpen === i ? null : i)} className="w-full py-3 text-left text-sm font-medium text-neutral-700 flex justify-between">
-                  {item.q}<span>{faqOpen === i ? '−' : '+'}</span>
-                </button>
-                {faqOpen === i && <p className="pb-3 text-sm text-neutral-500">{item.a}</p>}
-              </li>
-            ))}
-          </ul>
-        </div>
+        {(product.faq || []).length > 0 && (
+          <div className="mt-8">
+            <h3 className="text-sm font-semibold text-neutral-900 mb-3">FAQ</h3>
+            <ul className="space-y-2">
+              {(product.faq || []).map((item, i) => (
+                <li key={i} className="border-b border-neutral-100">
+                  <button type="button" onClick={() => setFaqOpen(faqOpen === i ? null : i)} className="w-full py-3 text-left text-sm font-medium text-neutral-700 flex justify-between">
+                    {item.q}<span>{faqOpen === i ? '−' : '+'}</span>
+                  </button>
+                  {faqOpen === i && <p className="pb-3 text-sm text-neutral-500">{item.a}</p>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <div className="mt-6 sm:mt-8 rounded-2xl bg-neutral-100 p-3 sm:p-4 text-sm text-neutral-600 space-y-2">
           <p><strong>Shipping:</strong> {SHIPPING_POLICY}</p>
           <p><strong>Returns:</strong> {RETURN_POLICY}</p>
@@ -403,20 +399,30 @@ export default function ProductPage() {
             </button>
           </div>
           <div>
-            {reviews.length > 0 ? (
+            {primaryReviews && primaryReviews.length > 0 ? (
               <div className="space-y-4">
-                <p className="text-sm font-medium text-neutral-700">Recent reviews</p>
-                {reviews.map((r) => (
+                <p className="text-sm font-medium text-neutral-700">
+                  Recent reviews{fiveStarReviews.length > 0 ? ' (5-star highlights)' : ''}
+                </p>
+                {visibleReviews.map((r) => (
                   <div key={r.id} className="rounded-xl border border-neutral-100 bg-neutral-50/50 p-4">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
                       <span className="text-gold-600">{'★'.repeat(Math.min(5, r.rating || 0))}</span>
                       <span className="text-neutral-400">{'★'.repeat(5 - Math.min(5, r.rating || 0))}</span>
                       <span className="text-sm font-medium text-neutral-700">{r.authorName}</span>
-                      {r.createdAt && <span className="text-xs text-neutral-500 ml-auto">{new Date(r.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</span>}
                     </div>
                     <p className="text-sm text-neutral-600">{r.body}</p>
                   </div>
                 ))}
+                {primaryReviews.length > 3 && (
+                  <button
+                    type="button"
+                    onClick={() => setReviewsExpanded((v) => !v)}
+                    className="text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/50 pb-0.5"
+                  >
+                    {reviewsExpanded ? 'View less' : `View more reviews (${primaryReviews.length - 3} more)`}
+                  </button>
+                )}
               </div>
             ) : (
               <p className="text-sm text-neutral-500">No reviews yet. Be the first to review this product.</p>

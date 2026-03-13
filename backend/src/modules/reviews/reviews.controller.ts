@@ -14,6 +14,12 @@ export class ReviewsController {
   }
 
   @Public()
+  @Get('highlights')
+  async highlights() {
+    return this.service.findHighlights(12);
+  }
+
+  @Public()
   @Post()
   async create(@Body() body: { productId: string; authorName?: string; rating?: number; body: string }) {
     if (!body?.productId || !body?.body) return { ok: false };

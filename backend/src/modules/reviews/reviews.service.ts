@@ -18,6 +18,14 @@ export class ReviewsService {
     });
   }
 
+  async findHighlights(limit = 12): Promise<Review[]> {
+    return this.reviewRepo.find({
+      where: { approved: true },
+      order: { createdAt: 'DESC' },
+      take: limit,
+    });
+  }
+
   async findForAdmin(params: { productId?: string; collection?: string }): Promise<Review[]> {
     const qb = this.reviewRepo.createQueryBuilder('r');
     if (params.productId != null && params.productId !== '') {
