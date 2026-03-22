@@ -204,20 +204,22 @@ export default function CheckoutPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-neutral-900 truncate">{p?.name ?? i.name ?? 'Product'}{variant ? ` (${variant.name})` : ''}</p>
                       <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                        <div className="inline-flex items-center rounded-lg border border-neutral-200 bg-white">
+                        <div className="inline-flex items-stretch rounded-lg border border-neutral-200 bg-white">
                           <button
                             type="button"
                             onClick={() => updateQty(i.productId, i.variantId, Math.max(0, i.qty - 1))}
-                            className="w-8 h-8 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-l-md text-sm"
+                            className="w-8 h-8 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-l-md text-base leading-none"
                             aria-label="Decrease quantity"
                           >
                             −
                           </button>
-                          <span className="w-9 text-center text-sm font-medium text-neutral-900 tabular-nums">{i.qty}</span>
+                          <div className="flex min-w-[2.25rem] items-center justify-center border-x border-neutral-100 px-0.5">
+                            <span className="text-sm font-semibold tabular-nums leading-none text-neutral-900">{i.qty}</span>
+                          </div>
                           <button
                             type="button"
                             onClick={() => updateQty(i.productId, i.variantId, Math.min(99, i.qty + 1))}
-                            className="w-8 h-8 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-r-md text-sm"
+                            className="w-8 h-8 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-r-md text-base leading-none"
                             aria-label="Increase quantity"
                           >
                             +

@@ -339,27 +339,29 @@ export default function ProductPage() {
             )}
             <div className="pt-0.5">
               <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1.5">Quantity</p>
-              <div className="inline-flex items-center rounded-xl border-2 border-neutral-200 bg-white">
+              <div className="inline-flex items-stretch rounded-xl border-2 border-neutral-200 bg-white">
                 <button
                   type="button"
                   onClick={() => setQty((n) => Math.max(1, (n || 1) - 1))}
-                  className="w-11 h-11 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-l-lg"
+                  className="w-11 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-l-lg text-lg leading-none"
                   aria-label="Decrease"
                 >
                   −
                 </button>
-                <input
-                  type="number"
-                  min={1}
-                  max={99}
-                  value={effectiveQty}
-                  onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
-                  className="w-12 h-11 text-center text-sm font-semibold text-neutral-900 border-0 border-y border-neutral-100 bg-transparent [appearance:textfield]"
-                />
+                <div className="flex min-w-[3rem] items-center justify-center border-y border-neutral-100 bg-transparent px-1">
+                  <input
+                    type="number"
+                    min={1}
+                    max={99}
+                    value={effectiveQty}
+                    onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
+                    className="w-full min-w-0 text-center text-sm font-semibold tabular-nums text-neutral-900 border-0 bg-transparent p-0 m-0 h-11 leading-none align-middle focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={() => setQty((n) => Math.min(99, (n || 1) + 1))}
-                  className="w-11 h-11 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-r-lg"
+                  className="w-11 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-r-lg text-lg leading-none"
                   aria-label="Increase"
                 >
                   +
@@ -434,27 +436,29 @@ export default function ProductPage() {
 
             <div>
               <p className="text-xs sm:text-sm font-medium text-neutral-700 mb-1 sm:mb-1.5">Quantity</p>
-              <div className="inline-flex items-center rounded-lg sm:rounded-xl border-2 border-neutral-200">
+              <div className="inline-flex items-stretch rounded-lg sm:rounded-xl border-2 border-neutral-200">
                 <button
                   type="button"
                   onClick={() => setQty((n) => Math.max(1, (n || 1) - 1))}
-                  className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 rounded-l-md sm:rounded-l-lg"
+                  className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 rounded-l-md sm:rounded-l-lg text-lg leading-none"
                   aria-label="Decrease"
                 >
                   −
                 </button>
-                <input
-                  type="number"
-                  min={1}
-                  max={99}
-                  value={effectiveQty}
-                  onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
-                  className="w-12 sm:w-14 h-10 sm:h-12 text-center text-sm sm:text-base leading-none text-neutral-900 font-medium border-0 border-y border-neutral-200 bg-transparent [appearance:textfield]"
-                />
+                <div className="flex min-w-[2.75rem] sm:min-w-[3.25rem] items-center justify-center border-y border-neutral-200 bg-transparent px-1">
+                  <input
+                    type="number"
+                    min={1}
+                    max={99}
+                    value={effectiveQty}
+                    onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
+                    className="w-full min-w-0 text-center text-sm sm:text-base font-semibold tabular-nums text-neutral-900 border-0 bg-transparent p-0 m-0 h-10 sm:h-12 leading-none align-middle focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={() => setQty((n) => Math.min(99, (n || 1) + 1))}
-                  className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 rounded-r-md sm:rounded-r-lg"
+                  className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 rounded-r-md sm:rounded-r-lg text-lg leading-none"
                   aria-label="Increase"
                 >
                   +
