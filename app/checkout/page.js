@@ -14,7 +14,7 @@ import { CustomerPageLoader } from '@/components/ui/PageLoader';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, clear } = useCartStore();
+  const { items, clear, updateQty } = useCartStore();
   const addOrder = useOrdersStore((s) => s.addOrder);
   const storeProducts = useProductsStore((s) => s.products);
   const customer = useCustomerStore((s) => s.customer);
@@ -190,22 +190,47 @@ export default function CheckoutPage() {
         <div>
           <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:p-6 sticky top-20 sm:top-24">
             <h2 className="text-sm font-medium text-neutral-900 mb-4">Order summary</h2>
-            <ul className="space-y-3 mb-4">
+            <ul className="space-y-4 mb-4">
               {items.map((i) => {
                 const p = getProduct(i.productId);
                 const variant = getVariant(i.productId, i.variantId);
                 const imgSrc = variant?.image || p?.images?.[0] || '/assets/nature-secret-logo.svg';
+                const lineTotal = i.price * i.qty;
                 return (
-                  <li key={`${i.productId}-${i.variantId}`} className="flex gap-3">
+                  <li key={`${i.productId}-${i.variantId ?? 'default'}`} className="flex gap-3">
                     <div className="relative h-14 w-14 rounded-lg overflow-hidden bg-white flex-shrink-0">
                       <Image src={imgSrc} alt="" fill className="object-cover" sizes="56px" unoptimized={!imgSrc.startsWith('http')} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-neutral-900 truncate">{p?.name ?? i.name ?? 'Product'}{variant ? ` (${variant.name})` : ''}</p>
-                      <p className="text-xs text-neutral-500">
-                        Qty: {i.qty} · {variant?.compareAtPrice && <span className="line-through text-neutral-400 mr-1">{formatPrice(variant.compareAtPrice, currency)}</span>}
-                        {formatPrice(i.price, currency)}
-                      </p>
+                      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                        <div className="inline-flex items-center rounded-lg border border-neutral-200 bg-white">
+                          <button
+                            type="button"
+                            onClick={() => updateQty(i.productId, i.variantId, Math.max(0, i.qty - 1))}
+                            className="w-8 h-8 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-l-md text-sm"
+                            aria-label="Decrease quantity"
+                          >
+                            −
+                          </button>
+                          <span className="w-9 text-center text-sm font-medium text-neutral-900 tabular-nums">{i.qty}</span>
+                          <button
+                            type="button"
+                            onClick={() => updateQty(i.productId, i.variantId, Math.min(99, i.qty + 1))}
+                            className="w-8 h-8 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-r-md text-sm"
+                            aria-label="Increase quantity"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <p className="text-sm font-medium text-neutral-900">
+                          {variant?.compareAtPrice && (
+                            <span className="line-through text-neutral-400 text-xs mr-1.5">{formatPrice(variant.compareAtPrice * i.qty, currency)}</span>
+                          )}
+                          {formatPrice(lineTotal, currency)}
+                        </p>
+                      </div>
+                      <p className="text-xs text-neutral-500 mt-0.5">Each {formatPrice(i.price, currency)}</p>
                     </div>
                   </li>
                 );
