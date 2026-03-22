@@ -383,7 +383,7 @@ export default function ProductPage() {
                       setTimeout(() => setAddCartVibrate(false), 400);
                     }}
                     className={`w-full rounded-2xl bg-neutral-900 py-3.5 text-sm font-semibold text-white hover:bg-neutral-800 transition shadow-md ${
-                      addCartVibrate ? 'animate-vibrate' : ''
+                      addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
                     }`}
                   >
                     Add to cart
@@ -395,8 +395,8 @@ export default function ProductPage() {
                       setOrderNowVibrate(true);
                       setTimeout(() => setOrderNowVibrate(false), 400);
                     }}
-                    className={`w-full rounded-2xl border-2 border-gold-500/80 bg-gold-50/80 py-3 text-sm font-semibold text-neutral-900 hover:bg-gold-100/90 transition ${
-                      orderNowVibrate ? 'animate-vibrate' : ''
+                    className={`w-full rounded-2xl border-2 border-gold-500/80 bg-gold-50/80 py-3 text-sm font-semibold text-neutral-900 hover:bg-gold-100/90 transition shadow-gold-sm ${
+                      orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
                     }`}
                   >
                     Order now — Cash on delivery
@@ -486,7 +486,7 @@ export default function ProductPage() {
                       setAddCartVibrate(true);
                       setTimeout(() => setAddCartVibrate(false), 400);
                     }}
-                    className={`w-full rounded-2xl bg-neutral-900 py-3.5 text-sm font-semibold text-white hover:bg-neutral-800 transition ${
+                    className={`w-full rounded-2xl bg-neutral-900 py-3.5 text-sm font-semibold text-white hover:bg-neutral-800 transition shadow-md ${
                       addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
                     }`}
                   >
@@ -723,7 +723,9 @@ export default function ProductPage() {
                   setAddCartVibrate(true);
                   setTimeout(() => setAddCartVibrate(false), 400);
                 }}
-                className="rounded-xl bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800 transition min-w-[140px]"
+                className={`rounded-xl bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800 transition shadow-md min-w-[140px] ${
+                  addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
+                }`}
               >
                 Add to cart
               </button>
@@ -734,7 +736,9 @@ export default function ProductPage() {
                   setOrderNowVibrate(true);
                   setTimeout(() => setOrderNowVibrate(false), 400);
                 }}
-                className="rounded-xl border-2 border-gold-500/80 bg-gold-50 px-5 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-gold-100 transition min-w-[120px]"
+                className={`rounded-xl border-2 border-gold-500/80 bg-gold-50 px-5 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-gold-100 transition shadow-gold-sm min-w-[120px] ${
+                  orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
+                }`}
               >
                 Buy now
               </button>
