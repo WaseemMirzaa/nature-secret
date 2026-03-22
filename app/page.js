@@ -2,7 +2,7 @@ import HomeContent from '@/components/HomeContent';
 
 export const metadata = {
   title: 'Nature Secret | Premium Herbal Oils for Pain Care & Skincare | Pakistan',
-  description: 'Painrex Oil—natural relief for muscle, joint and back pain. Premium herbal oils trusted in Pakistan. Skincare serums and care coming soon. Clean ingredients, minimal luxury.',
+  description: 'Painrex Oil: natural relief for muscle, joint and back pain. Premium herbal oils trusted in Pakistan. Skincare serums and care coming soon. Clean ingredients, minimal luxury.',
   keywords: 'herbal oil, pain relief oil, Painrex, natural pain relief, Pakistan, skincare, herbal oils, joint pain, muscle pain',
   openGraph: {
     title: 'Nature Secret | Premium Herbal Oils & Skincare',
@@ -24,7 +24,7 @@ const JSON_LD = {
       '@type': 'WebSite',
       name: 'Nature Secret',
       url: 'https://naturesecret.pk',
-      description: 'Shop premium herbal oils for pain relief and skincare. Painrex Oil—natural, trusted in Pakistan.',
+      description: 'Shop premium herbal oils for pain relief and skincare. Painrex Oil, natural and trusted in Pakistan.',
       potentialAction: { '@type': 'SearchAction', target: 'https://naturesecret.pk/shop?q={search_term_string}', 'query-input': 'required name=search_term_string' },
     },
   ],

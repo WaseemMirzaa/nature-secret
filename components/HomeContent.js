@@ -56,7 +56,7 @@ export default function HomeContent() {
               Natural Care, Refined
             </h1>
             <p className="mt-6 text-lg text-neutral-600 max-w-md leading-relaxed">
-              Premium herbal solutions for pain relief and skin wellness. Featuring Painrex Oil—trusted relief for muscle, joint, neck, knee, arthritis, and back pain.
+              Premium herbal solutions for pain relief and skin wellness. Featuring Painrex Oil: trusted relief for muscle, joint, neck, knee, arthritis, and back pain.
             </p>
             <div className="mt-6 sm:mt-10 flex flex-wrap gap-3 sm:gap-4">
               <Link
@@ -142,7 +142,7 @@ export default function HomeContent() {
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Curated</p>
                 <h2 className="text-2xl sm:text-3xl font-semibold text-neutral-900 mt-1">Bestsellers</h2>
-                <p className="mt-1 text-neutral-500">Herbal oils and skincare—most loved by our community</p>
+                <p className="mt-1 text-neutral-500">Herbal oils and skincare, most loved by our community</p>
               </div>
               <Link href="/shop" className="text-sm font-medium text-neutral-900 border-b-2 border-gold-500/40 pb-0.5 hover:border-gold-500 transition-colors whitespace-nowrap flex-shrink-0">
                 View all
@@ -258,7 +258,7 @@ export default function HomeContent() {
                 pain. The feedback was overwhelmingly positive. Many told us the oil brought them real comfort and relief.
               </p>
               <p>
-                Encouraged by their experiences — and our own — we realized this simple formula could help more people. That is how Painrex
+                Encouraged by their experiences and our own, we realized this simple formula could help more people. That is how Painrex
                 Oil was born.
               </p>
               <p>
@@ -267,7 +267,7 @@ export default function HomeContent() {
                 will soon join our collection.
               </p>
               <p className="font-medium text-neutral-700">
-                From our home to yours — care you can trust.
+                From our home to yours: care you can trust.
               </p>
             </div>
           </div>
@@ -314,7 +314,7 @@ export default function HomeContent() {
             <div className="absolute inset-0 opacity-20" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(203,168,71,0.4) 0%, transparent 50%)' }} aria-hidden />
             <div className="relative">
               <h2 className="text-2xl sm:text-3xl font-semibold text-white">Try our best-selling pain relief oil</h2>
-              <p className="mt-3 text-neutral-300 max-w-md mx-auto">Painrex Oil—trusted across Pakistan for muscle, joint and back pain. Skincare range coming soon.</p>
+              <p className="mt-3 text-neutral-300 max-w-md mx-auto">Painrex Oil, trusted across Pakistan for muscle, joint and back pain. Skincare range coming soon.</p>
               <Link
                 href="/shop"
                 className="mt-5 sm:mt-8 inline-flex items-center justify-center rounded-2xl bg-gold-500 px-8 py-3.5 text-sm font-semibold text-neutral-900 transition hover:bg-gold-400 shadow-gold-md focus:outline-none focus:ring-2 focus:ring-gold-400 focus:ring-offset-2 focus:ring-offset-neutral-900"
