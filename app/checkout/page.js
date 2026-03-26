@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from '@/components/Link';
 import Image from 'next/image';
 import { useCartStore, useOrdersStore, useProductsStore, useCurrencyStore, useCustomerStore } from '@/lib/store';
 import { getDiscountCodes } from '@/lib/store';
-import { trackPurchase } from '@/lib/analytics';
+import { trackInitiateCheckout, trackPurchase } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
 import { createOrder as apiCreateOrder, trackAnalytics } from '@/lib/api';
 import { useProductsAndCategories } from '@/lib/useApiData';
@@ -59,6 +59,16 @@ export default function CheckoutPage() {
   const total = subtotal - discountAmount;
   const shipping = total >= 99900 ? 0 : 9900;
   const grandTotal = total + shipping;
+
+  const lastInitiateCheckoutKeyRef = useRef(null);
+  useEffect(() => {
+    if (!mounted || items.length === 0) return;
+    const contentIds = items.map((i) => i.productId);
+    const key = `${currency}|${grandTotal}|${contentIds.join(',')}`;
+    if (lastInitiateCheckoutKeyRef.current === key) return;
+    lastInitiateCheckoutKeyRef.current = key;
+    trackInitiateCheckout(grandTotal / 100, currency, contentIds);
+  }, [mounted, items, grandTotal, currency]);
 
   function applyDiscount() {
     const code = discountCode.trim().toUpperCase();

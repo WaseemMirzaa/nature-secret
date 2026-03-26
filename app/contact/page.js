@@ -7,11 +7,7 @@ import { getContactSettings, createSupportTicket, formatApiError } from '@/lib/a
 import { DEFAULT_CONTACT } from '@/lib/constants';
 import { useCustomerStore } from '@/lib/store';
 import { InlineLoader } from '@/components/ui/PageLoader';
-
-function whatsappUrl(number) {
-  const n = (number || '').replace(/\D/g, '');
-  return `https://wa.me/${n || DEFAULT_CONTACT.whatsappNumber}`;
-}
+import { getWhatsAppHref, handleWhatsAppClick, normalizeWhatsAppDigits } from '@/lib/whatsappLink';
 
 export default function ContactPage() {
   const [contact, setContact] = useState(DEFAULT_CONTACT);
@@ -37,7 +33,8 @@ export default function ContactPage() {
     if (customer?.email) setEmail(customer.email);
   }, [customer]);
 
-  const waUrl = whatsappUrl(contact.whatsappNumber);
+  const phoneDigits = normalizeWhatsAppDigits(contact.whatsappNumber) || normalizeWhatsAppDigits(DEFAULT_CONTACT.whatsappNumber);
+  const waUrl = getWhatsAppHref(phoneDigits);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -80,7 +77,7 @@ export default function ContactPage() {
                 </p>
                 <a
                   href={waUrl}
-                  target="_blank"
+                  onClick={(e) => handleWhatsAppClick(e, phoneDigits)}
                   rel="noopener noreferrer"
                   className="mt-6 flex items-center justify-center gap-2 w-full rounded-xl bg-[#25D366] py-3.5 text-sm font-semibold text-white hover:bg-[#20bd5a] transition"
                 >

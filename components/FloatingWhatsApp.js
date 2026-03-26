@@ -3,25 +3,28 @@
 import { useState, useEffect } from 'react';
 import { getContactSettings } from '@/lib/api';
 import { DEFAULT_CONTACT } from '@/lib/constants';
-
-function whatsappUrl(number) {
-  const n = (number || '').replace(/\D/g, '');
-  return `https://wa.me/${n || DEFAULT_CONTACT.whatsappNumber}`;
-}
+import { getWhatsAppHref, handleWhatsAppClick, normalizeWhatsAppDigits } from '@/lib/whatsappLink';
 
 export function FloatingWhatsApp() {
-  const [waUrl, setWaUrl] = useState(() => whatsappUrl(DEFAULT_CONTACT.whatsappNumber));
+  const [phoneDigits, setPhoneDigits] = useState(
+    () => normalizeWhatsAppDigits(DEFAULT_CONTACT.whatsappNumber) || DEFAULT_CONTACT.whatsappNumber,
+  );
 
   useEffect(() => {
     getContactSettings()
-      .then((r) => setWaUrl(whatsappUrl(r.whatsappNumber)))
+      .then((r) => {
+        const n = normalizeWhatsAppDigits(r.whatsappNumber) || normalizeWhatsAppDigits(DEFAULT_CONTACT.whatsappNumber);
+        if (n) setPhoneDigits(n);
+      })
       .catch(() => {});
   }, []);
 
+  const waHref = getWhatsAppHref(phoneDigits);
+
   return (
     <a
-      href={waUrl}
-      target="_blank"
+      href={waHref}
+      onClick={(e) => handleWhatsAppClick(e, phoneDigits)}
       rel="noopener noreferrer"
       className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition hover:scale-110 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#25D366] focus:ring-offset-2"
       aria-label="Chat on WhatsApp"
