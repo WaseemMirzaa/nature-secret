@@ -6,7 +6,7 @@ import Link from '@/components/Link';
 import Image from 'next/image';
 import { useCartStore, useOrdersStore, useProductsStore, useCurrencyStore, useCustomerStore } from '@/lib/store';
 import { getDiscountCodes } from '@/lib/store';
-import { trackInitiateCheckout, trackPurchase } from '@/lib/analytics';
+import { trackCheckoutPageView, trackInitiateCheckout, trackPlaceOrderClick, trackPurchase } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
 import { createOrder as apiCreateOrder, trackAnalytics } from '@/lib/api';
 import { useProductsAndCategories } from '@/lib/useApiData';
@@ -34,6 +34,7 @@ export default function CheckoutPage() {
   });
   const [placing, setPlacing] = useState(false);
   const [orderError, setOrderError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
 
   useEffect(() => setMounted(true), []);
   useEffect(() => {
@@ -61,6 +62,7 @@ export default function CheckoutPage() {
   const grandTotal = total + shipping;
 
   const lastInitiateCheckoutKeyRef = useRef(null);
+  const lastCheckoutViewKeyRef = useRef(null);
   useEffect(() => {
     if (!mounted || items.length === 0) return;
     const contentIds = items.map((i) => i.productId);
@@ -68,6 +70,15 @@ export default function CheckoutPage() {
     if (lastInitiateCheckoutKeyRef.current === key) return;
     lastInitiateCheckoutKeyRef.current = key;
     trackInitiateCheckout(grandTotal / 100, currency, contentIds);
+  }, [mounted, items, grandTotal, currency]);
+
+  useEffect(() => {
+    if (!mounted || items.length === 0) return;
+    const contentIds = items.map((i) => i.productId);
+    const key = `${currency}|${grandTotal}|${contentIds.join(',')}`;
+    if (lastCheckoutViewKeyRef.current === key) return;
+    lastCheckoutViewKeyRef.current = key;
+    trackCheckoutPageView(grandTotal / 100, currency, contentIds);
   }, [mounted, items, grandTotal, currency]);
 
   function applyDiscount() {
@@ -84,6 +95,12 @@ export default function CheckoutPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     if (items.length === 0) return;
+    const phoneDigits = String(form.phone || '').replace(/\D/g, '');
+    if (phoneDigits.length <= 9) {
+      setPhoneError('Phone number must be at least 10 digits.');
+      return;
+    }
+    setPhoneError('');
     setPlacing(true);
     setOrderError('');
     const addressStr = `${form.address}, ${form.city}, ${form.state} ${form.pincode}`;
@@ -98,6 +115,7 @@ export default function CheckoutPage() {
     };
     let orderId;
     try {
+      trackPlaceOrderClick(grandTotal / 100, currency, items.map((i) => i.productId));
       const res = await apiCreateOrder(orderPayload);
       orderId = res?.id;
       if (!orderId) throw new Error('Order creation failed');
@@ -154,11 +172,17 @@ export default function CheckoutPage() {
             <input
               type="tel"
               required
+              minLength={10}
               placeholder="Phone"
               value={form.phone}
-              onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+              onChange={(e) => {
+                const next = e.target.value;
+                setForm((f) => ({ ...f, phone: next }));
+                if (String(next || '').replace(/\D/g, '').length > 9) setPhoneError('');
+              }}
               className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-neutral-900"
             />
+            {phoneError && <p className="text-sm text-red-600 -mt-2">{phoneError}</p>}
             <textarea
               required
               placeholder="Address"

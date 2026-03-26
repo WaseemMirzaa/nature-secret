@@ -4,6 +4,7 @@ import Link from '@/components/Link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect } from 'react';
 import { InlineLoader } from '@/components/ui/PageLoader';
+import { trackOrderConfirmationView } from '@/lib/analytics';
 
 const LAST_ORDER_KEY = 'nature_secret_last_order_date';
 const LAST_ORDER_ID_KEY = 'nature_secret_last_order_id';
@@ -19,6 +20,7 @@ function ConfirmationContent() {
       localStorage.setItem(LAST_ORDER_KEY, String(now));
       if (orderId) localStorage.setItem(LAST_ORDER_ID_KEY, orderId);
     } catch (_) {}
+    trackOrderConfirmationView(orderId || '');
   }, [orderId]);
 
   return (
