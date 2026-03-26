@@ -60,26 +60,37 @@ export default function CheckoutPage() {
   const total = subtotal - discountAmount;
   const shipping = total >= 99900 ? 0 : 9900;
   const grandTotal = total + shipping;
+  const metaCustomer = {
+    email: form.email,
+    name: form.name,
+    phone: form.phone,
+    city: form.city,
+    state: form.state,
+    pincode: form.pincode,
+    country: 'PK',
+  };
 
   const lastInitiateCheckoutKeyRef = useRef(null);
   const lastCheckoutViewKeyRef = useRef(null);
   useEffect(() => {
     if (!mounted || items.length === 0) return;
     const contentIds = items.map((i) => i.productId);
-    const key = `${currency}|${grandTotal}|${contentIds.join(',')}`;
+    const phoneDigits = String(form.phone || '').replace(/\D/g, '');
+    const key = `${currency}|${grandTotal}|${contentIds.join(',')}|${form.email || ''}|${phoneDigits}|${form.name || ''}|${form.city || ''}|${form.state || ''}|${form.pincode || ''}`;
     if (lastInitiateCheckoutKeyRef.current === key) return;
     lastInitiateCheckoutKeyRef.current = key;
-    trackInitiateCheckout(grandTotal / 100, currency, contentIds);
-  }, [mounted, items, grandTotal, currency]);
+    trackInitiateCheckout(grandTotal / 100, currency, contentIds, metaCustomer);
+  }, [mounted, items, grandTotal, currency, form.email, form.phone, form.name, form.city, form.state, form.pincode]);
 
   useEffect(() => {
     if (!mounted || items.length === 0) return;
     const contentIds = items.map((i) => i.productId);
-    const key = `${currency}|${grandTotal}|${contentIds.join(',')}`;
+    const phoneDigits = String(form.phone || '').replace(/\D/g, '');
+    const key = `${currency}|${grandTotal}|${contentIds.join(',')}|${form.email || ''}|${phoneDigits}`;
     if (lastCheckoutViewKeyRef.current === key) return;
     lastCheckoutViewKeyRef.current = key;
-    trackCheckoutPageView(grandTotal / 100, currency, contentIds);
-  }, [mounted, items, grandTotal, currency]);
+    trackCheckoutPageView(grandTotal / 100, currency, contentIds, metaCustomer);
+  }, [mounted, items, grandTotal, currency, form.email, form.name, form.phone, form.city, form.state, form.pincode]);
 
   function applyDiscount() {
     const code = discountCode.trim().toUpperCase();
@@ -115,7 +126,7 @@ export default function CheckoutPage() {
     };
     let orderId;
     try {
-      trackPlaceOrderClick(grandTotal / 100, currency, items.map((i) => i.productId));
+      trackPlaceOrderClick(grandTotal / 100, currency, items.map((i) => i.productId), metaCustomer);
       const res = await apiCreateOrder(orderPayload);
       orderId = res?.id;
       if (!orderId) throw new Error('Order creation failed');
@@ -125,7 +136,13 @@ export default function CheckoutPage() {
       setOrderError(err?.body?.message || err?.message || 'Failed to place order. Please try again.');
       return;
     }
-    trackPurchase(orderId, grandTotal / 100, currency, items.map((i) => i.productId));
+    trackPurchase(orderId, grandTotal / 100, currency, items.map((i) => i.productId), metaCustomer);
+    try {
+      localStorage.setItem(
+        'nature_secret_last_order_meta_customer',
+        JSON.stringify({ ...metaCustomer, externalId: orderId }),
+      );
+    } catch (_) {}
     try { await trackAnalytics({ type: 'purchase', orderId, sessionId: `sess-${Date.now()}`, payload: {} }); } catch (_) {}
     clear();
     setPlacing(false);

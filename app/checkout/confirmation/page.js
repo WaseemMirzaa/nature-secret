@@ -8,6 +8,7 @@ import { trackOrderConfirmationView } from '@/lib/analytics';
 
 const LAST_ORDER_KEY = 'nature_secret_last_order_date';
 const LAST_ORDER_ID_KEY = 'nature_secret_last_order_id';
+const LAST_ORDER_META_CUSTOMER_KEY = 'nature_secret_last_order_meta_customer';
 
 function ConfirmationContent() {
   const searchParams = useSearchParams();
@@ -16,11 +17,14 @@ function ConfirmationContent() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const now = Date.now();
+    let metaCustomer = {};
     try {
       localStorage.setItem(LAST_ORDER_KEY, String(now));
       if (orderId) localStorage.setItem(LAST_ORDER_ID_KEY, orderId);
+      const raw = localStorage.getItem(LAST_ORDER_META_CUSTOMER_KEY);
+      if (raw) metaCustomer = JSON.parse(raw);
     } catch (_) {}
-    trackOrderConfirmationView(orderId || '');
+    trackOrderConfirmationView(orderId || '', metaCustomer);
   }, [orderId]);
 
   return (
