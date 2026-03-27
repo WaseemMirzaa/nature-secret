@@ -48,18 +48,15 @@ export default function RootLayout({ children }) {
         <meta name="api-url" content={apiUrl} />
         <link rel="icon" href="/assets/nature-secret-logo.svg" type="image/svg+xml" />
         <link rel="manifest" href="/manifest.json" />
+        {metaPixelInline ? (
+          <script id="meta-pixel" dangerouslySetInnerHTML={{ __html: metaPixelInline }} />
+        ) : null}
       </head>
       <body className="min-h-screen flex flex-col font-sans">
         <script dangerouslySetInnerHTML={{ __html: chunkReloadScript }} />
         <Providers>
           <StoreLayout>{children}</StoreLayout>
         </Providers>
-        {metaPixelInline ? (
-          <script
-            id="meta-pixel"
-            dangerouslySetInnerHTML={{ __html: metaPixelInline }}
-          />
-        ) : null}
       </body>
     </html>
   );

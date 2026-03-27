@@ -6,7 +6,13 @@ import Link from '@/components/Link';
 import Image from 'next/image';
 import { useCartStore, useOrdersStore, useProductsStore, useCurrencyStore, useCustomerStore } from '@/lib/store';
 import { getDiscountCodes } from '@/lib/store';
-import { trackCheckoutPageView, trackInitiateCheckout, trackPlaceOrderClick, trackPurchase } from '@/lib/analytics';
+import {
+  syncMetaPixelUserData,
+  trackCheckoutPageView,
+  trackInitiateCheckout,
+  trackPlaceOrderClick,
+  trackPurchase,
+} from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
 import { createOrder as apiCreateOrder, trackAnalytics } from '@/lib/api';
 import { useProductsAndCategories } from '@/lib/useApiData';
@@ -67,8 +73,13 @@ export default function CheckoutPage() {
     city: form.city,
     state: form.state,
     pincode: form.pincode,
-    country: 'PK',
+    country: 'pk',
   };
+
+  useEffect(() => {
+    if (!mounted) return;
+    syncMetaPixelUserData(metaCustomer);
+  }, [mounted, form.email, form.name, form.phone, form.city, form.state, form.pincode]);
 
   const lastInitiateCheckoutKeyRef = useRef(null);
   const lastCheckoutViewKeyRef = useRef(null);
@@ -79,7 +90,7 @@ export default function CheckoutPage() {
     const key = `${currency}|${grandTotal}|${contentIds.join(',')}|${form.email || ''}|${phoneDigits}|${form.name || ''}|${form.city || ''}|${form.state || ''}|${form.pincode || ''}`;
     if (lastInitiateCheckoutKeyRef.current === key) return;
     lastInitiateCheckoutKeyRef.current = key;
-    trackInitiateCheckout(grandTotal / 100, currency, contentIds, metaCustomer);
+    trackInitiateCheckout(grandTotal / 100, currency, contentIds);
   }, [mounted, items, grandTotal, currency, form.email, form.phone, form.name, form.city, form.state, form.pincode]);
 
   useEffect(() => {
@@ -89,7 +100,7 @@ export default function CheckoutPage() {
     const key = `${currency}|${grandTotal}|${contentIds.join(',')}|${form.email || ''}|${phoneDigits}`;
     if (lastCheckoutViewKeyRef.current === key) return;
     lastCheckoutViewKeyRef.current = key;
-    trackCheckoutPageView(grandTotal / 100, currency, contentIds, metaCustomer);
+    trackCheckoutPageView(grandTotal / 100, currency, contentIds);
   }, [mounted, items, grandTotal, currency, form.email, form.name, form.phone, form.city, form.state, form.pincode]);
 
   function applyDiscount() {
@@ -126,7 +137,8 @@ export default function CheckoutPage() {
     };
     let orderId;
     try {
-      trackPlaceOrderClick(grandTotal / 100, currency, items.map((i) => i.productId), metaCustomer);
+      syncMetaPixelUserData(metaCustomer);
+      trackPlaceOrderClick(grandTotal / 100, currency, items.map((i) => i.productId));
       const res = await apiCreateOrder(orderPayload);
       orderId = res?.id;
       if (!orderId) throw new Error('Order creation failed');
@@ -136,7 +148,8 @@ export default function CheckoutPage() {
       setOrderError(err?.body?.message || err?.message || 'Failed to place order. Please try again.');
       return;
     }
-    trackPurchase(orderId, grandTotal / 100, currency, items.map((i) => i.productId), metaCustomer);
+    syncMetaPixelUserData({ ...metaCustomer, externalId: orderId });
+    trackPurchase(orderId, grandTotal / 100, currency, items.map((i) => i.productId));
     try {
       localStorage.setItem(
         'nature_secret_last_order_meta_customer',
