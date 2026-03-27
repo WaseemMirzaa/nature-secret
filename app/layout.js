@@ -35,32 +35,30 @@ const chunkReloadScript = `
 export default function RootLayout({ children }) {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
   const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
-  const metaPixelScript = metaPixelId
-    ? `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init', ${JSON.stringify(metaPixelId)});fbq('track', 'PageView');`
-    : '';
+  /** Only set in staging / when debugging — required for Events Manager → Test events tab */
+  const metaTestEventCode = process.env.NEXT_PUBLIC_META_TEST_EVENT_CODE || '';
+  const metaPixelInline =
+    metaPixelId &&
+    `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init', ${JSON.stringify(metaPixelId)});${
+      metaTestEventCode ? `fbq('set', 'test_event_code', ${JSON.stringify(metaTestEventCode)});` : ''
+    }fbq('track', 'PageView');`;
   return (
     <html lang="en" className={inter.variable}>
       <head>
         <meta name="api-url" content={apiUrl} />
         <link rel="icon" href="/assets/nature-secret-logo.svg" type="image/svg+xml" />
         <link rel="manifest" href="/manifest.json" />
-        {metaPixelId ? <script dangerouslySetInnerHTML={{ __html: metaPixelScript }} /> : null}
       </head>
       <body className="min-h-screen flex flex-col font-sans">
         <script dangerouslySetInnerHTML={{ __html: chunkReloadScript }} />
         <Providers>
           <StoreLayout>{children}</StoreLayout>
         </Providers>
-        {metaPixelId ? (
-          <noscript>
-            <img
-              height="1"
-              width="1"
-              style={{ display: 'none' }}
-              src={`https://www.facebook.com/tr?id=${metaPixelId}&ev=PageView&noscript=1`}
-              alt=""
-            />
-          </noscript>
+        {metaPixelInline ? (
+          <script
+            id="meta-pixel"
+            dangerouslySetInnerHTML={{ __html: metaPixelInline }}
+          />
         ) : null}
       </body>
     </html>
