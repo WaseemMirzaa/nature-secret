@@ -1,4 +1,5 @@
 import HomeContent from '@/components/HomeContent';
+import { fetchHomePageData } from '@/lib/fetchHomeServer';
 
 export const metadata = {
   title: 'Nature Secret | Premium Herbal Oils for Pain Care & Skincare | Pakistan',
@@ -30,11 +31,18 @@ const JSON_LD = {
   ],
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { products, categories, slider, highlightReviews } = await fetchHomePageData();
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
-      <HomeContent />
+      <HomeContent
+        initialProducts={products}
+        initialCategories={categories}
+        initialSlider={slider}
+        initialHighlightReviews={highlightReviews}
+      />
     </>
   );
 }

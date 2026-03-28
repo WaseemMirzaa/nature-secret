@@ -1,10 +1,33 @@
 /** @type {import('next').NextConfig} */
+function getImagesConfig() {
+  const raw = process.env.NEXT_PUBLIC_API_URL || '';
+  try {
+    const u = new URL(raw);
+    return {
+      // AVIF/WebP + resizing when API host is known (faster loads than full-size unoptimized).
+      unoptimized: false,
+      formats: ['image/avif', 'image/webp'],
+      minimumCacheTTL: 120,
+      deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+      imageSizes: [32, 48, 64, 96, 128, 256],
+      remotePatterns: [
+        {
+          protocol: u.protocol.replace(':', ''),
+          hostname: u.hostname,
+          ...(u.port ? { port: u.port } : {}),
+          pathname: '/**',
+        },
+      ],
+    };
+  } catch {
+    // No valid API URL at build time: keep previous safe default (direct src, no optimizer fetch).
+    return { unoptimized: true };
+  }
+}
+
 const nextConfig = {
-  images: {
-    // Avoid 502: _next/image optimizer fetching same-origin API images can fail on the server.
-    // With unoptimized, browser loads image URLs directly (Nginx proxies /api to backend).
-    unoptimized: true,
-  },
+  images: getImagesConfig(),
+  compress: true,
 };
 
 module.exports = nextConfig;

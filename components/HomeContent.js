@@ -2,38 +2,133 @@
 
 import Link from '@/components/Link';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useProductsStore } from '@/lib/store';
-import { useProductsAndCategories } from '@/lib/useApiData';
 import { formatPrice } from '@/lib/currency';
-import { getSlider, resolveImageUrl, productPath, getHighlightReviews } from '@/lib/api';
+import {
+  getSlider,
+  resolveImageUrl,
+  productPath,
+  getHighlightReviews,
+  getProducts,
+  getCategories,
+} from '@/lib/api';
 import { TRUST_BADGES } from '@/lib/constants';
 
-export default function HomeContent() {
-  const storeProducts = useProductsStore((s) => s.products);
-  const { products, categories, error: productsError } = useProductsAndCategories(storeProducts);
+function mapSliderSlides(list) {
+  if (!Array.isArray(list) || list.length === 0) return [];
+  return list.map((s) => ({
+    id: s.id,
+    src: resolveImageUrl(s.imageUrl),
+    alt: s.alt || '',
+    title: s.title || '',
+    href: s.href || '/shop',
+  }));
+}
+
+export default function HomeContent({
+  initialProducts = [],
+  initialCategories = [],
+  initialSlider = [],
+  initialHighlightReviews = [],
+}) {
+  const setStoreProducts = useProductsStore((s) => s.setProducts);
+  const [clientProducts, setClientProducts] = useState(null);
+  const [clientCategories, setClientCategories] = useState(null);
+  const [clientSlider, setClientSlider] = useState(null);
+  const [clientReviews, setClientReviews] = useState(null);
+  const [productsError, setProductsError] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
-  const [heroSlides, setHeroSlides] = useState([]);
   const [sliderError, setSliderError] = useState(false);
-  const [highlightReviews, setHighlightReviews] = useState([]);
-  const bestsellerProducts = Array.isArray(products) ? products.filter((p) => (p.inventory ?? 1) > 0).slice(0, 4) : [];
+
+  const ssrSlides = useMemo(() => mapSliderSlides(initialSlider), [initialSlider]);
+  const heroSlides = clientSlider != null ? clientSlider : ssrSlides;
+
+  const products = clientProducts != null ? clientProducts : initialProducts;
+  const categories = clientCategories != null ? clientCategories : initialCategories;
+  const highlightReviews = clientReviews != null ? clientReviews : initialHighlightReviews;
+
+  const bestsellerProducts = Array.isArray(products)
+    ? products.filter((p) => (p.inventory ?? 1) > 0).slice(0, 4)
+    : [];
   const featuredCategories = Array.isArray(categories) ? categories.slice(0, 2) : [];
 
   useEffect(() => {
-    getSlider()
-      .then((list) => {
-        if (Array.isArray(list) && list.length > 0) {
-          setHeroSlides(list.map((s) => ({ id: s.id, src: resolveImageUrl(s.imageUrl), alt: s.alt || '', title: s.title || '', href: s.href || '/shop' })));
-        }
+    if (initialProducts.length > 0) {
+      setStoreProducts(initialProducts);
+      setProductsError(false);
+      return;
+    }
+    let cancelled = false;
+    getProducts({ limit: 48 })
+      .then((res) => {
+        if (cancelled) return;
+        const list = Array.isArray(res?.data) ? res.data : [];
+        setClientProducts(list);
+        if (list.length) setStoreProducts(list);
+        setProductsError(list.length === 0);
       })
-      .catch(() => setSliderError(true));
-  }, []);
+      .catch(() => {
+        if (!cancelled) {
+          setProductsError(true);
+          setClientProducts([]);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [initialProducts, setStoreProducts]);
 
   useEffect(() => {
+    if (initialCategories.length > 0) return;
+    let cancelled = false;
+    getCategories()
+      .then((list) => {
+        if (!cancelled) setClientCategories(Array.isArray(list) ? list : []);
+      })
+      .catch(() => {
+        if (!cancelled) setClientCategories([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [initialCategories.length]);
+
+  useEffect(() => {
+    if (ssrSlides.length > 0) return;
+    let cancelled = false;
+    getSlider()
+      .then((list) => {
+        if (cancelled) return;
+        const mapped = mapSliderSlides(Array.isArray(list) ? list : []);
+        setClientSlider(mapped);
+        if (mapped.length === 0) setSliderError(true);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSliderError(true);
+          setClientSlider([]);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [ssrSlides.length]);
+
+  useEffect(() => {
+    if (initialHighlightReviews.length > 0) return;
+    let cancelled = false;
     getHighlightReviews()
-      .then((list) => setHighlightReviews(Array.isArray(list) ? list : []))
-      .catch(() => setHighlightReviews([]));
-  }, []);
+      .then((list) => {
+        if (!cancelled) setClientReviews(Array.isArray(list) ? list : []);
+      })
+      .catch(() => {
+        if (!cancelled) setClientReviews([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [initialHighlightReviews.length]);
 
   useEffect(() => {
     const n = heroSlides.length;
@@ -86,7 +181,15 @@ export default function HomeContent() {
                 className={`absolute inset-0 transition-opacity duration-700 ${i === slideIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
                 aria-label={slide.title}
               >
-                <Image src={slide.src} alt={slide.alt} fill className="object-cover" priority={i === 0} sizes="(max-width: 1024px) 0, 600px" unoptimized />
+                <Image
+                  src={slide.src}
+                  alt={slide.alt}
+                  fill
+                  className="object-cover"
+                  priority={i === 0}
+                  sizes="(max-width: 1024px) 0, 600px"
+                  quality={75}
+                />
               </Link>
             ))}
             <div className="absolute bottom-4 left-4 right-4 z-20 flex justify-center gap-1.5">
@@ -169,7 +272,8 @@ export default function HomeContent() {
                         width={400}
                         height={533}
                         className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                        unoptimized={!img.startsWith('http')}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        quality={75}
                       />
                       {product.badge && (
                         <span className="absolute top-3 left-3 rounded-full bg-neutral-900 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white ring-1 ring-gold-500/60 shadow-gold-sm">
@@ -219,7 +323,7 @@ export default function HomeContent() {
                           fill
                           className="object-cover transition duration-500 group-hover:scale-105"
                           sizes="(max-width: 768px) 100vw, 50vw"
-                          unoptimized
+                          quality={75}
                         />
                       ) : (
                         <div className="absolute inset-0 bg-neutral-200" />
