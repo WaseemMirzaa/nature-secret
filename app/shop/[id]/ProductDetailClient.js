@@ -246,12 +246,16 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
   }
 
   return (
-    <div className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-8 lg:py-10 ${showStickyBar ? 'lg:pb-24' : ''}`}>
+    <div
+      className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-8 lg:py-10 ${
+        showStickyBar ? 'lg:pb-24' : ''
+      } ${product.inventory !== 0 ? 'max-lg:pb-80' : ''}`}
+    >
       <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16 animate-slide-up items-start">
         {/* Left: gallery (desktop = large column; mobile unchanged) */}
         <div className="relative w-full lg:max-w-xl xl:max-w-md lg:mx-0 mx-auto">
           <div
-            className="aspect-[3/4] lg:aspect-[4/5] rounded-xl sm:rounded-2xl lg:rounded-2xl overflow-hidden bg-neutral-100 relative shadow-sm lg:shadow-premium ring-1 ring-neutral-200/60"
+            className="aspect-[15/14] lg:aspect-[4/5] rounded-xl sm:rounded-2xl lg:rounded-2xl overflow-hidden bg-neutral-100 relative shadow-sm lg:shadow-premium ring-1 ring-neutral-200/60"
             onMouseEnter={() => setZoom(true)}
             onMouseLeave={() => setZoom(false)}
           >
@@ -450,100 +454,19 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
             </div>
           </div>
 
-          {/* Mobile / tablet: size, quantity, CTAs below price */}
+          {/* Mobile / tablet: free shipping + out of stock (variant & qty live in fixed bottom bar) */}
           <div className="space-y-3 lg:hidden">
-            {product.variants?.length > 1 && (
-              <div>
-                <p className="text-xs sm:text-sm font-medium text-neutral-700 mb-1 sm:mb-1.5">Size / Variant</p>
-                <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                  {product.variants.map((v) => (
-                    <button
-                      key={v.id}
-                      type="button"
-                      onClick={() => setSelectedVariant(v)}
-                      className={`rounded-lg sm:rounded-xl border-2 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium transition ${
-                        variant?.id === v.id ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-300 text-neutral-700 hover:border-neutral-400'
-                      }`}
-                    >
-                      {v.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div>
-              <p className="text-xs sm:text-sm font-medium text-neutral-700 mb-1 sm:mb-1.5">Quantity</p>
-              <div className="inline-flex items-stretch rounded-lg sm:rounded-xl border-2 border-neutral-200">
-                <button
-                  type="button"
-                  onClick={() => setQty((n) => Math.max(1, (n || 1) - 1))}
-                  className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 rounded-l-md sm:rounded-l-lg text-lg leading-none"
-                  aria-label="Decrease"
-                >
-                  −
-                </button>
-                <div className="flex min-w-[2.75rem] sm:min-w-[3.25rem] items-center justify-center border-y border-neutral-200 bg-transparent px-1">
-                  <input
-                    type="number"
-                    min={1}
-                    max={99}
-                    value={effectiveQty}
-                    onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
-                    className="w-full min-w-0 text-center text-sm sm:text-base font-semibold tabular-nums text-neutral-900 border-0 bg-transparent p-0 m-0 h-10 sm:h-12 leading-none align-middle focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setQty((n) => Math.min(99, (n || 1) + 1))}
-                  className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 rounded-r-md sm:rounded-r-lg text-lg leading-none"
-                  aria-label="Increase"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2 sm:gap-2.5 pt-1 sm:pt-1.5">
+            <div className="pt-1 sm:pt-1.5">
               <p className="text-xs sm:text-sm font-medium text-neutral-600 flex items-center gap-1.5">
                 <svg className="w-4 h-4 text-gold-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1h-1m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
                 </svg>
                 Free shipping
               </p>
-              {product.inventory === 0 ? (
-                <span className="rounded-2xl border border-neutral-200 bg-neutral-100 py-3.5 text-center text-sm font-medium text-neutral-500">
+              {product.inventory === 0 && (
+                <span className="mt-3 block rounded-2xl border border-neutral-200 bg-neutral-100 py-3.5 text-center text-sm font-medium text-neutral-500">
                   Out of stock
                 </span>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleAddToCart();
-                      setAddCartVibrate(true);
-                      setTimeout(() => setAddCartVibrate(false), 400);
-                    }}
-                    className={`w-full rounded-2xl bg-neutral-900 py-3.5 text-sm font-semibold text-white hover:bg-neutral-800 transition shadow-md ${
-                      addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
-                    }`}
-                  >
-                    Add to cart
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleOrderNow();
-                      setOrderNowVibrate(true);
-                      setTimeout(() => setOrderNowVibrate(false), 400);
-                    }}
-                    className={`w-full rounded-2xl bg-gold-500 py-3.5 text-sm font-semibold text-neutral-900 hover:bg-gold-400 transition shadow-gold-sm ${
-                      orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
-                    }`}
-                  >
-                    Order now — Cash on delivery
-                  </button>
-                </>
               )}
             </div>
           </div>
@@ -745,6 +668,94 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
             })}
           </div>
         </section>
+      )}
+
+      {/* Mobile / tablet: fixed bottom — variant, quantity, then CTAs */}
+      {product.inventory !== 0 && (
+        <div
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200 bg-white/95 backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.08)] px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+          role="region"
+          aria-label="Purchase options"
+        >
+          <div className="mx-auto max-w-7xl flex flex-col gap-2.5">
+            {product.variants?.length > 1 && (
+              <div>
+                <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1">Size / Variant</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {product.variants.map((v) => (
+                    <button
+                      key={v.id}
+                      type="button"
+                      onClick={() => setSelectedVariant(v)}
+                      className={`rounded-lg border-2 px-3 py-1.5 text-xs font-medium transition ${
+                        variant?.id === v.id ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-300 text-neutral-700 hover:border-neutral-400 bg-white'
+                      }`}
+                    >
+                      {v.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div>
+              <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1">Quantity</p>
+              <div className="inline-flex items-stretch rounded-xl border-2 border-neutral-200 bg-white">
+                <button
+                  type="button"
+                  onClick={() => setQty((n) => Math.max(1, (n || 1) - 1))}
+                  className="w-10 h-10 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-l-lg text-lg leading-none"
+                  aria-label="Decrease quantity"
+                >
+                  −
+                </button>
+                <div className="flex min-w-[2.75rem] items-center justify-center border-y border-neutral-100 bg-transparent px-1">
+                  <input
+                    type="number"
+                    min={1}
+                    max={99}
+                    value={effectiveQty}
+                    onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
+                    className="w-full min-w-0 text-center text-sm font-semibold tabular-nums text-neutral-900 border-0 bg-transparent p-0 m-0 h-10 leading-none align-middle focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setQty((n) => Math.min(99, (n || 1) + 1))}
+                  className="w-10 h-10 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-r-lg text-lg leading-none"
+                  aria-label="Increase quantity"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                handleAddToCart();
+                setAddCartVibrate(true);
+                setTimeout(() => setAddCartVibrate(false), 400);
+              }}
+              className={`w-full rounded-2xl bg-neutral-900 py-3.5 text-sm font-semibold text-white hover:bg-neutral-800 transition shadow-md ${
+                addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
+              }`}
+            >
+              Add to cart
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                handleOrderNow();
+                setOrderNowVibrate(true);
+                setTimeout(() => setOrderNowVibrate(false), 400);
+              }}
+              className={`w-full rounded-2xl bg-gold-500 py-3.5 text-sm font-semibold text-neutral-900 hover:bg-gold-400 transition shadow-gold-sm ${
+                orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
+              }`}
+            >
+              Order now — Cash on delivery
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Desktop: sticky bottom bar when purchase panel scrolls out */}
