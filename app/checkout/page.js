@@ -166,15 +166,15 @@ export default function CheckoutPage() {
 
   if (items.length === 0 && !placing) {
     return (
-      <div className="mx-auto max-w-lg px-4 py-8 sm:py-16 text-center">
-        <p className="text-neutral-600">Your cart is empty.</p>
+      <div className="mx-auto max-w-lg px-3 sm:px-5 py-6 sm:py-14 lg:py-16 text-center">
+        <p className="text-sm sm:text-base text-neutral-600">Your cart is empty.</p>
         <Link href="/shop" className="mt-4 inline-block font-medium text-neutral-900">Continue shopping</Link>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-2.5 sm:py-4 lg:py-12 animate-slide-up max-lg:pb-28">
+    <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-2.5 sm:py-4 lg:py-12 animate-slide-up max-lg:pb-[11rem] sm:max-lg:pb-[12rem]">
       <div className="mb-2 sm:mb-5 lg:mb-8">
         <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-neutral-900">Checkout</h1>
         <p className="mt-0.5 lg:mt-1 text-[11px] sm:text-xs lg:text-sm text-neutral-500 leading-snug">Complete your order. We&apos;ll confirm via email.</p>
@@ -317,13 +317,13 @@ export default function CheckoutPage() {
               <div className="flex justify-between gap-2 text-neutral-600"><span>Subtotal</span><span className="tabular-nums shrink-0">{formatPrice(subtotal, currency)}</span></div>
               {discountAmount > 0 && <div className="flex justify-between gap-2 text-green-600"><span>Discount</span><span className="tabular-nums shrink-0">−{formatPrice(discountAmount, currency)}</span></div>}
               <div className="flex justify-between gap-2 text-neutral-600"><span>Shipping</span><span className="tabular-nums shrink-0">{shipping === 0 ? 'Free' : formatPrice(shipping, currency)}</span></div>
-              <div className="flex justify-between gap-2 font-semibold text-neutral-900 pt-1.5 sm:pt-2 border-t border-neutral-200"><span>Total</span><span className="tabular-nums shrink-0">{formatPrice(grandTotal, currency)}</span></div>
+              <div className="flex justify-between gap-2 font-semibold text-neutral-900 pt-1.5 sm:pt-2 border-t border-neutral-200 text-sm sm:text-base"><span>Total</span><span className="tabular-nums shrink-0 text-base sm:text-lg">{formatPrice(grandTotal, currency)}</span></div>
             </div>
             {orderError && <p className="mt-2 sm:mt-3 lg:mt-4 text-xs sm:text-sm text-red-600">{orderError}</p>}
             <button
               type="submit"
               disabled={placing}
-              className="mt-4 sm:mt-6 hidden lg:block w-full rounded-2xl bg-neutral-900 py-3.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50 animate-cta-attract hover:animate-none transition disabled:animate-none"
+              className="mt-4 sm:mt-6 hidden lg:block w-full rounded-2xl bg-neutral-900 py-4 text-base font-semibold text-white hover:bg-neutral-800 disabled:opacity-50 animate-cta-attract hover:animate-none transition disabled:animate-none shadow-lg shadow-neutral-900/15"
             >
               {placing ? 'Placing order…' : 'Place order (Cash on delivery)'}
             </button>
@@ -331,29 +331,45 @@ export default function CheckoutPage() {
         </div>
       </form>
 
-      {/* Mobile / tablet: sticky place order */}
+      {/* Mobile / tablet: totals stacked above full-width place order */}
       <div
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200 bg-white/95 backdrop-blur-md shadow-[0_-2px_16px_rgba(0,0,0,0.06)] px-3 sm:px-5 pt-1.5 sm:pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.08)] pb-[max(0.75rem,env(safe-area-inset-bottom))]"
         role="region"
         aria-label="Place order"
       >
-        {orderError && (
-          <p className="mx-auto max-w-7xl text-[11px] sm:text-xs text-red-600 mb-1.5 sm:mb-2 leading-snug">{orderError}</p>
-        )}
-        <div className="mx-auto max-w-7xl flex items-center justify-between gap-2 sm:gap-3">
-          <div className="min-w-0 pr-1">
-            <p className="text-[9px] sm:text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">Total</p>
-            <p className="text-sm sm:text-base font-semibold text-neutral-900 tabular-nums truncate">{formatPrice(grandTotal, currency)}</p>
+        <div className="mx-auto max-w-7xl w-full px-3 sm:px-5 pt-3 sm:pt-4">
+          {orderError && (
+            <p className="text-[11px] sm:text-xs text-red-600 mb-2 leading-snug">{orderError}</p>
+          )}
+          <div className="space-y-1 text-xs text-neutral-600 mb-3">
+            <div className="flex justify-between gap-3 tabular-nums">
+              <span>Subtotal</span>
+              <span>{formatPrice(subtotal, currency)}</span>
+            </div>
+            {discountAmount > 0 && (
+              <div className="flex justify-between gap-3 tabular-nums text-green-700">
+                <span>Discount</span>
+                <span>−{formatPrice(discountAmount, currency)}</span>
+              </div>
+            )}
+            <div className="flex justify-between gap-3 tabular-nums">
+              <span>Shipping</span>
+              <span>{shipping === 0 ? 'Free' : formatPrice(shipping, currency)}</span>
+            </div>
+            <div className="flex justify-between items-end gap-3 pt-2 border-t border-neutral-200">
+              <span className="text-sm font-semibold text-neutral-900">Total</span>
+              <span className="text-xl sm:text-2xl font-bold text-neutral-900 tabular-nums tracking-tight">{formatPrice(grandTotal, currency)}</span>
+            </div>
           </div>
-          <button
-            type="submit"
-            form="checkout-form"
-            disabled={placing}
-            className="shrink-0 rounded-lg sm:rounded-xl bg-neutral-900 px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-white hover:bg-neutral-800 disabled:opacity-50 transition max-w-[56%] sm:max-w-[50%] md:max-w-none animate-cta-attract hover:animate-none disabled:animate-none"
-          >
-            {placing ? 'Placing…' : 'Place order'}
-          </button>
         </div>
+        <button
+          type="submit"
+          form="checkout-form"
+          disabled={placing}
+          className="w-full min-h-[3.25rem] sm:min-h-14 px-4 py-3.5 sm:py-4 text-base sm:text-lg font-bold text-white bg-neutral-900 hover:bg-neutral-800 active:bg-neutral-950 disabled:opacity-50 transition rounded-none border-0 border-t border-neutral-700/50 animate-cta-attract hover:animate-none disabled:animate-none"
+        >
+          {placing ? 'Placing order…' : 'Place order · Cash on delivery'}
+        </button>
       </div>
     </div>
   );

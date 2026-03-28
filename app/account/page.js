@@ -61,22 +61,22 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8 lg:py-12">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-3xl px-3 sm:px-5 lg:px-8 py-5 sm:py-7 lg:py-12">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-neutral-900">My Orders</h1>
-          <p className="mt-1 text-sm text-neutral-500">{customer.email}</p>
+          <h1 className="text-xl sm:text-2xl font-semibold text-neutral-900">My Orders</h1>
+          <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-neutral-500">{customer.email}</p>
         </div>
         <button
           type="button"
           onClick={() => { useCustomerStore.getState().logout(); router.push('/'); }}
-          className="rounded-xl border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors"
+          className="self-start rounded-lg sm:rounded-xl border border-neutral-200 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors"
         >
           Log out
         </button>
       </div>
 
-      <section className="mt-8">
+      <section className="mt-6 sm:mt-8">
         {loading ? (
           <OrderCardSkeleton count={3} />
         ) : orders.length === 0 ? (

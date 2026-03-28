@@ -30,10 +30,10 @@ export default function SupportPage() {
 
   if (!customer) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center px-4 py-8 sm:py-16">
+      <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center px-3 sm:px-5 py-6 sm:py-16">
         <div className="text-center max-w-md">
-          <h1 className="text-xl font-semibold text-neutral-900">Support tickets</h1>
-          <p className="mt-2 text-sm text-neutral-600">Please log in to view your support tickets.</p>
+          <h1 className="text-lg sm:text-xl font-semibold text-neutral-900">Support tickets</h1>
+          <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-neutral-600">Please log in to view your support tickets.</p>
           <Link href="/contact" className="mt-4 inline-block text-sm font-medium text-gold-600 hover:text-gold-700">Submit a ticket (no login required) →</Link>
           <p className="mt-6">
             <Link href="/" className="text-sm text-neutral-500 hover:text-neutral-700">← Back to home</Link>
@@ -45,10 +45,10 @@ export default function SupportPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      <div className="max-w-2xl mx-auto px-4 py-5 sm:py-8 lg:py-10">
-        <h1 className="text-2xl font-semibold text-neutral-900">My support tickets</h1>
-        <p className="mt-1 text-sm text-neutral-600">View the status of your support requests.</p>
-        <Link href="/contact" className="mt-4 inline-block rounded-xl bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-neutral-800">
+      <div className="max-w-2xl mx-auto px-3 sm:px-5 lg:px-8 py-4 sm:py-7 lg:py-10">
+        <h1 className="text-xl sm:text-2xl font-semibold text-neutral-900">My support tickets</h1>
+        <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-neutral-600">View the status of your support requests.</p>
+        <Link href="/contact" className="mt-3 sm:mt-4 inline-block rounded-lg sm:rounded-xl bg-neutral-900 px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-white hover:bg-neutral-800">
           New ticket
         </Link>
 
@@ -63,20 +63,20 @@ export default function SupportPage() {
                 <button
                   type="button"
                   onClick={() => setExpandedId(expandedId === t.id ? null : t.id)}
-                  className="w-full flex items-center justify-between gap-4 px-4 py-3 text-left hover:bg-neutral-50"
+                  className="w-full flex items-center justify-between gap-2 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-3 text-left hover:bg-neutral-50"
                 >
-                  <span className="font-medium text-neutral-900 truncate">{t.subject}</span>
+                  <span className="font-medium text-sm sm:text-base text-neutral-900 truncate">{t.subject}</span>
                   <span className={`shrink-0 px-2 py-0.5 rounded text-xs font-medium ${
                     t.status === 'closed' ? 'bg-neutral-200 text-neutral-700' :
                     t.status === 'in_progress' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'
                   }`}>
                     {t.status}
                   </span>
-                  <span className="text-neutral-400 text-sm">{formatDate(t.createdAt)}</span>
+                  <span className="text-neutral-400 text-xs sm:text-sm">{formatDate(t.createdAt)}</span>
                   <span className="text-neutral-400">{expandedId === t.id ? '▼' : '▶'}</span>
                 </button>
                 {expandedId === t.id && (
-                  <div className="px-4 pb-4 pt-0 border-t border-neutral-100 space-y-3">
+                  <div className="px-3 sm:px-4 pb-3 sm:pb-4 pt-0 border-t border-neutral-100 space-y-2 sm:space-y-3">
                     <div className="pt-3">
                       <p className="text-xs font-medium text-neutral-500 uppercase">Your message</p>
                       <p className="mt-1 text-sm text-neutral-800 whitespace-pre-wrap">{t.message}</p>

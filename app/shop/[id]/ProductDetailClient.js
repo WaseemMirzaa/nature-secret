@@ -178,7 +178,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
 
   if (productLoading) {
     return (
-      <div className="mx-auto max-w-7xl px-4">
+      <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-3 sm:py-5">
         <InlineLoader />
       </div>
     );
@@ -186,8 +186,8 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
 
   if (!product) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:py-16 text-center">
-        <p className="text-neutral-600">This product isn&apos;t available or the catalog is updating. Try again later or browse the shop.</p>
+      <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-6 sm:py-12 lg:py-16 text-center">
+        <p className="text-sm sm:text-base text-neutral-600">This product isn&apos;t available or the catalog is updating. Try again later or browse the shop.</p>
         <Link href="/shop" className="mt-4 inline-block text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/40 pb-0.5">Back to shop</Link>
       </div>
     );

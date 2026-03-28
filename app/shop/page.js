@@ -60,15 +60,15 @@ function ShopContent() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-12">
-      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
+    <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-3 sm:py-5 lg:py-12">
+      <div className="flex flex-col lg:flex-row gap-3 sm:gap-5 lg:gap-8">
         <aside className="lg:w-56 flex-shrink-0 animate-slide-up">
-          <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-gold-700/90 mb-4">Category</h3>
+          <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-gold-700/90 mb-3 sm:mb-4">Category</h3>
           <ul className="space-y-1">
             <li>
               <Link
                 href="/shop"
-                className={`block py-2.5 px-3 rounded-xl text-sm transition-colors ${!categorySlug ? 'font-medium text-neutral-900 bg-gold-50 text-gold-800 border border-gold-200/60' : 'text-neutral-600 hover:text-gold-700 hover:bg-gold-50/50'}`}
+                className={`block py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-lg sm:rounded-xl text-xs sm:text-sm transition-colors ${!categorySlug ? 'font-medium text-neutral-900 bg-gold-50 text-gold-800 border border-gold-200/60' : 'text-neutral-600 hover:text-gold-700 hover:bg-gold-50/50'}`}
               >
                 All
               </Link>
@@ -77,7 +77,7 @@ function ShopContent() {
               <li key={c.id || c.slug}>
                 <Link
                   href={`/shop?category=${c.slug}`}
-                  className={`block py-2.5 px-3 rounded-xl text-sm transition-colors ${categorySlug === c.slug ? 'font-medium text-neutral-900 bg-gold-50 text-gold-800 border border-gold-200/60' : 'text-neutral-600 hover:text-gold-700 hover:bg-gold-50/50'}`}
+                  className={`block py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-lg sm:rounded-xl text-xs sm:text-sm transition-colors ${categorySlug === c.slug ? 'font-medium text-neutral-900 bg-gold-50 text-gold-800 border border-gold-200/60' : 'text-neutral-600 hover:text-gold-700 hover:bg-gold-50/50'}`}
                 >
                   {c.name}
                 </Link>
@@ -87,22 +87,22 @@ function ShopContent() {
         </aside>
 
         <div className="flex-1 min-w-0">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-3 sm:mb-6 lg:mb-8">
             <div>
-              <h1 className="text-2xl font-semibold text-neutral-900">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-neutral-900">
                 {categorySlug ? (categories || []).find((c) => c.slug === categorySlug)?.name || 'Shop' : 'Shop'}
               </h1>
-              <p className="mt-1 text-sm text-neutral-500">
+              <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-neutral-500">
                 {filtered.length} {filtered.length === 1 ? 'product' : 'products'}
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <label htmlFor="sort" className="text-sm text-neutral-500">Sort by</label>
+              <label htmlFor="sort" className="text-xs sm:text-sm text-neutral-500">Sort by</label>
               <select
                 id="sort"
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
-                className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900"
+                className="rounded-lg sm:rounded-xl border border-neutral-200 bg-white px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-neutral-900"
               >
                 {SORT_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>{o.label}</option>
@@ -111,7 +111,7 @@ function ShopContent() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 lg:gap-8">
             {apiLoading && (!products || products.length === 0) ? (
               Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="rounded-2xl overflow-hidden bg-neutral-100 border border-neutral-200/80">
@@ -123,7 +123,7 @@ function ShopContent() {
                 </div>
               ))
             ) : filtered.length === 0 ? (
-              <div className="col-span-full rounded-2xl border border-neutral-200 bg-neutral-50/80 p-12 text-center">
+              <div className="col-span-full rounded-xl sm:rounded-2xl border border-neutral-200 bg-neutral-50/80 p-6 sm:p-10 lg:p-12 text-center">
                 <p className="text-neutral-600">{apiError ? 'Unable to load products. Try again later.' : 'No products to show right now. The catalog may be updating—please try again later.'}</p>
                 <Link href="/" className="mt-4 inline-block text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/40 pb-0.5">Back to home</Link>
               </div>
@@ -172,20 +172,20 @@ function ShopContent() {
                   </Link>
                   <div className="mt-2 sm:mt-4">
                     <Link href={`/shop/${productPath(product)}`}>
-                      <p className="font-medium text-neutral-900">{product.name ?? product.slug ?? 'Product'}</p>
+                      <p className="font-medium text-neutral-900 text-sm sm:text-base">{product.name ?? product.slug ?? 'Product'}</p>
                     </Link>
                     <div className="mt-1 flex items-center gap-2">
                       <span className="text-sm text-gold-500">{'★'.repeat(5)}</span>
                       <span className="text-xs text-neutral-400">({product.reviewCount})</span>
                     </div>
-                    <p className="mt-1 text-sm text-neutral-600">
+                    <p className="mt-1 text-xs sm:text-sm text-neutral-600">
                       {compareAtPrice && (
                         <span className="line-through text-neutral-400 mr-2">{formatPrice(compareAtPrice, 'PKR')}</span>
                       )}
                       {formatPrice(price, 'PKR')}
                     </p>
                     {product.inventory === 0 ? (
-                      <p className="mt-3 py-2.5 text-center text-sm text-neutral-500 rounded-xl border border-neutral-200 bg-neutral-50">Out of stock</p>
+                      <p className="mt-2 sm:mt-3 py-2 sm:py-2.5 text-center text-xs sm:text-sm text-neutral-500 rounded-lg sm:rounded-xl border border-neutral-200 bg-neutral-50">Out of stock</p>
                     ) : (
                       <button
                         type="button"
@@ -196,7 +196,7 @@ function ShopContent() {
                             setTimeout(() => setQuickAddVibrate(null), 400);
                           }
                         }}
-                        className={`mt-3 w-full flex items-center justify-center gap-2 rounded-xl border-2 border-neutral-300 py-2.5 text-sm font-medium text-neutral-900 hover:border-gold-400/60 hover:bg-gold-50/50 transition-colors ${quickAddVibrate === product.id ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'}`}
+                        className={`mt-2 sm:mt-3 w-full flex items-center justify-center gap-2 rounded-lg sm:rounded-xl border-2 border-neutral-300 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-neutral-900 hover:border-gold-400/60 hover:bg-gold-50/50 transition-colors ${quickAddVibrate === product.id ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'}`}
                       >
                         <CartIcon className="w-4 h-4" />
                         Quick add
@@ -216,7 +216,7 @@ function ShopContent() {
 
 export default function ShopPage() {
   return (
-    <Suspense fallback={<div className="mx-auto max-w-7xl px-4 py-6 sm:py-12"><InlineLoader /></div>}>
+    <Suspense fallback={<div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-5 sm:py-10 lg:py-12"><InlineLoader /></div>}>
       <ShopContent />
     </Suspense>
   );

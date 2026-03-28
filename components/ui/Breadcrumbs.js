@@ -49,8 +49,8 @@ export function Breadcrumbs({ customItems, className = '' }) {
   if (items.length <= 1) return null;
 
   return (
-    <nav aria-label="Breadcrumb" className={`text-sm ${className}`}>
-      <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-neutral-500">
+    <nav aria-label="Breadcrumb" className={`text-xs sm:text-sm ${className}`}>
+      <ol className="flex flex-wrap items-center gap-x-1.5 sm:gap-x-2 gap-y-0.5 sm:gap-y-1 text-neutral-500">
         {items.map((item, i) => {
           const isLast = i === items.length - 1;
           return (

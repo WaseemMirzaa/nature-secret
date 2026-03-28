@@ -67,7 +67,7 @@ export default function AccountOrderDetailPage() {
 
   if (!order) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12 text-center">
+      <div className="mx-auto max-w-3xl px-3 sm:px-5 lg:px-8 py-6 sm:py-12 text-center">
         <p className="text-neutral-600">Order not found.</p>
         <Link href="/account" className="mt-4 inline-flex items-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800">Back to Orders</Link>
       </div>
@@ -81,18 +81,18 @@ export default function AccountOrderDetailPage() {
   const shipping = (order.total ?? 0) - subtotal;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8 lg:py-12">
-      <Link href="/account" className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 transition-colors">
+    <div className="mx-auto max-w-3xl px-3 sm:px-5 lg:px-8 py-5 sm:py-7 lg:py-12">
+      <Link href="/account" className="inline-flex items-center gap-1 text-xs sm:text-sm text-neutral-500 hover:text-neutral-900 transition-colors">
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         Back to Orders
       </Link>
 
-      <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
+      <div className="mt-4 sm:mt-6 flex flex-wrap items-start justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-neutral-900">Order #{String(order.id).slice(0, 8)}</h1>
-          <p className="mt-1 text-sm text-neutral-500">Placed on {order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : ''}</p>
+          <h1 className="text-xl sm:text-2xl font-semibold text-neutral-900">Order #{String(order.id).slice(0, 8)}</h1>
+          <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-neutral-500">Placed on {order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : ''}</p>
         </div>
-        <span className={`rounded-full border px-3 py-1 text-sm font-medium capitalize ${statusClass}`}>
+        <span className={`rounded-full border px-2.5 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm font-medium capitalize ${statusClass}`}>
           {STATUS_ICONS[order.status] || '⏳'} {order.status || 'pending'}
         </span>
       </div>

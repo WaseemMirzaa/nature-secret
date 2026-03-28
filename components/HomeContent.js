@@ -142,27 +142,27 @@ export default function HomeContent({
       {/* Hero */}
       <section className="relative bg-neutral-50 overflow-hidden">
         <div className="absolute left-0 top-24 w-24 h-px bg-gradient-to-r from-gold-400/60 to-transparent" aria-hidden />
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-20 lg:py-32">
+        <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-8 sm:py-14 lg:py-32">
           <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold-600 mb-5">
+            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] sm:tracking-[0.25em] text-gold-600 mb-3 sm:mb-5">
               Natural care, refined
             </p>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-neutral-900 tracking-tight leading-[1.08]">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-semibold text-neutral-900 tracking-tight leading-[1.08]">
               Natural Care, Refined
             </h1>
-            <p className="mt-6 text-lg text-neutral-600 max-w-md leading-relaxed">
+            <p className="mt-4 sm:mt-6 text-sm sm:text-lg text-neutral-600 max-w-md leading-relaxed">
               Premium herbal solutions for pain relief and skin wellness. Featuring Painrex Oil: trusted relief for muscle, joint, neck, knee, arthritis, and back pain.
             </p>
-            <div className="mt-6 sm:mt-10 flex flex-wrap gap-3 sm:gap-4">
+            <div className="mt-5 sm:mt-10 flex flex-wrap gap-2.5 sm:gap-4">
               <Link
                 href="/shop"
-                className="inline-flex items-center justify-center rounded-2xl bg-neutral-900 px-8 py-3.5 text-sm font-medium text-white shadow-premium transition hover:bg-neutral-800 hover:shadow-gold-md focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:ring-offset-2"
+                className="inline-flex items-center justify-center rounded-xl sm:rounded-2xl bg-neutral-900 px-6 sm:px-8 py-3 sm:py-3.5 text-xs sm:text-sm font-medium text-white shadow-premium transition hover:bg-neutral-800 hover:shadow-gold-md focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:ring-offset-2"
               >
                 Shop now
               </Link>
               <Link
                 href="/blog"
-                className="inline-flex items-center justify-center rounded-2xl border-2 border-neutral-300 bg-white px-8 py-3.5 text-sm font-medium text-neutral-900 transition hover:border-gold-400/60 hover:bg-gold-50/50"
+                className="inline-flex items-center justify-center rounded-xl sm:rounded-2xl border-2 border-neutral-300 bg-white px-6 sm:px-8 py-3 sm:py-3.5 text-xs sm:text-sm font-medium text-neutral-900 transition hover:border-gold-400/60 hover:bg-gold-50/50"
               >
                 Read our journal
               </Link>
@@ -216,8 +216,8 @@ export default function HomeContent({
 
       {/* Trust badges */}
       <section className="border-y border-neutral-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-7">
-          <ul className="flex flex-wrap justify-center gap-4 sm:gap-8 lg:gap-14 text-sm text-neutral-500">
+        <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-3 sm:py-5 lg:py-7">
+          <ul className="flex flex-wrap justify-center gap-3 sm:gap-6 lg:gap-14 text-xs sm:text-sm text-neutral-500">
             {TRUST_BADGES.map((b) => (
               <li key={b.id} className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-gold-400/70 shrink-0" aria-hidden />
@@ -230,8 +230,8 @@ export default function HomeContent({
 
       {/* Bestsellers */}
       {productsError && bestsellerProducts.length === 0 ? (
-        <section className="py-10 sm:py-14 lg:py-28">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <section className="py-7 sm:py-11 lg:py-28">
+          <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
             <div className="rounded-2xl border border-neutral-200 bg-neutral-50/80 p-6 sm:p-12 text-center">
               <p className="text-neutral-600">Unable to load products right now. Try again later.</p>
               <Link href="/shop" className="mt-4 inline-block text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/40 pb-0.5">View shop</Link>
@@ -239,19 +239,19 @@ export default function HomeContent({
           </div>
         </section>
       ) : bestsellerProducts.length > 0 ? (
-        <section className="py-10 sm:py-14 lg:py-28">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex items-end justify-between mb-6 sm:mb-12">
+        <section className="py-7 sm:py-11 lg:py-28">
+          <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
+            <div className="flex items-end justify-between mb-4 sm:mb-10 lg:mb-12">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Curated</p>
-                <h2 className="text-2xl sm:text-3xl font-semibold text-neutral-900 mt-1">Bestsellers</h2>
-                <p className="mt-1 text-neutral-500">Herbal oils and skincare, most loved by our community</p>
+                <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Curated</p>
+                <h2 className="text-xl sm:text-3xl font-semibold text-neutral-900 mt-0.5 sm:mt-1 tracking-tight">Bestsellers</h2>
+                <p className="mt-1 text-xs sm:text-sm text-neutral-500 leading-snug">Herbal oils and skincare, most loved by our community</p>
               </div>
               <Link href="/shop" className="text-sm font-medium text-neutral-900 border-b-2 border-gold-500/40 pb-0.5 hover:border-gold-500 transition-colors whitespace-nowrap flex-shrink-0">
                 View all
               </Link>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 lg:gap-8">
               {bestsellerProducts.map((product) => {
                 const img = (product.images && product.images[0]) || product.image || '/assets/nature-secret-logo.svg';
                 const name = product.name ?? product.slug ?? 'Product';
@@ -298,19 +298,19 @@ export default function HomeContent({
 
       {/* Featured categories */}
       {productsError && featuredCategories.length === 0 ? (
-        <section className="py-10 sm:py-14 lg:py-28 bg-neutral-100/90">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <section className="py-7 sm:py-11 lg:py-28 bg-neutral-100/90">
+          <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
             <div className="rounded-2xl border border-neutral-200 bg-white p-6 sm:p-12 text-center">
               <p className="text-neutral-600">Unable to load collections. Try again later.</p>
             </div>
           </div>
         </section>
       ) : featuredCategories.length > 0 ? (
-        <section className="py-10 sm:py-14 lg:py-28 bg-neutral-100/90">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-2">Explore</p>
-            <h2 className="text-2xl sm:text-3xl font-semibold text-neutral-900 mb-6 sm:mb-12">Collections</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+        <section className="py-7 sm:py-11 lg:py-28 bg-neutral-100/90">
+          <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
+            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-1.5 sm:mb-2">Explore</p>
+            <h2 className="text-xl sm:text-3xl font-semibold text-neutral-900 mb-4 sm:mb-10 lg:mb-12 tracking-tight">Collections</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5 lg:gap-8">
               {featuredCategories.map((cat) => {
                 const firstProduct = Array.isArray(products) ? products.find((p) => p.categoryId === cat.id) : null;
                 return (
@@ -330,7 +330,7 @@ export default function HomeContent({
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent group-hover:from-black/70 transition" />
                       <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                        <h3 className="text-xl font-semibold">{cat.name}</h3>
+                        <h3 className="text-lg sm:text-xl font-semibold">{cat.name}</h3>
                         <span className="text-sm text-gold-200 mt-1 inline-flex items-center gap-1">Explore <span className="group-hover:translate-x-0.5 transition-transform">→</span></span>
                       </div>
                     </div>
@@ -343,15 +343,15 @@ export default function HomeContent({
       ) : null}
 
       {/* Brand story */}
-      <section className="py-10 sm:py-14 lg:py-28 bg-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <section className="py-7 sm:py-11 lg:py-28 bg-white">
+        <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
           <div className="max-w-2xl mx-auto text-center">
             <div className="inline-block w-10 h-px bg-gold-400/50 mb-4 sm:mb-5" aria-hidden />
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-3 sm:mb-4">Our story</p>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-neutral-900 tracking-tight">
+            <h2 className="text-xl sm:text-3xl lg:text-4xl font-semibold text-neutral-900 tracking-tight leading-snug">
               Our journey began at home.
             </h2>
-            <div className="mt-4 sm:mt-6 space-y-3 text-sm sm:text-base text-neutral-600 leading-relaxed text-left sm:text-center">
+            <div className="mt-3 sm:mt-6 space-y-2.5 sm:space-y-3 text-xs sm:text-base text-neutral-600 leading-relaxed text-left sm:text-center">
               <p>
                 Like many families in Pakistan, we often saw loved ones struggling with pain in their knees, back, joints, and muscles.
                 Wanting a natural way to ease this discomfort, our father carefully created a herbal oil using traditional knowledge and
@@ -381,8 +381,8 @@ export default function HomeContent({
       {/* Customer reviews strip */}
       {highlightReviews.length > 0 && (
         <section className="py-8 sm:py-10 bg-neutral-50 border-y border-neutral-200/80">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-3">
+          <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
+            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-2 sm:mb-3">
               What customers say
             </p>
             <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-neutral-300">
@@ -412,16 +412,16 @@ export default function HomeContent({
 
 
       {/* CTA */}
-      <section className="py-10 sm:py-14 lg:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-2xl bg-neutral-900 px-4 sm:px-6 py-10 sm:py-16 lg:py-20 text-center relative overflow-hidden">
+      <section className="py-7 sm:py-11 lg:py-28">
+        <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
+          <div className="rounded-xl sm:rounded-2xl bg-neutral-900 px-4 sm:px-6 py-8 sm:py-14 lg:py-20 text-center relative overflow-hidden">
             <div className="absolute inset-0 opacity-20" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(203,168,71,0.4) 0%, transparent 50%)' }} aria-hidden />
             <div className="relative">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-white">Try our best-selling pain relief oil</h2>
-              <p className="mt-3 text-neutral-300 max-w-md mx-auto">Painrex Oil, trusted across Pakistan for muscle, joint and back pain. Skincare range coming soon.</p>
+              <h2 className="text-xl sm:text-3xl font-semibold text-white leading-snug">Try our best-selling pain relief oil</h2>
+              <p className="mt-2 sm:mt-3 text-sm sm:text-base text-neutral-300 max-w-md mx-auto leading-relaxed">Painrex Oil, trusted across Pakistan for muscle, joint and back pain. Skincare range coming soon.</p>
               <Link
                 href="/shop"
-                className="mt-5 sm:mt-8 inline-flex items-center justify-center rounded-2xl bg-gold-500 px-8 py-3.5 text-sm font-semibold text-neutral-900 transition hover:bg-gold-400 shadow-gold-md focus:outline-none focus:ring-2 focus:ring-gold-400 focus:ring-offset-2 focus:ring-offset-neutral-900"
+                className="mt-4 sm:mt-8 inline-flex items-center justify-center rounded-xl sm:rounded-2xl bg-gold-500 px-6 sm:px-8 py-3 sm:py-3.5 text-xs sm:text-sm font-semibold text-neutral-900 transition hover:bg-gold-400 shadow-gold-md focus:outline-none focus:ring-2 focus:ring-gold-400 focus:ring-offset-2 focus:ring-offset-neutral-900"
               >
                 Shop herbal oils
               </Link>

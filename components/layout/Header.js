@@ -18,9 +18,9 @@ export function Header() {
   return (
     <>
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-neutral-200/80 shadow-[0_1px_0_0_rgba(0,0,0,0.03)]">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 min-h-[4.5rem] items-center justify-between">
-            <Logo className="h-9" />
+        <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
+          <div className="flex h-14 sm:h-16 min-h-[3.5rem] sm:min-h-[4rem] items-center justify-between">
+            <Logo className="h-8 sm:h-9" />
 
             <nav className="hidden md:flex items-center gap-10">
               <Link href="/" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Home</Link>
@@ -74,23 +74,23 @@ export function Header() {
 
         {menuOpen && (
           <div className="md:hidden border-t border-neutral-200 bg-white">
-            <nav className="flex flex-col gap-0 px-4 py-4">
-              <Link href="/" className="py-3 text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Home</Link>
-              <Link href="/shop" className="py-3 text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Shop</Link>
-              <Link href="/shop?category=herbal-oils" className="py-3 text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Herbal Oils</Link>
-              <Link href="/shop?category=skin-care" className="py-3 text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Skin Care</Link>
-              <Link href="/blog" className="py-3 text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Blog</Link>
-              <Link href="/contact" className="py-3 text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Contact</Link>
+            <nav className="flex flex-col gap-0 px-3 py-3">
+              <Link href="/" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Home</Link>
+              <Link href="/shop" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Shop</Link>
+              <Link href="/shop?category=herbal-oils" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Herbal Oils</Link>
+              <Link href="/shop?category=skin-care" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Skin Care</Link>
+              <Link href="/blog" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Blog</Link>
+              <Link href="/contact" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Contact</Link>
               {customer ? (
                 <>
-                  <Link href="/account" className="py-3 text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Account</Link>
-                  <Link href="/support" className="py-3 text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Support</Link>
-                  <button type="button" className="py-3 text-left text-neutral-600 hover:text-gold-600 font-medium w-full border-b border-neutral-100" onClick={() => { useCustomerStore.getState().logout(); setMenuOpen(false); window.location.href = '/'; }}>Log out</button>
+                  <Link href="/account" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Account</Link>
+                  <Link href="/support" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Support</Link>
+                  <button type="button" className="py-2.5 text-sm text-left text-neutral-600 hover:text-gold-600 font-medium w-full border-b border-neutral-100" onClick={() => { useCustomerStore.getState().logout(); setMenuOpen(false); window.location.href = '/'; }}>Log out</button>
                 </>
               ) : (
                 <>
-                  <button type="button" className="py-3 text-left text-neutral-600 hover:text-gold-600 font-medium w-full border-b border-neutral-100" onClick={() => { useAuthModalStore.getState().openLogin(); setMenuOpen(false); }}>Login</button>
-                  <button type="button" className="py-3 text-left font-medium text-neutral-900 w-full mt-2 rounded-xl bg-gold-50 text-gold-800 border border-gold-200" onClick={() => { useAuthModalStore.getState().openSignup(); setMenuOpen(false); }}>Create account</button>
+                  <button type="button" className="py-2.5 text-sm text-left text-neutral-600 hover:text-gold-600 font-medium w-full border-b border-neutral-100" onClick={() => { useAuthModalStore.getState().openLogin(); setMenuOpen(false); }}>Login</button>
+                  <button type="button" className="py-2.5 text-sm text-left font-medium text-neutral-900 w-full mt-1.5 rounded-xl bg-gold-50 text-gold-800 border border-gold-200" onClick={() => { useAuthModalStore.getState().openSignup(); setMenuOpen(false); }}>Create account</button>
                 </>
               )}
             </nav>
