@@ -194,6 +194,13 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
   }
 
   const effectiveQty = Math.max(1, Math.min(99, Number(qty) || 1));
+  const compareAtForLine =
+    product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice;
+  const stickyLineTotal = (Number(price) || 0) * effectiveQty;
+  const stickyCompareLineTotal =
+    compareAtForLine != null && Number(compareAtForLine) > 0
+      ? Number(compareAtForLine) * effectiveQty
+      : null;
 
   function handleAddToCart() {
     if (!variant) return;
@@ -726,6 +733,28 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                 >
                   +
                 </button>
+              </div>
+            </div>
+            <div className="flex items-center justify-between gap-3 border-t border-neutral-200/80 pt-2.5">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Subtotal</p>
+                {effectiveQty > 1 && (
+                  <p className="text-xs text-neutral-500 tabular-nums mt-0.5">
+                    {effectiveQty} × {formatPrice(price, currency)}
+                  </p>
+                )}
+              </div>
+              <div className="text-right shrink-0">
+                {stickyCompareLineTotal != null &&
+                  stickyCompareLineTotal > stickyLineTotal &&
+                  Number.isFinite(stickyCompareLineTotal) && (
+                    <span className="block text-sm text-neutral-400 line-through tabular-nums">
+                      {formatPrice(stickyCompareLineTotal, currency)}
+                    </span>
+                  )}
+                <p className="text-lg font-semibold text-neutral-900 tabular-nums leading-tight">
+                  {formatPrice(stickyLineTotal, currency)}
+                </p>
               </div>
             </div>
             <button
