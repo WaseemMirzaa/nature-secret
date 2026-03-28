@@ -254,11 +254,11 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
 
   return (
     <div
-      className={`mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-3 sm:py-5 lg:py-10 ${
-        showStickyBar ? 'lg:pb-24' : ''
+      className={`mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 xl:px-10 py-3 sm:py-5 lg:py-12 xl:py-14 ${
+        showStickyBar ? 'lg:pb-28 xl:pb-32' : ''
       } ${product.inventory !== 0 ? 'max-lg:pb-52' : ''}`}
     >
-      <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16 max-lg:gap-y-3 sm:max-lg:gap-y-4 animate-slide-up items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-14 xl:gap-x-20 max-lg:gap-y-3 sm:max-lg:gap-y-4 animate-slide-up items-start">
         {/* Left: gallery (desktop = large column; mobile unchanged) */}
         <div className="relative w-full lg:max-w-xl xl:max-w-md lg:mx-0 mx-auto">
           <div
@@ -284,7 +284,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
               <svg className="w-5 h-5 text-neutral-700" fill={wishlist.includes(product.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
             </button>
           </div>
-          <div className="mt-1.5 sm:mt-3 lg:mt-4 flex gap-1.5 sm:gap-2 overflow-x-auto pb-0.5 sm:pb-1">
+          <div className="mt-1.5 sm:mt-3 lg:mt-5 flex gap-1.5 sm:gap-2 lg:gap-3 overflow-x-auto pb-0.5 sm:pb-1 lg:pb-0">
             {variantImageList.map((url, i) => {
               const resolved = resolveImageUrl(url);
               return resolved ? (
@@ -292,7 +292,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                   key={i}
                   type="button"
                   onClick={() => setSelectedImageIndex(i)}
-                  className={`relative h-14 w-14 sm:h-20 sm:w-20 flex-shrink-0 rounded-lg sm:rounded-xl overflow-hidden border-2 ${selectedImageIndex === i ? 'border-neutral-900 ring-2 ring-neutral-400' : 'border-neutral-300'}`}
+                  className={`relative h-14 w-14 sm:h-20 sm:w-20 lg:h-[4.75rem] lg:w-[4.75rem] flex-shrink-0 rounded-lg sm:rounded-xl overflow-hidden border-2 ${selectedImageIndex === i ? 'border-neutral-900 ring-2 ring-neutral-400' : 'border-neutral-300'}`}
                 >
                   <Image
                     src={resolved}
@@ -309,7 +309,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
           </div>
         </div>
 
-        <div className="min-w-0 space-y-2 sm:space-y-3 lg:space-y-4">
+        <div className="min-w-0 space-y-2 sm:space-y-3 lg:space-y-5 xl:space-y-6">
           {/* Mobile / tablet: rating + price + controls */}
           <div className="lg:hidden space-y-1.5 sm:space-y-2.5">
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
@@ -328,32 +328,32 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
           {/* Desktop: sticky purchase column — title → rating → price → summary → variant → qty → CTAs → shipping */}
           <div
             ref={purchasePanelRef}
-            className="hidden lg:block lg:sticky lg:top-24 lg:self-start space-y-2.5 pb-4 rounded-2xl lg:pl-1"
+            className="hidden lg:block lg:sticky lg:top-24 xl:top-28 lg:self-start space-y-3 xl:space-y-4 pb-6 lg:pb-8 rounded-2xl lg:pl-0 xl:pl-1"
           >
             <div>
-              <h1 className="text-3xl xl:text-[2rem] font-semibold text-neutral-900 tracking-tight leading-tight">{productDisplayName}</h1>
+              <h1 className="text-3xl xl:text-[2.125rem] font-semibold text-neutral-900 tracking-tight leading-[1.15]">{productDisplayName}</h1>
               {(product.badge || product.badgeSub) && (
-                <div className="mt-2 flex flex-wrap gap-2">
+                <div className="mt-2.5 xl:mt-3 flex flex-wrap gap-2">
                   {product.badge && <span className="rounded-full bg-neutral-900 px-3 py-1 text-xs font-medium text-white">{product.badge}</span>}
                   {product.badgeSub && <span className="rounded-full border border-gold-500/60 bg-gold-50 px-3 py-1 text-xs font-medium text-neutral-900">{product.badgeSub}</span>}
                 </div>
               )}
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-gold-600 text-lg">{'★'.repeat(Math.min(5, Math.round(Number(product.rating) || 0)))}</span>
-              <span className="text-neutral-300">{'★'.repeat(5 - Math.min(5, Math.round(Number(product.rating) || 0)))}</span>
+            <div className="flex flex-wrap items-center gap-2 lg:gap-2.5 pt-0.5">
+              <span className="text-gold-600 text-lg xl:text-xl">{'★'.repeat(Math.min(5, Math.round(Number(product.rating) || 0)))}</span>
+              <span className="text-neutral-300 text-lg xl:text-xl">{'★'.repeat(5 - Math.min(5, Math.round(Number(product.rating) || 0)))}</span>
               <span className="text-sm text-neutral-500">({product.reviewCount} reviews)</span>
             </div>
-            <p className="text-2xl font-semibold text-neutral-900 pt-0.5">
+            <p className="text-2xl xl:text-[1.75rem] font-semibold text-neutral-900 pt-1 tabular-nums">
               {(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice) && (
-                <span className="text-neutral-400 line-through mr-2 text-lg">{formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}</span>
+                <span className="text-neutral-400 line-through mr-2 text-lg xl:text-xl">{formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}</span>
               )}
               {formatPrice(price, currency)}
             </p>
             {product.description && (
-              <div className="pt-1">
+              <div className="pt-1 lg:pt-2">
                 <div
-                  className={`text-sm text-neutral-600 leading-relaxed product-description transition-all ${
+                  className={`text-sm xl:text-[15px] text-neutral-600 leading-relaxed lg:leading-[1.65] product-description transition-all lg:[&_p]:text-[15px] lg:[&_li]:text-[15px] xl:[&_p]:text-[15px] xl:[&_li]:text-[15px] ${
                     descriptionExpanded ? '' : 'line-clamp-3 max-h-[4.5rem] overflow-hidden'
                   }`}
                   dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }}
@@ -361,16 +361,16 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                 <button
                   type="button"
                   onClick={() => setDescriptionExpanded((v) => !v)}
-                  className="mt-1.5 text-xs font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/50 pb-0.5"
+                  className="mt-2 text-xs font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/50 pb-0.5"
                 >
                   {descriptionExpanded ? 'Read less' : 'Read more'}
                 </button>
               </div>
             )}
             {product.variants?.length > 1 && (
-              <div className="pt-1">
-                <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1.5">Size / Variant</p>
-                <div className="flex flex-wrap gap-2">
+              <div className="pt-1 lg:pt-2">
+                <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Size / Variant</p>
+                <div className="flex flex-wrap gap-2 lg:gap-2.5">
                   {product.variants.map((v) => (
                     <button
                       key={v.id}
@@ -386,8 +386,8 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                 </div>
               </div>
             )}
-            <div className="pt-0.5">
-              <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1.5">Quantity</p>
+            <div className="pt-0.5 lg:pt-1">
+              <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Quantity</p>
               <div className="inline-flex items-stretch rounded-xl border-2 border-neutral-200 bg-white">
                 <button
                   type="button"
@@ -417,9 +417,9 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                 </button>
               </div>
             </div>
-            <div className="flex flex-col gap-2 pt-1">
+            <div className="flex flex-col gap-2.5 lg:gap-3 pt-1 lg:pt-2">
               {product.inventory === 0 ? (
-                <span className="rounded-2xl border border-neutral-200 bg-neutral-100 py-3 text-center text-sm font-medium text-neutral-500">
+                <span className="rounded-2xl border border-neutral-200 bg-neutral-100 py-3 lg:py-3.5 text-center text-sm font-medium text-neutral-500">
                   Out of stock
                 </span>
               ) : (
@@ -431,7 +431,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                       setAddCartVibrate(true);
                       setTimeout(() => setAddCartVibrate(false), 400);
                     }}
-                    className={`w-full rounded-2xl bg-neutral-900 py-3.5 text-sm font-semibold text-white hover:bg-neutral-800 transition shadow-md ${
+                    className={`w-full rounded-2xl bg-neutral-900 py-3.5 lg:py-4 text-sm font-semibold text-white hover:bg-neutral-800 transition shadow-md ${
                       addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
                     }`}
                   >
@@ -444,7 +444,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                       setOrderNowVibrate(true);
                       setTimeout(() => setOrderNowVibrate(false), 400);
                     }}
-                    className={`w-full rounded-2xl border-2 border-gold-500/80 bg-gold-50/80 py-3 text-sm font-semibold text-neutral-900 hover:bg-gold-100/90 transition shadow-gold-sm ${
+                    className={`w-full rounded-2xl border-2 border-gold-500/80 bg-gold-50/80 py-3 lg:py-3.5 text-sm font-semibold text-neutral-900 hover:bg-gold-100/90 transition shadow-gold-sm ${
                       orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
                     }`}
                   >
@@ -452,7 +452,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                   </button>
                 </>
               )}
-              <p className="text-xs font-medium text-gold-700 flex items-center gap-1.5 pt-0.5">
+              <p className="text-xs font-medium text-gold-700 flex items-center gap-1.5 pt-1 lg:pt-1.5">
                 <svg className="w-4 h-4 text-gold-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1h-1m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
                 </svg>
@@ -481,27 +481,27 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
       </div>
 
       {/* Desktop: FAQ + policies only */}
-      <section className="hidden lg:block mt-14 pt-10 border-t border-neutral-200">
+      <section className="hidden lg:block mt-16 xl:mt-20 pt-12 xl:pt-16 border-t border-neutral-200">
         {(product.faq || []).length > 0 && (
           <div>
-            <h3 className="text-sm font-semibold text-neutral-900 mb-3">FAQ</h3>
-            <ul className="space-y-2 max-w-2xl">
+            <h3 className="text-base font-semibold text-neutral-900 mb-4 xl:mb-5 tracking-tight">FAQ</h3>
+            <ul className="space-y-1 max-w-2xl xl:max-w-3xl">
               {(product.faq || []).map((item, i) => (
                 <li key={i} className="border-b border-neutral-100">
-                  <button type="button" onClick={() => setFaqOpen(faqOpen === i ? null : i)} className="w-full py-3 text-left text-sm font-medium text-neutral-700 flex justify-between">
-                    {item.q}<span>{faqOpen === i ? '−' : '+'}</span>
+                  <button type="button" onClick={() => setFaqOpen(faqOpen === i ? null : i)} className="w-full py-3.5 xl:py-4 text-left text-sm text-neutral-700 flex justify-between gap-4 font-medium">
+                    <span className="min-w-0 pr-2">{item.q}</span><span className="shrink-0">{faqOpen === i ? '−' : '+'}</span>
                   </button>
-                  {faqOpen === i && <p className="pb-3 text-sm text-neutral-500">{item.a}</p>}
+                  {faqOpen === i && <p className="pb-3.5 xl:pb-4 text-sm text-neutral-500 leading-relaxed max-w-2xl">{item.a}</p>}
                 </li>
               ))}
             </ul>
           </div>
         )}
-        <div className={`rounded-2xl bg-neutral-50 border border-neutral-100 p-5 text-sm text-neutral-600 space-y-2 max-w-2xl ${(product.faq || []).length ? 'mt-8' : ''}`}>
+        <div className={`rounded-2xl bg-neutral-50 border border-neutral-100 p-6 xl:p-8 text-sm xl:text-[15px] text-neutral-600 space-y-3 leading-relaxed max-w-2xl xl:max-w-3xl ${(product.faq || []).length ? 'mt-10 xl:mt-12' : ''}`}>
           <p><strong>Shipping:</strong> {SHIPPING_POLICY}</p>
           <p><strong>Returns:</strong> {RETURN_POLICY}</p>
         </div>
-        <div className="mt-4 flex flex-wrap gap-4 text-xs text-neutral-500">
+        <div className="mt-6 xl:mt-8 flex flex-wrap gap-x-6 gap-y-2 text-xs text-neutral-500">
           <span>Secure payment</span><span>Authentic & organic</span><span>30-day returns</span>
         </div>
       </section>
@@ -557,29 +557,29 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
       </section>
 
       {/* Write review + recent reviews */}
-      <section className="mt-6 sm:mt-10 lg:mt-12 pt-6 sm:pt-10 lg:pt-12 border-t border-neutral-200">
-        <h3 className="text-base sm:text-lg font-semibold text-neutral-900 mb-3 sm:mb-4 tracking-tight">Reviews</h3>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <section className="mt-6 sm:mt-10 lg:mt-16 xl:mt-20 pt-6 sm:pt-10 lg:pt-14 xl:pt-16 border-t border-neutral-200">
+        <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-neutral-900 mb-3 sm:mb-4 lg:mb-6 tracking-tight">Reviews</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-10 xl:gap-14">
           <div>
-            <p className="text-xs sm:text-sm text-neutral-600 mb-2 sm:mb-3 leading-snug">Share your experience with this product.</p>
-            <form onSubmit={handleSubmitReview} className="space-y-2 sm:space-y-3">
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <p className="text-xs sm:text-sm lg:text-base text-neutral-600 mb-2 sm:mb-3 lg:mb-4 leading-snug lg:leading-relaxed">Share your experience with this product.</p>
+            <form onSubmit={handleSubmitReview} className="space-y-2 sm:space-y-3 lg:space-y-4">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 lg:gap-4">
                 <div className="flex-1">
-                  <label className="block text-[10px] sm:text-xs font-medium text-neutral-700 mb-0.5 sm:mb-1">Your name</label>
+                  <label className="block text-[10px] sm:text-xs lg:text-sm font-medium text-neutral-700 mb-0.5 sm:mb-1 lg:mb-1.5">Your name</label>
                   <input
                     type="text"
                     value={reviewName}
                     onChange={(e) => setReviewName(e.target.value)}
                     placeholder="Optional"
-                    className="w-full rounded-lg sm:rounded-xl border border-neutral-200 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-neutral-900"
+                    className="w-full rounded-lg sm:rounded-xl border border-neutral-200 px-2.5 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 text-xs sm:text-sm lg:text-base text-neutral-900"
                   />
                 </div>
-                <div className="w-full sm:w-40">
-                  <label className="block text-[10px] sm:text-xs font-medium text-neutral-700 mb-0.5 sm:mb-1">Rating</label>
+                <div className="w-full sm:w-40 lg:w-44">
+                  <label className="block text-[10px] sm:text-xs lg:text-sm font-medium text-neutral-700 mb-0.5 sm:mb-1 lg:mb-1.5">Rating</label>
                   <select
                     value={reviewRating}
                     onChange={(e) => setReviewRating(Number(e.target.value) || 5)}
-                    className="w-full rounded-lg sm:rounded-xl border border-neutral-200 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-neutral-900"
+                    className="w-full rounded-lg sm:rounded-xl border border-neutral-200 px-2.5 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 text-xs sm:text-sm lg:text-base text-neutral-900"
                   >
                     {[5, 4, 3, 2, 1].map((v) => (
                       <option key={v} value={v}>{`${v} star${v > 1 ? 's' : ''}`}</option>
@@ -588,50 +588,50 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                 </div>
               </div>
             </form>
-            <div className="mt-2 sm:mt-3">
-              <label className="block text-[10px] sm:text-xs font-medium text-neutral-700 mb-0.5 sm:mb-1">Your review</label>
+            <div className="mt-2 sm:mt-3 lg:mt-4">
+              <label className="block text-[10px] sm:text-xs lg:text-sm font-medium text-neutral-700 mb-0.5 sm:mb-1 lg:mb-1.5">Your review</label>
               <textarea
                 value={reviewBody}
                 onChange={(e) => setReviewBody(e.target.value)}
                 rows={4}
                 required
                 placeholder="How did this product help you?"
-                className="w-full rounded-lg sm:rounded-xl border border-neutral-200 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-neutral-900 min-h-[5.5rem] sm:min-h-0"
+                className="w-full rounded-lg sm:rounded-xl border border-neutral-200 px-2.5 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-3 text-xs sm:text-sm lg:text-base text-neutral-900 min-h-[5.5rem] sm:min-h-0 lg:min-h-[7rem]"
               />
             </div>
             {reviewMessage && (
-              <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs text-neutral-500">{reviewMessage}</p>
+              <p className="mt-1.5 sm:mt-2 lg:mt-2.5 text-[11px] sm:text-xs lg:text-sm text-neutral-500">{reviewMessage}</p>
             )}
             <button
               type="submit"
               onClick={handleSubmitReview}
               disabled={reviewSubmitting || !reviewBody.trim()}
-              className="mt-2 sm:mt-3 inline-flex items-center justify-center rounded-xl sm:rounded-2xl bg-neutral-900 px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
+              className="mt-2 sm:mt-3 lg:mt-4 inline-flex items-center justify-center rounded-xl sm:rounded-2xl bg-neutral-900 px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 text-xs sm:text-sm lg:text-base font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
             >
               {reviewSubmitting ? 'Submitting…' : 'Submit review'}
             </button>
           </div>
           <div>
             {primaryReviews && primaryReviews.length > 0 ? (
-              <div className="space-y-3 sm:space-y-4">
-                <p className="text-xs sm:text-sm font-medium text-neutral-700">
+              <div className="space-y-3 sm:space-y-4 lg:space-y-5">
+                <p className="text-xs sm:text-sm lg:text-base font-medium text-neutral-700">
                   Recent reviews{fiveStarReviews.length > 0 ? ' (5-star highlights)' : ''}
                 </p>
                 {visibleReviews.map((r) => (
-                  <div key={r.id} className="rounded-lg sm:rounded-xl border border-neutral-100 bg-neutral-50/50 p-3 sm:p-4">
-                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
-                      <span className="text-gold-600 text-sm sm:text-base">{'★'.repeat(Math.min(5, r.rating || 0))}</span>
-                      <span className="text-neutral-400 text-sm sm:text-base">{'★'.repeat(5 - Math.min(5, r.rating || 0))}</span>
-                      <span className="text-xs sm:text-sm font-medium text-neutral-700">{r.authorName}</span>
+                  <div key={r.id} className="rounded-lg sm:rounded-xl border border-neutral-100 bg-neutral-50/50 p-3 sm:p-4 lg:p-5">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 lg:gap-2.5 mb-1.5 sm:mb-2 lg:mb-2.5">
+                      <span className="text-gold-600 text-sm sm:text-base lg:text-lg">{'★'.repeat(Math.min(5, r.rating || 0))}</span>
+                      <span className="text-neutral-400 text-sm sm:text-base lg:text-lg">{'★'.repeat(5 - Math.min(5, r.rating || 0))}</span>
+                      <span className="text-xs sm:text-sm lg:text-base font-medium text-neutral-700">{r.authorName}</span>
                     </div>
-                    <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">{r.body}</p>
+                    <p className="text-xs sm:text-sm lg:text-[15px] text-neutral-600 leading-relaxed lg:leading-[1.65]">{r.body}</p>
                   </div>
                 ))}
                 {primaryReviews.length > reviewPreviewCount && (
                   <button
                     type="button"
                     onClick={() => setReviewsExpanded((v) => !v)}
-                    className="text-xs sm:text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/50 pb-0.5"
+                    className="text-xs sm:text-sm lg:text-base font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/50 pb-0.5"
                   >
                     {reviewsExpanded
                       ? 'View less'
@@ -642,22 +642,22 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                 )}
               </div>
             ) : (
-              <p className="text-xs sm:text-sm text-neutral-500 leading-snug">No reviews yet. Be the first to review this product.</p>
+              <p className="text-xs sm:text-sm lg:text-base text-neutral-500 leading-snug lg:leading-relaxed">No reviews yet. Be the first to review this product.</p>
             )}
           </div>
         </div>
       </section>
 
       {related.length > 0 && (
-        <section className="mt-6 sm:mt-12 lg:mt-20 pt-6 sm:pt-10 lg:pt-16 border-t border-neutral-200">
-          <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-neutral-900 mb-3 sm:mb-6 lg:mb-8 tracking-tight">You may also like</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+        <section className="mt-6 sm:mt-12 lg:mt-20 xl:mt-24 pt-6 sm:pt-10 lg:pt-16 xl:pt-20 border-t border-neutral-200">
+          <h2 className="text-lg sm:text-xl lg:text-2xl xl:text-[1.75rem] font-semibold text-neutral-900 mb-3 sm:mb-6 lg:mb-8 xl:mb-10 tracking-tight">You may also like</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 xl:gap-8">
             {related.map((p, i) => {
               const img = resolveImageUrl(p.images?.[0]) || '/assets/nature-secret-logo.svg';
               const name = p.name ?? p.slug ?? 'Product';
               return (
                 <Link key={p.id} href={`/shop/${productPath(p)}`} className="group animate-stagger-in opacity-0" style={{ animationDelay: `${i * 100}ms` }}>
-                  <div className="aspect-[3/4] rounded-xl sm:rounded-2xl overflow-hidden bg-neutral-100">
+                  <div className="aspect-[3/4] rounded-xl sm:rounded-2xl lg:rounded-2xl overflow-hidden bg-neutral-100">
                     <Image
                       src={img}
                       alt={name}
@@ -668,8 +668,8 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                       quality={75}
                     />
                   </div>
-                  <p className="mt-2 sm:mt-3 text-xs sm:text-sm font-medium text-neutral-900 line-clamp-2 leading-snug">{name}</p>
-                  <p className="text-[11px] sm:text-sm text-neutral-500 tabular-nums mt-0.5">{formatPrice(p.price, currency)}</p>
+                  <p className="mt-2 sm:mt-3 lg:mt-4 text-xs sm:text-sm lg:text-base font-medium text-neutral-900 line-clamp-2 leading-snug">{name}</p>
+                  <p className="text-[11px] sm:text-sm lg:text-base text-neutral-500 tabular-nums mt-0.5 lg:mt-1">{formatPrice(p.price, currency)}</p>
                 </Link>
               );
             })}
@@ -790,12 +790,12 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
       {/* Desktop: sticky bottom bar when purchase panel scrolls out */}
       {showStickyBar && product.inventory !== 0 && (
         <div
-          className="hidden lg:flex fixed bottom-0 left-0 right-0 z-50 items-center justify-between gap-4 px-6 py-3 border-t border-neutral-200 bg-white/95 backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.08)]"
+          className="hidden lg:flex fixed bottom-0 left-0 right-0 z-50 items-center justify-between gap-4 px-6 xl:px-10 py-3.5 xl:py-4 border-t border-neutral-200 bg-white/95 backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.08)]"
           role="region"
           aria-label="Quick purchase"
         >
-          <div className="max-w-7xl mx-auto w-full flex flex-wrap items-center justify-between gap-4">
-            <p className="text-lg font-semibold text-neutral-900 tabular-nums">
+          <div className="max-w-7xl mx-auto w-full flex flex-wrap items-center justify-between gap-4 xl:gap-6">
+            <p className="text-lg xl:text-xl font-semibold text-neutral-900 tabular-nums">
               {(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice) && (
                 <span className="text-neutral-400 line-through text-sm mr-2">{formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}</span>
               )}
