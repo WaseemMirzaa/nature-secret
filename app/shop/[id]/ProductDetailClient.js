@@ -254,15 +254,15 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
 
   return (
     <div
-      className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-8 lg:py-10 ${
+      className={`mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-3 sm:py-5 lg:py-10 ${
         showStickyBar ? 'lg:pb-24' : ''
       } ${product.inventory !== 0 ? 'max-lg:pb-52' : ''}`}
     >
-      <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16 animate-slide-up items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16 max-lg:gap-y-3 sm:max-lg:gap-y-4 animate-slide-up items-start">
         {/* Left: gallery (desktop = large column; mobile unchanged) */}
         <div className="relative w-full lg:max-w-xl xl:max-w-md lg:mx-0 mx-auto">
           <div
-            className="aspect-[15/14] lg:aspect-[4/5] rounded-xl sm:rounded-2xl lg:rounded-2xl overflow-hidden bg-neutral-100 relative shadow-sm lg:shadow-premium ring-1 ring-neutral-200/60"
+            className="aspect-[15/14] lg:aspect-[4/5] rounded-lg sm:rounded-xl lg:rounded-2xl overflow-hidden bg-neutral-100 relative shadow-sm lg:shadow-premium ring-1 ring-neutral-200/60"
             onMouseEnter={() => setZoom(true)}
             onMouseLeave={() => setZoom(false)}
           >
@@ -284,7 +284,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
               <svg className="w-5 h-5 text-neutral-700" fill={wishlist.includes(product.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
             </button>
           </div>
-          <div className="mt-2 sm:mt-4 flex gap-1.5 sm:gap-2 overflow-x-auto pb-1">
+          <div className="mt-1.5 sm:mt-3 lg:mt-4 flex gap-1.5 sm:gap-2 overflow-x-auto pb-0.5 sm:pb-1">
             {variantImageList.map((url, i) => {
               const resolved = resolveImageUrl(url);
               return resolved ? (
@@ -309,17 +309,17 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
           </div>
         </div>
 
-        <div className="min-w-0 space-y-3 sm:space-y-4">
+        <div className="min-w-0 space-y-2 sm:space-y-3 lg:space-y-4">
           {/* Mobile / tablet: rating + price + controls */}
-          <div className="lg:hidden space-y-3 sm:space-y-4">
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <span className="text-gold-600 text-base sm:text-lg">{'★'.repeat(Math.min(5, Math.round(Number(product.rating) || 0)))}</span>
-              <span className="text-neutral-300">{'★'.repeat(5 - Math.min(5, Math.round(Number(product.rating) || 0)))}</span>
-              <span className="text-xs sm:text-sm text-neutral-500">({product.reviewCount} reviews)</span>
+          <div className="lg:hidden space-y-1.5 sm:space-y-2.5">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <span className="text-gold-600 text-sm sm:text-base">{'★'.repeat(Math.min(5, Math.round(Number(product.rating) || 0)))}</span>
+              <span className="text-neutral-300 text-sm sm:text-base">{'★'.repeat(5 - Math.min(5, Math.round(Number(product.rating) || 0)))}</span>
+              <span className="text-[11px] sm:text-xs text-neutral-500">({product.reviewCount} reviews)</span>
             </div>
-            <p className="text-xl sm:text-2xl font-semibold text-neutral-900">
+            <p className="text-lg sm:text-xl font-semibold text-neutral-900 tabular-nums leading-tight">
               {(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice) && (
-                <span className="text-neutral-400 line-through mr-2 text-base sm:text-lg">{formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}</span>
+                <span className="text-neutral-400 line-through mr-1.5 sm:mr-2 text-sm sm:text-base font-medium">{formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}</span>
               )}
               {formatPrice(price, currency)}
             </p>
@@ -462,16 +462,16 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
           </div>
 
           {/* Mobile / tablet: free shipping + out of stock (variant & qty live in fixed bottom bar) */}
-          <div className="space-y-3 lg:hidden">
-            <div className="pt-1 sm:pt-1.5">
-              <p className="text-xs sm:text-sm font-medium text-neutral-600 flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-gold-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+          <div className="space-y-2 lg:hidden">
+            <div className="pt-0 sm:pt-0.5">
+              <p className="text-[11px] sm:text-xs font-medium text-neutral-600 flex items-center gap-1">
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gold-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1h-1m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
                 </svg>
                 Free shipping
               </p>
               {product.inventory === 0 && (
-                <span className="mt-3 block rounded-2xl border border-neutral-200 bg-neutral-100 py-3.5 text-center text-sm font-medium text-neutral-500">
+                <span className="mt-2 sm:mt-3 block rounded-xl border border-neutral-200 bg-neutral-100 py-2.5 sm:py-3 text-center text-xs sm:text-sm font-medium text-neutral-500">
                   Out of stock
                 </span>
               )}
@@ -507,79 +507,79 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
       </section>
 
       {/* Product details: name, description, FAQs (mobile / tablet) */}
-      <section className="mt-8 sm:mt-12 lg:mt-16 pt-8 sm:pt-12 border-t border-neutral-200 lg:hidden">
-        <h2 className="text-xl font-semibold text-neutral-900">{productDisplayName}</h2>
+      <section className="mt-5 sm:mt-8 lg:mt-16 pt-5 sm:pt-8 lg:pt-12 border-t border-neutral-200 lg:hidden">
+        <h2 className="text-lg sm:text-xl font-semibold text-neutral-900 leading-snug tracking-tight">{productDisplayName}</h2>
         {(product.badge || product.badgeSub) && (
-          <div className="mt-2 flex flex-wrap gap-2">
-            {product.badge && <span className="rounded-full bg-neutral-900 px-3 py-1 text-xs font-medium text-white">{product.badge}</span>}
-            {product.badgeSub && <span className="rounded-full border border-gold-500/60 bg-gold-50 px-3 py-1 text-xs font-medium text-neutral-900">{product.badgeSub}</span>}
+          <div className="mt-1.5 sm:mt-2 flex flex-wrap gap-1.5 sm:gap-2">
+            {product.badge && <span className="rounded-full bg-neutral-900 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-medium text-white">{product.badge}</span>}
+            {product.badgeSub && <span className="rounded-full border border-gold-500/60 bg-gold-50 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-medium text-neutral-900">{product.badgeSub}</span>}
           </div>
         )}
         {product.description && (
-            <div className="mt-4">
+            <div className="mt-3 sm:mt-4">
             <div
-              className={`text-neutral-600 product-description transition-all ${
-                descriptionExpanded ? '' : 'max-h-64 overflow-hidden'
+              className={`text-[13px] sm:text-sm text-neutral-600 leading-relaxed product-description transition-all max-lg:[&_p]:text-[13px] max-lg:[&_li]:text-[13px] sm:[&_p]:text-sm sm:[&_li]:text-sm ${
+                descriptionExpanded ? '' : 'max-h-52 sm:max-h-64 overflow-hidden'
               }`}
               dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }}
             />
             <button
               type="button"
               onClick={() => setDescriptionExpanded((v) => !v)}
-              className="mt-2 text-xs font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/50 pb-0.5"
+              className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/50 pb-0.5"
             >
               {descriptionExpanded ? 'View less' : 'View more'}
             </button>
           </div>
         )}
         {(product.faq || []).length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-sm font-semibold text-neutral-900 mb-3">FAQ</h3>
-            <ul className="space-y-2">
+          <div className="mt-5 sm:mt-8">
+            <h3 className="text-xs sm:text-sm font-semibold text-neutral-900 mb-2 sm:mb-3 tracking-tight">FAQ</h3>
+            <ul className="space-y-0.5 sm:space-y-1">
               {(product.faq || []).map((item, i) => (
                 <li key={i} className="border-b border-neutral-100">
-                  <button type="button" onClick={() => setFaqOpen(faqOpen === i ? null : i)} className="w-full py-3 text-left text-sm font-medium text-neutral-700 flex justify-between">
-                    {item.q}<span>{faqOpen === i ? '−' : '+'}</span>
+                  <button type="button" onClick={() => setFaqOpen(faqOpen === i ? null : i)} className="w-full py-2.5 sm:py-3 text-left text-xs sm:text-sm font-medium text-neutral-700 flex justify-between gap-2">
+                    <span className="min-w-0 pr-2">{item.q}</span><span className="shrink-0">{faqOpen === i ? '−' : '+'}</span>
                   </button>
-                  {faqOpen === i && <p className="pb-3 text-sm text-neutral-500">{item.a}</p>}
+                  {faqOpen === i && <p className="pb-2.5 sm:pb-3 text-xs sm:text-sm text-neutral-500 leading-relaxed">{item.a}</p>}
                 </li>
               ))}
             </ul>
           </div>
         )}
-        <div className="mt-6 sm:mt-8 rounded-2xl bg-neutral-100 p-3 sm:p-4 text-sm text-neutral-600 space-y-2">
+        <div className="mt-4 sm:mt-6 rounded-xl sm:rounded-2xl bg-neutral-100 p-3 sm:p-4 text-xs sm:text-sm text-neutral-600 space-y-1.5 sm:space-y-2 leading-relaxed">
           <p><strong>Shipping:</strong> {SHIPPING_POLICY}</p>
           <p><strong>Returns:</strong> {RETURN_POLICY}</p>
         </div>
-        <div className="mt-4 flex flex-wrap gap-4 text-xs text-neutral-500">
+        <div className="mt-3 sm:mt-4 flex flex-wrap gap-x-3 gap-y-1 text-[10px] sm:text-xs text-neutral-500">
           <span>Secure payment</span><span>Authentic & organic</span><span>30-day returns</span>
         </div>
       </section>
 
       {/* Write review + recent reviews */}
-      <section className="mt-8 sm:mt-12 pt-8 sm:pt-12 border-t border-neutral-200">
-        <h3 className="text-lg font-semibold text-neutral-900 mb-4">Reviews</h3>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <section className="mt-6 sm:mt-10 lg:mt-12 pt-6 sm:pt-10 lg:pt-12 border-t border-neutral-200">
+        <h3 className="text-base sm:text-lg font-semibold text-neutral-900 mb-3 sm:mb-4 tracking-tight">Reviews</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <div>
-            <p className="text-sm text-neutral-600 mb-3">Share your experience with this product.</p>
-            <form onSubmit={handleSubmitReview} className="space-y-3">
-              <div className="flex flex-col sm:flex-row gap-3">
+            <p className="text-xs sm:text-sm text-neutral-600 mb-2 sm:mb-3 leading-snug">Share your experience with this product.</p>
+            <form onSubmit={handleSubmitReview} className="space-y-2 sm:space-y-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <div className="flex-1">
-                  <label className="block text-xs font-medium text-neutral-700 mb-1">Your name</label>
+                  <label className="block text-[10px] sm:text-xs font-medium text-neutral-700 mb-0.5 sm:mb-1">Your name</label>
                   <input
                     type="text"
                     value={reviewName}
                     onChange={(e) => setReviewName(e.target.value)}
                     placeholder="Optional"
-                    className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-900"
+                    className="w-full rounded-lg sm:rounded-xl border border-neutral-200 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-neutral-900"
                   />
                 </div>
                 <div className="w-full sm:w-40">
-                  <label className="block text-xs font-medium text-neutral-700 mb-1">Rating</label>
+                  <label className="block text-[10px] sm:text-xs font-medium text-neutral-700 mb-0.5 sm:mb-1">Rating</label>
                   <select
                     value={reviewRating}
                     onChange={(e) => setReviewRating(Number(e.target.value) || 5)}
-                    className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-900"
+                    className="w-full rounded-lg sm:rounded-xl border border-neutral-200 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-neutral-900"
                   >
                     {[5, 4, 3, 2, 1].map((v) => (
                       <option key={v} value={v}>{`${v} star${v > 1 ? 's' : ''}`}</option>
@@ -588,50 +588,50 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                 </div>
               </div>
             </form>
-            <div className="mt-3">
-              <label className="block text-xs font-medium text-neutral-700 mb-1">Your review</label>
+            <div className="mt-2 sm:mt-3">
+              <label className="block text-[10px] sm:text-xs font-medium text-neutral-700 mb-0.5 sm:mb-1">Your review</label>
               <textarea
                 value={reviewBody}
                 onChange={(e) => setReviewBody(e.target.value)}
                 rows={4}
                 required
                 placeholder="How did this product help you?"
-                className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-900"
+                className="w-full rounded-lg sm:rounded-xl border border-neutral-200 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-neutral-900 min-h-[5.5rem] sm:min-h-0"
               />
             </div>
             {reviewMessage && (
-              <p className="mt-2 text-xs text-neutral-500">{reviewMessage}</p>
+              <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs text-neutral-500">{reviewMessage}</p>
             )}
             <button
               type="submit"
               onClick={handleSubmitReview}
               disabled={reviewSubmitting || !reviewBody.trim()}
-              className="mt-3 inline-flex items-center justify-center rounded-2xl bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
+              className="mt-2 sm:mt-3 inline-flex items-center justify-center rounded-xl sm:rounded-2xl bg-neutral-900 px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
             >
               {reviewSubmitting ? 'Submitting…' : 'Submit review'}
             </button>
           </div>
           <div>
             {primaryReviews && primaryReviews.length > 0 ? (
-              <div className="space-y-4">
-                <p className="text-sm font-medium text-neutral-700">
+              <div className="space-y-3 sm:space-y-4">
+                <p className="text-xs sm:text-sm font-medium text-neutral-700">
                   Recent reviews{fiveStarReviews.length > 0 ? ' (5-star highlights)' : ''}
                 </p>
                 {visibleReviews.map((r) => (
-                  <div key={r.id} className="rounded-xl border border-neutral-100 bg-neutral-50/50 p-4">
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <span className="text-gold-600">{'★'.repeat(Math.min(5, r.rating || 0))}</span>
-                      <span className="text-neutral-400">{'★'.repeat(5 - Math.min(5, r.rating || 0))}</span>
-                      <span className="text-sm font-medium text-neutral-700">{r.authorName}</span>
+                  <div key={r.id} className="rounded-lg sm:rounded-xl border border-neutral-100 bg-neutral-50/50 p-3 sm:p-4">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+                      <span className="text-gold-600 text-sm sm:text-base">{'★'.repeat(Math.min(5, r.rating || 0))}</span>
+                      <span className="text-neutral-400 text-sm sm:text-base">{'★'.repeat(5 - Math.min(5, r.rating || 0))}</span>
+                      <span className="text-xs sm:text-sm font-medium text-neutral-700">{r.authorName}</span>
                     </div>
-                    <p className="text-sm text-neutral-600">{r.body}</p>
+                    <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">{r.body}</p>
                   </div>
                 ))}
                 {primaryReviews.length > reviewPreviewCount && (
                   <button
                     type="button"
                     onClick={() => setReviewsExpanded((v) => !v)}
-                    className="text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/50 pb-0.5"
+                    className="text-xs sm:text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/50 pb-0.5"
                   >
                     {reviewsExpanded
                       ? 'View less'
@@ -642,22 +642,22 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                 )}
               </div>
             ) : (
-              <p className="text-sm text-neutral-500">No reviews yet. Be the first to review this product.</p>
+              <p className="text-xs sm:text-sm text-neutral-500 leading-snug">No reviews yet. Be the first to review this product.</p>
             )}
           </div>
         </div>
       </section>
 
       {related.length > 0 && (
-        <section className="mt-10 sm:mt-16 lg:mt-20 pt-8 sm:pt-12 lg:pt-16 border-t border-neutral-200">
-          <h2 className="text-xl sm:text-2xl font-semibold text-neutral-900 mb-4 sm:mb-8">You may also like</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+        <section className="mt-6 sm:mt-12 lg:mt-20 pt-6 sm:pt-10 lg:pt-16 border-t border-neutral-200">
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-neutral-900 mb-3 sm:mb-6 lg:mb-8 tracking-tight">You may also like</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
             {related.map((p, i) => {
               const img = resolveImageUrl(p.images?.[0]) || '/assets/nature-secret-logo.svg';
               const name = p.name ?? p.slug ?? 'Product';
               return (
                 <Link key={p.id} href={`/shop/${productPath(p)}`} className="group animate-stagger-in opacity-0" style={{ animationDelay: `${i * 100}ms` }}>
-                  <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100">
+                  <div className="aspect-[3/4] rounded-xl sm:rounded-2xl overflow-hidden bg-neutral-100">
                     <Image
                       src={img}
                       alt={name}
@@ -668,8 +668,8 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                       quality={75}
                     />
                   </div>
-                  <p className="mt-3 font-medium text-neutral-900">{name}</p>
-                  <p className="text-sm text-neutral-500">{formatPrice(p.price, currency)}</p>
+                  <p className="mt-2 sm:mt-3 text-xs sm:text-sm font-medium text-neutral-900 line-clamp-2 leading-snug">{name}</p>
+                  <p className="text-[11px] sm:text-sm text-neutral-500 tabular-nums mt-0.5">{formatPrice(p.price, currency)}</p>
                 </Link>
               );
             })}
