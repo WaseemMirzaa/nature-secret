@@ -323,7 +323,7 @@ export default function CheckoutPage() {
             <button
               type="submit"
               disabled={placing}
-              className="mt-5 sm:mt-6 hidden lg:flex w-full min-h-[3.25rem] items-center justify-center rounded-2xl bg-neutral-900 px-8 py-3.5 text-[0.9375rem] font-semibold leading-snug tracking-tight text-white shadow-[0_6px_20px_-4px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/[0.06] transition-all duration-200 hover:bg-neutral-800 hover:shadow-[0_10px_28px_-6px_rgba(0,0,0,0.42)] active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/55 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none"
+              className="mt-5 sm:mt-6 hidden lg:flex w-full min-h-[3.25rem] items-center justify-center rounded-2xl bg-neutral-900 px-8 py-3.5 text-[0.9375rem] font-semibold leading-snug tracking-tight text-white shadow-[0_6px_20px_-4px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/[0.06] transition-all duration-200 hover:bg-neutral-800 hover:shadow-[0_10px_28px_-6px_rgba(0,0,0,0.42)] active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/55 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none animate-cta-attract hover:animate-none disabled:animate-none"
             >
               {placing ? 'Placing order…' : 'Place order (Cash on delivery)'}
             </button>
@@ -367,7 +367,7 @@ export default function CheckoutPage() {
             type="submit"
             form="checkout-form"
             disabled={placing}
-            className="flex w-full min-h-[3.5rem] sm:min-h-[3.625rem] items-center justify-center rounded-2xl bg-neutral-900 px-6 py-3.5 text-[0.9375rem] sm:text-base font-semibold leading-snug tracking-tight text-white shadow-[0_6px_20px_-4px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/[0.06] transition-all duration-200 hover:bg-neutral-800 hover:shadow-[0_10px_28px_-6px_rgba(0,0,0,0.42)] active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/55 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none"
+            className="flex w-full min-h-[3.5rem] sm:min-h-[3.625rem] items-center justify-center rounded-2xl bg-neutral-900 px-6 py-3.5 text-[0.9375rem] sm:text-base font-semibold leading-snug tracking-tight text-white shadow-[0_6px_20px_-4px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/[0.06] transition-all duration-200 hover:bg-neutral-800 hover:shadow-[0_10px_28px_-6px_rgba(0,0,0,0.42)] active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/55 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none animate-cta-attract hover:animate-none disabled:animate-none"
           >
             {placing ? 'Placing order…' : 'Place order · Cash on delivery'}
           </button>
