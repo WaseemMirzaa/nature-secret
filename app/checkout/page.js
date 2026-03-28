@@ -174,22 +174,22 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-12 animate-slide-up">
-      <div className="mb-4 sm:mb-8">
-        <h1 className="text-2xl font-semibold text-neutral-900">Checkout</h1>
-        <p className="mt-1 text-sm text-neutral-500">Complete your order. We&apos;ll confirm via email.</p>
+    <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-2.5 sm:py-4 lg:py-12 animate-slide-up max-lg:pb-28">
+      <div className="mb-2 sm:mb-5 lg:mb-8">
+        <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-neutral-900">Checkout</h1>
+        <p className="mt-0.5 lg:mt-1 text-[11px] sm:text-xs lg:text-sm text-neutral-500 leading-snug">Complete your order. We&apos;ll confirm via email.</p>
       </div>
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
+      <form id="checkout-form" onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-5 lg:gap-12">
         <div>
-          <h2 className="text-sm font-medium text-neutral-900 mb-4">Contact & delivery</h2>
-          <div className="space-y-4">
+          <h2 className="text-xs sm:text-sm font-medium text-neutral-900 mb-2 lg:mb-4 tracking-tight">Contact & delivery</h2>
+          <div className="space-y-2 sm:space-y-2.5 lg:space-y-4">
             <input
               type="email"
               required
               placeholder="Email"
               value={form.email}
               onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-              className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-neutral-900"
+              className="w-full rounded-lg lg:rounded-xl border border-neutral-200 px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
             />
             <input
               type="text"
@@ -197,7 +197,7 @@ export default function CheckoutPage() {
               placeholder="Full name"
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-neutral-900"
+              className="w-full rounded-lg lg:rounded-xl border border-neutral-200 px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
             />
             <input
               type="tel"
@@ -210,25 +210,25 @@ export default function CheckoutPage() {
                 setForm((f) => ({ ...f, phone: next }));
                 if (String(next || '').replace(/\D/g, '').length > 9) setPhoneError('');
               }}
-              className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-neutral-900"
+              className="w-full rounded-lg lg:rounded-xl border border-neutral-200 px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
             />
-            {phoneError && <p className="text-sm text-red-600 -mt-2">{phoneError}</p>}
+            {phoneError && <p className="text-xs sm:text-sm text-red-600 -mt-1 lg:-mt-2">{phoneError}</p>}
             <textarea
               required
               placeholder="Address"
               rows={2}
               value={form.address}
               onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-              className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-neutral-900"
+              className="w-full rounded-lg lg:rounded-xl border border-neutral-200 px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900 min-h-[3.5rem] sm:min-h-[4rem] lg:min-h-0 resize-y"
             />
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-2.5 lg:gap-4">
               <input
                 type="text"
                 required
                 placeholder="City"
                 value={form.city}
                 onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
-                className="rounded-xl border border-neutral-200 px-4 py-3 text-neutral-900"
+                className="rounded-lg lg:rounded-xl border border-neutral-200 px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
               />
               <input
                 type="text"
@@ -236,7 +236,7 @@ export default function CheckoutPage() {
                 placeholder="State"
                 value={form.state}
                 onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))}
-                className="rounded-xl border border-neutral-200 px-4 py-3 text-neutral-900"
+                className="rounded-lg lg:rounded-xl border border-neutral-200 px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
               />
               <input
                 type="text"
@@ -244,30 +244,30 @@ export default function CheckoutPage() {
                 placeholder="Pincode"
                 value={form.pincode}
                 onChange={(e) => setForm((f) => ({ ...f, pincode: e.target.value }))}
-                className="rounded-xl border border-neutral-200 px-4 py-3 text-neutral-900"
+                className="rounded-lg lg:rounded-xl border border-neutral-200 px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
               />
             </div>
           </div>
-          <p className="mt-4 text-sm text-neutral-500">Payment: Cash on delivery.</p>
+          <p className="mt-2 sm:mt-3 lg:mt-4 text-[11px] sm:text-xs lg:text-sm text-neutral-500">Payment: Cash on delivery.</p>
         </div>
 
         <div>
-          <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:p-6 sticky top-20 sm:top-24">
-            <h2 className="text-sm font-medium text-neutral-900 mb-4">Order summary</h2>
-            <ul className="space-y-4 mb-4">
+          <div className="rounded-xl lg:rounded-2xl border border-neutral-200 bg-neutral-50 p-3 sm:p-4 lg:p-6 lg:sticky lg:top-24">
+            <h2 className="text-xs sm:text-sm font-medium text-neutral-900 mb-2 lg:mb-4 tracking-tight">Order summary</h2>
+            <ul className="space-y-2 sm:space-y-2.5 lg:space-y-4 mb-2 sm:mb-3 lg:mb-4">
               {items.map((i) => {
                 const p = getProduct(i.productId);
                 const variant = getVariant(i.productId, i.variantId);
                 const imgSrc = variant?.image || p?.images?.[0] || '/assets/nature-secret-logo.svg';
                 const lineTotal = i.price * i.qty;
                 return (
-                  <li key={`${i.productId}-${i.variantId ?? 'default'}`} className="flex gap-3">
-                    <div className="relative h-14 w-14 rounded-lg overflow-hidden bg-white flex-shrink-0">
+                  <li key={`${i.productId}-${i.variantId ?? 'default'}`} className="flex gap-2 sm:gap-2.5 lg:gap-3">
+                    <div className="relative h-12 w-12 sm:h-[3.25rem] sm:w-[3.25rem] lg:h-14 lg:w-14 rounded-md lg:rounded-lg overflow-hidden bg-white flex-shrink-0">
                       <Image src={imgSrc} alt="" fill className="object-cover" sizes="56px" unoptimized={!imgSrc.startsWith('http')} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-neutral-900 truncate">{p?.name ?? i.name ?? 'Product'}{variant ? ` (${variant.name})` : ''}</p>
-                      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-xs sm:text-sm font-medium text-neutral-900 truncate leading-tight">{p?.name ?? i.name ?? 'Product'}{variant ? ` (${variant.name})` : ''}</p>
+                      <div className="mt-1.5 sm:mt-2 flex flex-wrap items-center justify-between gap-1.5 sm:gap-2">
                         <div className="inline-flex items-stretch rounded-lg border border-neutral-200 bg-white">
                           <button
                             type="button"
@@ -289,47 +289,72 @@ export default function CheckoutPage() {
                             +
                           </button>
                         </div>
-                        <p className="text-sm font-medium text-neutral-900">
+                        <p className="text-xs sm:text-sm font-medium text-neutral-900 tabular-nums">
                           {variant?.compareAtPrice && (
-                            <span className="line-through text-neutral-400 text-xs mr-1.5">{formatPrice(variant.compareAtPrice * i.qty, currency)}</span>
+                            <span className="line-through text-neutral-400 text-[10px] sm:text-xs mr-1">{formatPrice(variant.compareAtPrice * i.qty, currency)}</span>
                           )}
                           {formatPrice(lineTotal, currency)}
                         </p>
                       </div>
-                      <p className="text-xs text-neutral-500 mt-0.5">Each {formatPrice(i.price, currency)}</p>
+                      <p className="text-[10px] sm:text-xs text-neutral-500 mt-0.5">Each {formatPrice(i.price, currency)}</p>
                     </div>
                   </li>
                 );
               })}
             </ul>
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-1.5 sm:gap-2 mb-2 sm:mb-3 lg:mb-4">
               <input
                 type="text"
                 placeholder="Discount code"
                 value={discountCode}
                 onChange={(e) => setDiscountCode(e.target.value)}
-                className="flex-1 rounded-xl border border-neutral-200 px-3 py-2 text-sm"
+                className="flex-1 rounded-lg lg:rounded-xl border border-neutral-200 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm min-w-0"
               />
-              <button type="button" onClick={applyDiscount} className="rounded-xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium">Apply</button>
+              <button type="button" onClick={applyDiscount} className="shrink-0 rounded-lg lg:rounded-xl bg-neutral-900 text-white px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium">Apply</button>
             </div>
-            {appliedDiscount && <p className="text-xs text-green-600 mb-2">Code applied</p>}
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between text-neutral-600"><span>Subtotal</span><span>{formatPrice(subtotal, currency)}</span></div>
-              {discountAmount > 0 && <div className="flex justify-between text-green-600"><span>Discount</span><span>−{formatPrice(discountAmount, currency)}</span></div>}
-              <div className="flex justify-between text-neutral-600"><span>Shipping</span><span>{shipping === 0 ? 'Free' : formatPrice(shipping, currency)}</span></div>
-              <div className="flex justify-between font-semibold text-neutral-900 pt-2 border-t border-neutral-200"><span>Total</span><span>{formatPrice(grandTotal, currency)}</span></div>
+            {appliedDiscount && <p className="text-[11px] sm:text-xs text-green-600 mb-1.5 sm:mb-2">Code applied</p>}
+            <div className="space-y-1 sm:space-y-1.5 lg:space-y-2 text-xs sm:text-sm">
+              <div className="flex justify-between gap-2 text-neutral-600"><span>Subtotal</span><span className="tabular-nums shrink-0">{formatPrice(subtotal, currency)}</span></div>
+              {discountAmount > 0 && <div className="flex justify-between gap-2 text-green-600"><span>Discount</span><span className="tabular-nums shrink-0">−{formatPrice(discountAmount, currency)}</span></div>}
+              <div className="flex justify-between gap-2 text-neutral-600"><span>Shipping</span><span className="tabular-nums shrink-0">{shipping === 0 ? 'Free' : formatPrice(shipping, currency)}</span></div>
+              <div className="flex justify-between gap-2 font-semibold text-neutral-900 pt-1.5 sm:pt-2 border-t border-neutral-200"><span>Total</span><span className="tabular-nums shrink-0">{formatPrice(grandTotal, currency)}</span></div>
             </div>
-            {orderError && <p className="mt-4 text-sm text-red-600">{orderError}</p>}
+            {orderError && <p className="mt-2 sm:mt-3 lg:mt-4 text-xs sm:text-sm text-red-600">{orderError}</p>}
             <button
               type="submit"
               disabled={placing}
-              className="mt-6 w-full rounded-2xl bg-neutral-900 py-3.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50 animate-cta-attract hover:animate-none transition disabled:animate-none"
+              className="mt-4 sm:mt-6 hidden lg:block w-full rounded-2xl bg-neutral-900 py-3.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50 animate-cta-attract hover:animate-none transition disabled:animate-none"
             >
               {placing ? 'Placing order…' : 'Place order (Cash on delivery)'}
             </button>
           </div>
         </div>
       </form>
+
+      {/* Mobile / tablet: sticky place order */}
+      <div
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200 bg-white/95 backdrop-blur-md shadow-[0_-2px_16px_rgba(0,0,0,0.06)] px-3 sm:px-5 pt-1.5 sm:pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+        role="region"
+        aria-label="Place order"
+      >
+        {orderError && (
+          <p className="mx-auto max-w-7xl text-[11px] sm:text-xs text-red-600 mb-1.5 sm:mb-2 leading-snug">{orderError}</p>
+        )}
+        <div className="mx-auto max-w-7xl flex items-center justify-between gap-2 sm:gap-3">
+          <div className="min-w-0 pr-1">
+            <p className="text-[9px] sm:text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">Total</p>
+            <p className="text-sm sm:text-base font-semibold text-neutral-900 tabular-nums truncate">{formatPrice(grandTotal, currency)}</p>
+          </div>
+          <button
+            type="submit"
+            form="checkout-form"
+            disabled={placing}
+            className="shrink-0 rounded-lg sm:rounded-xl bg-neutral-900 px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-white hover:bg-neutral-800 disabled:opacity-50 transition max-w-[56%] sm:max-w-[50%] md:max-w-none animate-cta-attract hover:animate-none disabled:animate-none"
+          >
+            {placing ? 'Placing…' : 'Place order'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
