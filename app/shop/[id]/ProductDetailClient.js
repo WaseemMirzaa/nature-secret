@@ -256,7 +256,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
     <div
       className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-8 lg:py-10 ${
         showStickyBar ? 'lg:pb-24' : ''
-      } ${product.inventory !== 0 ? 'max-lg:pb-80' : ''}`}
+      } ${product.inventory !== 0 ? 'max-lg:pb-52' : ''}`}
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16 animate-slide-up items-start">
         {/* Left: gallery (desktop = large column; mobile unchanged) */}
@@ -677,25 +677,25 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
         </section>
       )}
 
-      {/* Mobile / tablet: fixed bottom — variant, quantity, then CTAs */}
+      {/* Mobile / tablet: compact fixed bottom — variant, qty + subtotal row, 2-col CTAs */}
       {product.inventory !== 0 && (
         <div
-          className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200 bg-white/95 backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.08)] px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200 bg-white/95 backdrop-blur-md shadow-[0_-2px_16px_rgba(0,0,0,0.06)] px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
           role="region"
           aria-label="Purchase options"
         >
-          <div className="mx-auto max-w-7xl flex flex-col gap-2.5">
+          <div className="mx-auto max-w-7xl flex flex-col gap-1.5">
             {product.variants?.length > 1 && (
               <div>
-                <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1">Size / Variant</p>
-                <div className="flex flex-wrap gap-1.5">
+                <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider mb-0.5">Size / Variant</p>
+                <div className="flex flex-wrap gap-1">
                   {product.variants.map((v) => (
                     <button
                       key={v.id}
                       type="button"
                       onClick={() => setSelectedVariant(v)}
-                      className={`rounded-lg border-2 px-3 py-1.5 text-xs font-medium transition ${
-                        variant?.id === v.id ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-300 text-neutral-700 hover:border-neutral-400 bg-white'
+                      className={`rounded-md border px-2 py-1 text-[11px] font-medium transition ${
+                        variant?.id === v.id ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-300 text-neutral-700 bg-white'
                       }`}
                     >
                       {v.name}
@@ -704,85 +704,85 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                 </div>
               </div>
             )}
-            <div>
-              <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1">Quantity</p>
-              <div className="inline-flex items-stretch rounded-xl border-2 border-neutral-200 bg-white">
-                <button
-                  type="button"
-                  onClick={() => setQty((n) => Math.max(1, (n || 1) - 1))}
-                  className="w-10 h-10 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-l-lg text-lg leading-none"
-                  aria-label="Decrease quantity"
-                >
-                  −
-                </button>
-                <div className="flex min-w-[2.75rem] items-center justify-center border-y border-neutral-100 bg-transparent px-1">
-                  <input
-                    type="number"
-                    min={1}
-                    max={99}
-                    value={effectiveQty}
-                    onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
-                    className="w-full min-w-0 text-center text-sm font-semibold tabular-nums text-neutral-900 border-0 bg-transparent p-0 m-0 h-10 leading-none align-middle focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                  />
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider shrink-0">Qty</span>
+                <div className="inline-flex items-stretch rounded-lg border border-neutral-200 bg-white">
+                  <button
+                    type="button"
+                    onClick={() => setQty((n) => Math.max(1, (n || 1) - 1))}
+                    className="w-8 h-8 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-l-md text-base leading-none"
+                    aria-label="Decrease quantity"
+                  >
+                    −
+                  </button>
+                  <div className="flex min-w-[2rem] items-center justify-center border-x border-neutral-100 bg-transparent px-0.5">
+                    <input
+                      type="number"
+                      min={1}
+                      max={99}
+                      value={effectiveQty}
+                      onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
+                      className="w-full min-w-0 text-center text-xs font-semibold tabular-nums text-neutral-900 border-0 bg-transparent p-0 m-0 h-8 leading-none align-middle focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setQty((n) => Math.min(99, (n || 1) + 1))}
+                    className="w-8 h-8 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-r-md text-base leading-none"
+                    aria-label="Increase quantity"
+                  >
+                    +
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setQty((n) => Math.min(99, (n || 1) + 1))}
-                  className="w-10 h-10 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-r-lg text-lg leading-none"
-                  aria-label="Increase quantity"
-                >
-                  +
-                </button>
               </div>
-            </div>
-            <div className="flex items-center justify-between gap-3 border-t border-neutral-200/80 pt-2.5">
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Subtotal</p>
+              <div className="text-right shrink-0 pl-1">
                 {effectiveQty > 1 && (
-                  <p className="text-xs text-neutral-500 tabular-nums mt-0.5">
+                  <p className="text-[10px] text-neutral-500 tabular-nums leading-tight">
                     {effectiveQty} × {formatPrice(price, currency)}
                   </p>
                 )}
-              </div>
-              <div className="text-right shrink-0">
                 {stickyCompareLineTotal != null &&
                   stickyCompareLineTotal > stickyLineTotal &&
                   Number.isFinite(stickyCompareLineTotal) && (
-                    <span className="block text-sm text-neutral-400 line-through tabular-nums">
+                    <span className="block text-[11px] text-neutral-400 line-through tabular-nums leading-tight">
                       {formatPrice(stickyCompareLineTotal, currency)}
                     </span>
                   )}
-                <p className="text-lg font-semibold text-neutral-900 tabular-nums leading-tight">
+                <p className="text-base font-semibold text-neutral-900 tabular-nums leading-tight">
                   {formatPrice(stickyLineTotal, currency)}
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                handleAddToCart();
-                setAddCartVibrate(true);
-                setTimeout(() => setAddCartVibrate(false), 400);
-              }}
-              className={`w-full rounded-2xl bg-neutral-900 py-3.5 text-sm font-semibold text-white hover:bg-neutral-800 transition shadow-md ${
-                addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
-              }`}
-            >
-              Add to cart
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                handleOrderNow();
-                setOrderNowVibrate(true);
-                setTimeout(() => setOrderNowVibrate(false), 400);
-              }}
-              className={`w-full rounded-2xl bg-gold-500 py-3.5 text-sm font-semibold text-neutral-900 hover:bg-gold-400 transition shadow-gold-sm ${
-                orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
-              }`}
-            >
-              Order now — Cash on delivery
-            </button>
+            <div className="grid grid-cols-2 gap-2 pt-0.5">
+              <button
+                type="button"
+                onClick={() => {
+                  handleAddToCart();
+                  setAddCartVibrate(true);
+                  setTimeout(() => setAddCartVibrate(false), 400);
+                }}
+                className={`min-h-[3rem] flex items-center justify-center rounded-xl bg-neutral-900 px-2 text-xs font-semibold text-white hover:bg-neutral-800 transition shadow-sm ${
+                  addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
+                }`}
+              >
+                Add to cart
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleOrderNow();
+                  setOrderNowVibrate(true);
+                  setTimeout(() => setOrderNowVibrate(false), 400);
+                }}
+                className={`min-h-[3rem] flex flex-col items-center justify-center gap-0 rounded-xl bg-gold-500 px-1.5 py-1 text-center text-xs font-semibold text-neutral-900 hover:bg-gold-400 transition shadow-sm leading-tight ${
+                  orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
+                }`}
+              >
+                <span>Order now</span>
+                <span className="text-[10px] font-medium text-neutral-800/90">Cash on delivery</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
