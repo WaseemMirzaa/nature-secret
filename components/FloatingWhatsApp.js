@@ -1,11 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { getContactSettings } from '@/lib/api';
 import { DEFAULT_CONTACT } from '@/lib/constants';
 import { getWhatsAppHref, handleWhatsAppClick, normalizeWhatsAppDigits } from '@/lib/whatsappLink';
 
 export function FloatingWhatsApp() {
+  const pathname = usePathname() || '';
+  const hideOnMobileShop = pathname === '/shop' || pathname.startsWith('/shop/');
+
   const [phoneDigits, setPhoneDigits] = useState(
     () => normalizeWhatsAppDigits(DEFAULT_CONTACT.whatsappNumber) || DEFAULT_CONTACT.whatsappNumber,
   );
@@ -26,7 +30,9 @@ export function FloatingWhatsApp() {
       href={waHref}
       onClick={(e) => handleWhatsAppClick(e, phoneDigits)}
       rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition hover:scale-110 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#25D366] focus:ring-offset-2"
+      className={`fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition hover:scale-110 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#25D366] focus:ring-offset-2 ${
+        hideOnMobileShop ? 'max-lg:hidden' : ''
+      }`}
       aria-label="Chat on WhatsApp"
     >
       <svg className="h-7 w-7" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
