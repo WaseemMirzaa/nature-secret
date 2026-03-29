@@ -8,6 +8,7 @@ import { useCartStore, useOrdersStore, useProductsStore, useCurrencyStore, useCu
 import { getDiscountCodes } from '@/lib/store';
 import {
   syncMetaPixelUserData,
+  metaPurchaseFiredStorageKey,
   trackCheckoutPageView,
   trackInitiateCheckout,
   trackPlaceOrderClick,
@@ -83,15 +84,17 @@ export default function CheckoutPage() {
 
   const lastInitiateCheckoutKeyRef = useRef(null);
   const lastCheckoutViewKeyRef = useRef(null);
+  /** Meta InitiateCheckout: cart / totals only — not on every form keystroke. */
   useEffect(() => {
     if (!mounted || items.length === 0) return;
     const contentIds = items.map((i) => i.productId);
-    const phoneDigits = String(form.phone || '').replace(/\D/g, '');
-    const key = `${currency}|${grandTotal}|${contentIds.join(',')}|${form.email || ''}|${phoneDigits}|${form.name || ''}|${form.city || ''}|${form.state || ''}|${form.pincode || ''}`;
+    const cartSig = items.map((i) => `${i.productId}:${i.variantId ?? ''}:${i.qty}`).join(';');
+    const key = `${currency}|${grandTotal}|${cartSig}|${contentIds.join(',')}`;
     if (lastInitiateCheckoutKeyRef.current === key) return;
     lastInitiateCheckoutKeyRef.current = key;
-    trackInitiateCheckout(grandTotal / 100, currency, contentIds);
-  }, [mounted, items, grandTotal, currency, form.email, form.phone, form.name, form.city, form.state, form.pincode]);
+    const numItems = items.reduce((n, i) => n + (i.qty || 1), 0);
+    trackInitiateCheckout(grandTotal / 100, currency, contentIds, numItems);
+  }, [mounted, items, grandTotal, currency]);
 
   useEffect(() => {
     if (!mounted || items.length === 0) return;
@@ -149,7 +152,17 @@ export default function CheckoutPage() {
       return;
     }
     syncMetaPixelUserData({ ...metaCustomer, externalId: orderId });
-    trackPurchase(orderId, grandTotal / 100, currency, items.map((i) => i.productId));
+    const purchaseContentIds = items.map((i) => i.productId);
+    const purchaseNumItems = items.reduce((n, i) => n + (i.qty || 1), 0);
+    try {
+      const dedupeKey = metaPurchaseFiredStorageKey(orderId);
+      if (!sessionStorage.getItem(dedupeKey)) {
+        trackPurchase(orderId, grandTotal / 100, currency, purchaseContentIds, purchaseNumItems);
+        sessionStorage.setItem(dedupeKey, '1');
+      }
+    } catch (_) {
+      trackPurchase(orderId, grandTotal / 100, currency, purchaseContentIds, purchaseNumItems);
+    }
     try {
       localStorage.setItem(
         'nature_secret_last_order_meta_customer',
@@ -323,7 +336,7 @@ export default function CheckoutPage() {
             <button
               type="submit"
               disabled={placing}
-              className="mt-5 sm:mt-6 hidden lg:flex w-full min-h-[3.25rem] items-center justify-center rounded-2xl bg-neutral-900 px-8 py-3.5 text-[0.9375rem] font-semibold leading-snug tracking-tight text-white shadow-[0_6px_20px_-4px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/[0.06] transition-all duration-200 hover:bg-neutral-800 hover:shadow-[0_10px_28px_-6px_rgba(0,0,0,0.42)] active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/55 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none animate-cta-attract hover:animate-none disabled:animate-none"
+              className="mt-5 sm:mt-6 max-lg:hidden flex w-full min-h-[3.25rem] items-center justify-center rounded-2xl bg-neutral-900 px-8 py-3.5 text-[0.9375rem] font-semibold leading-snug tracking-tight text-white shadow-[0_6px_20px_-4px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/[0.06] transition-all duration-200 hover:bg-neutral-800 hover:shadow-[0_10px_28px_-6px_rgba(0,0,0,0.42)] active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/55 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none animate-cta-attract hover:animate-none disabled:animate-none"
             >
               {placing ? 'Placing order…' : 'Place order (Cash on delivery)'}
             </button>

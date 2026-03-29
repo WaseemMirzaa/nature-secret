@@ -6,11 +6,10 @@ import Link from '@/components/Link';
 import Image from 'next/image';
 import { useProductsStore } from '@/lib/store';
 import { useProductsAndCategories } from '@/lib/useApiData';
-import { useCartStore, useCartOpenStore } from '@/lib/store';
-import { useWishlistStore } from '@/lib/store';
+import { useCartStore, useCartOpenStore, useWishlistStore, useCurrencyStore } from '@/lib/store';
 import { CartIcon } from '@/components/icons/CartIcon';
 import { HeartIcon } from '@/components/icons/HeartIcon';
-import { trackAddToCart } from '@/lib/analytics';
+import { trackAddToCart, trackAddToWishlist } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
 import { resolveImageUrl, productPath } from '@/lib/api';
 import { InlineLoader } from '@/components/ui/PageLoader';
@@ -45,6 +44,7 @@ function ShopContent() {
   const openCart = useCartOpenStore((s) => s.open);
   const wishlist = useWishlistStore((s) => s.productIds);
   const toggleWishlist = useWishlistStore((s) => s.toggle);
+  const currency = useCurrencyStore((s) => s.currency);
   const [quickAddVibrate, setQuickAddVibrate] = useState(null);
 
   function handleQuickAdd(product, variant) {
@@ -162,7 +162,19 @@ function ShopContent() {
                       )}
                       <button
                         type="button"
-                        onClick={(e) => { e.preventDefault(); toggleWishlist(product.id); }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const willAdd = !wishlist.includes(product.id);
+                          toggleWishlist(product.id);
+                          if (willAdd) {
+                            trackAddToWishlist(
+                              product.id,
+                              product.name ?? product.slug ?? 'Product',
+                              price / 100,
+                              currency,
+                            );
+                          }
+                        }}
                         className="absolute top-3 right-3 p-2 rounded-full bg-white/95 text-neutral-500 hover:text-gold-600 shadow-soft transition-colors"
                         aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
                       >

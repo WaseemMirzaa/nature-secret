@@ -1,13 +1,13 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useLayoutEffect, useRef } from 'react';
 import Link from '@/components/Link';
 import Image from 'next/image';
 import { useProductsStore, useCartStore, useCartOpenStore, useWishlistStore, useCurrencyStore } from '@/lib/store';
 import { useBreadcrumbLabel } from '@/lib/BreadcrumbContext';
 import { SHIPPING_POLICY, RETURN_POLICY } from '@/lib/constants';
-import { trackViewContent, trackAddToCart, trackOutOfStockView } from '@/lib/analytics';
+import { trackViewContent, trackAddToCart, trackAddToWishlist, trackOutOfStockView } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
 import { sanitizeHtml } from '@/lib/sanitizeHtml';
 import { getProductById, getProductBySlug, resolveImageUrl, getReviews, submitReview, productPath } from '@/lib/api';
@@ -97,12 +97,16 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
     return () => mq.removeEventListener('change', set);
   }, []);
 
-  useEffect(() => {
-    if (typeof window === 'undefined' || !isLg || !purchasePanelRef.current) {
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined' || !isLg) {
       setShowStickyBar(false);
       return;
     }
     const el = purchasePanelRef.current;
+    if (!el) {
+      setShowStickyBar(false);
+      return;
+    }
     const obs = new IntersectionObserver(
       ([e]) => {
         setShowStickyBar(!e.isIntersecting);
@@ -124,11 +128,16 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
   const currency = useCurrencyStore((s) => s.currency);
 
   useEffect(() => {
-    if (product) {
-      trackViewContent(product.id, product.name, product.price / 100);
-      if ((product.inventory ?? 0) === 0) trackOutOfStockView(product.id);
+    if (!product) return;
+    const variants = Array.isArray(product.variants) ? product.variants : [];
+    let cents = Number(product.price) || 0;
+    if (variants.length > 0) {
+      const vals = variants.map((v) => Number(v.price)).filter((p) => Number.isFinite(p) && p > 0);
+      if (vals.length) cents = Math.min(...vals);
     }
-  }, [product]);
+    trackViewContent(product.id, product.name ?? product.slug ?? 'Product', cents / 100, currency);
+    if ((product.inventory ?? 0) === 0) trackOutOfStockView(product.id);
+  }, [product, currency]);
 
   useEffect(() => {
     if (!product?.id) {
@@ -152,6 +161,16 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
   const wishlist = useWishlistStore((s) => s.productIds);
   const toggleWishlist = useWishlistStore((s) => s.toggle);
   const { setLastSegmentLabel } = useBreadcrumbLabel() || {};
+
+  function handleWishlistToggle() {
+    if (!product) return;
+    const willAdd = !wishlist.includes(product.id);
+    toggleWishlist(product.id);
+    if (willAdd) {
+      const cents = Number(variant?.price ?? product.price) || 0;
+      trackAddToWishlist(product.id, product.name ?? product.slug ?? 'Product', cents / 100, currency);
+    }
+  }
 
   useEffect(() => {
     if (product) {
@@ -277,7 +296,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
             />
             <button
               type="button"
-              onClick={() => toggleWishlist(product.id)}
+              onClick={handleWishlistToggle}
               className="absolute top-3 right-3 z-10 p-2.5 rounded-full bg-white/90 backdrop-blur-sm shadow-md border border-neutral-200/80 hover:bg-white hover:shadow-lg transition"
               aria-label="Wishlist"
             >
@@ -328,7 +347,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
           {/* Desktop: sticky purchase column — title → rating → price → summary → variant → qty → CTAs → shipping */}
           <div
             ref={purchasePanelRef}
-            className="hidden lg:block lg:sticky lg:top-24 xl:top-28 lg:self-start space-y-3 xl:space-y-4 pb-6 lg:pb-8 rounded-2xl lg:pl-0 xl:pl-1"
+            className="max-lg:hidden block lg:sticky lg:top-24 xl:top-28 lg:self-start space-y-3 xl:space-y-4 pb-6 lg:pb-8 rounded-2xl lg:pl-0 xl:pl-1"
           >
             <div>
               <h1 className="text-3xl xl:text-[2.125rem] font-semibold text-neutral-900 tracking-tight leading-[1.15]">{productDisplayName}</h1>
@@ -481,7 +500,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
       </div>
 
       {/* Desktop: FAQ + policies only */}
-      <section className="hidden lg:block mt-16 xl:mt-20 pt-12 xl:pt-16 border-t border-neutral-200">
+      <section className="max-lg:hidden block mt-16 xl:mt-20 pt-12 xl:pt-16 border-t border-neutral-200">
         {(product.faq || []).length > 0 && (
           <div>
             <h3 className="text-base font-semibold text-neutral-900 mb-4 xl:mb-5 tracking-tight">FAQ</h3>
@@ -790,7 +809,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
       {/* Desktop: sticky bottom bar when purchase panel scrolls out */}
       {showStickyBar && product.inventory !== 0 && (
         <div
-          className="hidden lg:flex fixed bottom-0 left-0 right-0 z-50 items-center justify-between gap-4 px-6 xl:px-10 py-3.5 xl:py-4 border-t border-neutral-200 bg-white/95 backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.08)]"
+          className="max-lg:hidden flex fixed bottom-0 left-0 right-0 z-50 items-center justify-between gap-4 px-6 xl:px-10 py-3.5 xl:py-4 border-t border-neutral-200 bg-white/95 backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.08)]"
           role="region"
           aria-label="Quick purchase"
         >
