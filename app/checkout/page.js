@@ -257,14 +257,30 @@ export default function CheckoutPage() {
         <div>
           <h2 className="text-xs sm:text-sm font-medium text-neutral-900 mb-2 lg:mb-4 tracking-tight">Contact & delivery</h2>
           <div className="space-y-2 sm:space-y-2.5 lg:space-y-4">
-            <input
-              type="email"
-              autoComplete="email"
-              placeholder="Email (optional)"
-              value={form.email}
-              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-              className="w-full rounded-lg lg:rounded-xl border border-neutral-200 px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
-            />
+            <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 sm:gap-2.5 lg:gap-4">
+              <input
+                type="email"
+                autoComplete="email"
+                placeholder="Email (optional)"
+                value={form.email}
+                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                className="min-w-0 w-full rounded-lg lg:rounded-xl border border-neutral-200 px-2.5 sm:px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
+              />
+              <input
+                type="tel"
+                required
+                minLength={10}
+                placeholder="Phone"
+                value={form.phone}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setForm((f) => ({ ...f, phone: next }));
+                  if (String(next || '').replace(/\D/g, '').length > 9) setPhoneError('');
+                }}
+                className="min-w-0 w-full rounded-lg lg:rounded-xl border border-neutral-200 px-2.5 sm:px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
+              />
+            </div>
+            {phoneError && <p className="text-xs sm:text-sm text-red-600 -mt-1 lg:-mt-2">{phoneError}</p>}
             <input
               type="text"
               required
@@ -273,20 +289,6 @@ export default function CheckoutPage() {
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               className="w-full rounded-lg lg:rounded-xl border border-neutral-200 px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
             />
-            <input
-              type="tel"
-              required
-              minLength={10}
-              placeholder="Phone"
-              value={form.phone}
-              onChange={(e) => {
-                const next = e.target.value;
-                setForm((f) => ({ ...f, phone: next }));
-                if (String(next || '').replace(/\D/g, '').length > 9) setPhoneError('');
-              }}
-              className="w-full rounded-lg lg:rounded-xl border border-neutral-200 px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
-            />
-            {phoneError && <p className="text-xs sm:text-sm text-red-600 -mt-1 lg:-mt-2">{phoneError}</p>}
             <textarea
               required
               placeholder="Address"
@@ -295,14 +297,14 @@ export default function CheckoutPage() {
               onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
               className="w-full rounded-lg lg:rounded-xl border border-neutral-200 px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900 min-h-[3.5rem] sm:min-h-[4rem] lg:min-h-0 resize-y"
             />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 lg:gap-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-2.5 lg:gap-4">
               <input
                 type="text"
                 required
                 placeholder="City"
                 value={form.city}
                 onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
-                className="rounded-lg lg:rounded-xl border border-neutral-200 px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
+                className="min-w-0 rounded-lg lg:rounded-xl border border-neutral-200 px-2.5 sm:px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
               />
               <input
                 type="text"
@@ -310,7 +312,7 @@ export default function CheckoutPage() {
                 placeholder="Pincode"
                 value={form.pincode}
                 onChange={(e) => setForm((f) => ({ ...f, pincode: e.target.value }))}
-                className="rounded-lg lg:rounded-xl border border-neutral-200 px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
+                className="min-w-0 rounded-lg lg:rounded-xl border border-neutral-200 px-2.5 sm:px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
               />
             </div>
           </div>
