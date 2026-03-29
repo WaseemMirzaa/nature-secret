@@ -53,10 +53,70 @@ export default function CheckoutPage() {
   const [orderError, setOrderError] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [discountError, setDiscountError] = useState('');
+  /** Mobile: virtual keyboard shrinks visual viewport — undock fixed bar to end of page */
+  const [keyboardOverlap, setKeyboardOverlap] = useState(false);
+  const formRef = useRef(null);
 
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
+  const mobileBarDocked = !keyboardOverlap;
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !mounted) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      const threshold = Math.max(96, window.innerHeight * 0.11);
+      setKeyboardOverlap(window.innerHeight - vv.height > threshold);
+    };
+    update();
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    window.addEventListener('resize', update);
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [mounted]);
+
+  /** Re-sync after focus moves (visualViewport can lag one frame on iOS) */
+  useEffect(() => {
+    if (typeof window === 'undefined' || !mounted || items.length === 0) return;
+    const el = formRef.current;
+    if (!el) return;
+    const mq = window.matchMedia('(max-width: 1023px)');
+    let t;
+    const syncFromVv = () => {
+      const vv = window.visualViewport;
+      if (!vv) return;
+      const th = Math.max(96, window.innerHeight * 0.11);
+      setKeyboardOverlap(window.innerHeight - vv.height > th);
+    };
+    const onFocusIn = (e) => {
+      if (!mq.matches || !e.target?.matches?.('input, textarea, select')) return;
+      clearTimeout(t);
+      t = setTimeout(syncFromVv, 120);
+    };
+    const onFocusOut = () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        if (!el.contains(document.activeElement)) {
+          setKeyboardOverlap(false);
+          return;
+        }
+        syncFromVv();
+      }, 200);
+    };
+    el.addEventListener('focusin', onFocusIn);
+    el.addEventListener('focusout', onFocusOut);
+    return () => {
+      clearTimeout(t);
+      el.removeEventListener('focusin', onFocusIn);
+      el.removeEventListener('focusout', onFocusOut);
+    };
+  }, [mounted, items.length]);
 
   useEffect(() => {
     if (!mounted || items.length === 0) return;
@@ -178,10 +238,25 @@ export default function CheckoutPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    const formEl = e.currentTarget;
+    if (formEl && typeof formEl.checkValidity === 'function' && !formEl.checkValidity()) {
+      const first = formEl.querySelector(':invalid');
+      if (first instanceof HTMLElement) {
+        first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        first.focus({ preventScroll: true });
+      }
+      formEl.reportValidity();
+      return;
+    }
     if (items.length === 0) return;
     const phoneDigits = String(form.phone || '').replace(/\D/g, '');
     if (phoneDigits.length <= 9) {
       setPhoneError('Phone number must be at least 10 digits.');
+      const phoneInput = formRef.current?.querySelector('input[name="phone"]');
+      if (phoneInput instanceof HTMLElement) {
+        phoneInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        phoneInput.focus({ preventScroll: true });
+      }
       return;
     }
     setPhoneError('');
@@ -248,22 +323,28 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-2.5 sm:py-4 lg:py-12 animate-slide-up max-lg:pb-[11rem] sm:max-lg:pb-[12rem]">
+    <div
+      className={`mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-2.5 sm:py-4 lg:py-12 animate-slide-up ${
+        mobileBarDocked ? 'max-lg:pb-[11rem] sm:max-lg:pb-[12rem]' : 'max-lg:pb-6 sm:max-lg:pb-8'
+      }`}
+    >
       <div className="mb-2 sm:mb-5 lg:mb-8">
         <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-neutral-900">Checkout</h1>
         <p className="mt-0.5 lg:mt-1 text-[11px] sm:text-xs lg:text-sm text-neutral-500 leading-snug">Complete your order. Add email if you want order updates by email; we&apos;ll also reach you on your phone.</p>
       </div>
       <form
+        ref={formRef}
         id="checkout-form"
         onSubmit={handleSubmit}
         className="flex flex-col lg:grid lg:grid-cols-2 gap-4 md:gap-5 lg:gap-12"
       >
-        <div className="order-2 lg:order-1 min-w-0">
+        <div id="checkout-contact" className="order-2 lg:order-1 min-w-0 scroll-mt-20">
           <h2 className="text-xs sm:text-sm font-medium text-neutral-900 mb-2 lg:mb-4 tracking-tight">Contact & delivery</h2>
           <div className="space-y-2 sm:space-y-2.5 lg:space-y-4">
             <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 sm:gap-2.5 lg:gap-4">
               <input
                 type="email"
+                name="email"
                 autoComplete="email"
                 placeholder="Email (optional)"
                 value={form.email}
@@ -272,6 +353,9 @@ export default function CheckoutPage() {
               />
               <input
                 type="tel"
+                name="phone"
+                inputMode="tel"
+                autoComplete="tel"
                 required
                 minLength={10}
                 placeholder="Phone"
@@ -287,6 +371,8 @@ export default function CheckoutPage() {
             {phoneError && <p className="text-xs sm:text-sm text-red-600 -mt-1 lg:-mt-2">{phoneError}</p>}
             <input
               type="text"
+              name="name"
+              autoComplete="name"
               required
               placeholder="Full name"
               value={form.name}
@@ -294,6 +380,8 @@ export default function CheckoutPage() {
               className="w-full rounded-lg lg:rounded-xl border border-neutral-200 px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
             />
             <textarea
+              name="address"
+              autoComplete="street-address"
               required
               placeholder="Address"
               rows={2}
@@ -304,6 +392,8 @@ export default function CheckoutPage() {
             <div className="grid grid-cols-2 gap-2 sm:gap-2.5 lg:gap-4">
               <input
                 type="text"
+                name="city"
+                autoComplete="address-level2"
                 required
                 placeholder="City"
                 value={form.city}
@@ -312,6 +402,8 @@ export default function CheckoutPage() {
               />
               <input
                 type="text"
+                name="pincode"
+                autoComplete="postal-code"
                 required
                 placeholder="Pincode"
                 value={form.pincode}
@@ -377,6 +469,7 @@ export default function CheckoutPage() {
             <div className="flex gap-1.5 sm:gap-2 mb-2 sm:mb-3 lg:mb-4">
               <input
                 type="text"
+                name="discountCode"
                 placeholder="Discount code"
                 value={discountCode}
                 onChange={(e) => setDiscountCode(e.target.value)}
@@ -408,11 +501,15 @@ export default function CheckoutPage() {
         </div>
       </form>
 
-      {/* Mobile / tablet: totals stacked above full-width place order */}
+      {/* Mobile: fixed dock; when keyboard/focus — inline at end so fields stay visible */}
       <div
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.08)] pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+        className={
+          mobileBarDocked
+            ? 'lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.08)] pb-[max(0.75rem,env(safe-area-inset-bottom))]'
+            : 'lg:hidden relative z-10 mt-8 w-full border-t border-neutral-200 bg-white shadow-[0_-2px_20px_rgba(0,0,0,0.06)] rounded-t-2xl pb-[max(0.75rem,env(safe-area-inset-bottom))]'
+        }
         role="region"
-        aria-label="Place order"
+        aria-label="Order total and place order"
       >
         <div className="mx-auto max-w-7xl w-full px-3 sm:px-5 pt-3 sm:pt-4">
           {orderError && (
