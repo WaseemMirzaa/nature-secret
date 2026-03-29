@@ -21,6 +21,16 @@ export class AdminService {
     private ordersService: OrdersService,
   ) {}
 
+  /** Last 7 calendar days including today (local server date). */
+  private defaultOrderDateRange(): { from: string; to: string } {
+    const to = new Date();
+    const from = new Date(to);
+    from.setDate(from.getDate() - 6);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    return { from: fmt(from), to: fmt(to) };
+  }
+
   async getOrders(params: { page?: number; limit?: number; status?: string; search?: string; dateFrom?: string; dateTo?: string; groupBy?: string }) {
     try {
       const page = Math.max(1, params.page || 1);
@@ -31,7 +41,11 @@ export class AdminService {
         .leftJoinAndSelect('o.statusTimeline', 'timeline')
         .leftJoin('o.customer', 'cust');
       qb.andWhere('(o.customerId IS NULL OR cust.blocked = 0)');
-      if (params.status && params.status !== 'all') qb.andWhere('o.status = :status', { status: params.status });
+      if (params.status && params.status !== 'all') {
+        qb.andWhere('o.status = :status', { status: params.status });
+      } else {
+        qb.andWhere('o.status != :cancelled', { cancelled: 'cancelled' });
+      }
       if (params.search && params.search.trim()) {
         const s = `%${params.search.trim()}%`;
         qb.andWhere('(o.id LIKE :s)', { s });
@@ -40,9 +54,9 @@ export class AdminService {
       let from = validDate(params.dateFrom);
       let to = validDate(params.dateTo);
       if (!from && !to) {
-        const today = new Date().toISOString().slice(0, 10);
-        from = today;
-        to = today;
+        const d = this.defaultOrderDateRange();
+        from = d.from;
+        to = d.to;
       }
       if (from) qb.andWhere('o.createdAt >= :from', { from });
       if (to) qb.andWhere('o.createdAt <= :to', { to: `${to}T23:59:59` });
@@ -243,7 +257,7 @@ export class AdminService {
   async getDashboard(params?: { dateFrom?: string; dateTo?: string }) {
     try {
       const validDate = (s: string | undefined) => s && s !== 'undefined' && /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : undefined;
-      const qb = this.orderRepo.createQueryBuilder('o');
+      const qb = this.orderRepo.createQueryBuilder('o').andWhere('o.status != :cancelled', { cancelled: 'cancelled' });
       const from = validDate(params?.dateFrom);
       const to = validDate(params?.dateTo);
       if (from) qb.andWhere('o.createdAt >= :from', { from });
@@ -257,8 +271,19 @@ export class AdminService {
       todayStart.setHours(0, 0, 0, 0);
       const todayEnd = new Date(todayStart);
       todayEnd.setDate(todayEnd.getDate() + 1);
-      const todayOrders = await this.orderRepo.createQueryBuilder('o').where('o.createdAt >= :start', { start: todayStart }).andWhere('o.createdAt < :end', { end: todayEnd }).getCount();
-      const revenueTodayRaw = await this.orderRepo.createQueryBuilder('o').select('COALESCE(SUM(o.total), 0)', 'sum').where('o.createdAt >= :start', { start: todayStart }).andWhere('o.createdAt < :end', { end: todayEnd }).getRawOne();
+      const todayOrders = await this.orderRepo
+        .createQueryBuilder('o')
+        .where('o.createdAt >= :start', { start: todayStart })
+        .andWhere('o.createdAt < :end', { end: todayEnd })
+        .andWhere('o.status != :cancelled', { cancelled: 'cancelled' })
+        .getCount();
+      const revenueTodayRaw = await this.orderRepo
+        .createQueryBuilder('o')
+        .select('COALESCE(SUM(o.total), 0)', 'sum')
+        .where('o.createdAt >= :start', { start: todayStart })
+        .andWhere('o.createdAt < :end', { end: todayEnd })
+        .andWhere('o.status != :cancelled', { cancelled: 'cancelled' })
+        .getRawOne();
       const revenueToday = Number(revenueTodayRaw?.sum || 0);
 
       const statuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'];

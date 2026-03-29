@@ -71,7 +71,7 @@ export default function AdminDashboardPage() {
   const stats = useApi && apiStats
     ? { ...apiStats, revenueToday: apiStats.revenueToday ?? 0 }
     : (() => {
-        const list = localOrders || [];
+        const list = (localOrders || []).filter((o) => o.status !== 'cancelled');
         const totalSales = list.reduce((s, o) => s + (o.total || 0), 0);
         const today = new Date().toDateString();
         const ordersToday = list.filter((o) => new Date(o.createdAt).toDateString() === today).length;
@@ -110,19 +110,19 @@ export default function AdminDashboardPage() {
       </div>
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="rounded-2xl border border-neutral-200 bg-white p-6">
-          <p className="text-sm text-neutral-500">Total sales</p>
+          <p className="text-sm text-neutral-500">Total sales <span className="text-neutral-400 font-normal">(excl. cancelled)</span></p>
           <p className="mt-1 text-2xl font-semibold text-neutral-900">{_format(stats.totalSales, currency)}</p>
         </div>
         <div className="rounded-2xl border border-neutral-200 bg-white p-6">
-          <p className="text-sm text-neutral-500">Orders (all)</p>
+          <p className="text-sm text-neutral-500">Orders (excl. cancelled)</p>
           <p className="mt-1 text-2xl font-semibold text-neutral-900">{stats.ordersCount}</p>
         </div>
         <div className="rounded-2xl border border-neutral-200 bg-white p-6">
-          <p className="text-sm text-neutral-500">Orders today</p>
+          <p className="text-sm text-neutral-500">Orders today <span className="text-neutral-400 font-normal">(excl. cancelled)</span></p>
           <p className="mt-1 text-2xl font-semibold text-neutral-900">{stats.ordersToday}</p>
         </div>
         <div className="rounded-2xl border border-neutral-200 bg-white p-6">
-          <p className="text-sm text-neutral-500">Revenue today</p>
+          <p className="text-sm text-neutral-500">Revenue today <span className="text-neutral-400 font-normal">(excl. cancelled)</span></p>
           <p className="mt-1 text-2xl font-semibold text-neutral-900">{_format(stats.revenueToday ?? 0, currency)}</p>
         </div>
       </div>

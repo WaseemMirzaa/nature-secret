@@ -14,6 +14,15 @@ const STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 
 const STAFF_STATUSES = ['shipped', 'delivered', 'cancelled', 'returned'];
 const PAGE_SIZE = 50;
 
+function getDefaultAdminOrderDateRange() {
+  const to = new Date();
+  const from = new Date(to);
+  from.setDate(from.getDate() - 6);
+  const pad = (n) => String(n).padStart(2, '0');
+  const fmt = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  return { dateFrom: fmt(from), dateTo: fmt(to) };
+}
+
 function statusSequence(order) {
   const tl = order?.statusTimeline || [];
   if (!tl.length) return order?.status ? [order.status] : [];
@@ -44,8 +53,8 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [dateFrom, setDateFrom] = useState(() => getDefaultAdminOrderDateRange().dateFrom);
+  const [dateTo, setDateTo] = useState(() => getDefaultAdminOrderDateRange().dateTo);
   const [page, setPage] = useState(1);
   const [isStaff, setIsStaff] = useState(false);
   const [selected, setSelected] = useState(new Set());
@@ -112,6 +121,7 @@ export default function AdminOrdersPage() {
   const filtered = useMemo(() => {
     if (useApi) return Array.isArray(apiOrders) ? apiOrders : [];
     let list = localOrders || [];
+    if (statusFilter === 'all') list = list.filter((o) => o.status !== 'cancelled');
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter(
@@ -212,8 +222,19 @@ export default function AdminOrdersPage() {
         />
         <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="rounded-xl border border-neutral-200 px-4 py-2.5 text-sm min-w-0" />
         <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="rounded-xl border border-neutral-200 px-4 py-2.5 text-sm min-w-0" />
+        <button
+          type="button"
+          onClick={() => {
+            const r = getDefaultAdminOrderDateRange();
+            setDateFrom(r.dateFrom);
+            setDateTo(r.dateTo);
+          }}
+          className="rounded-xl border border-neutral-200 px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50"
+        >
+          Last 7 days
+        </button>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-xl border border-neutral-200 px-4 py-2.5 text-sm min-w-0">
-          <option value="all">All statuses</option>
+          <option value="all">All (excl. cancelled)</option>
           {STATUSES.map((s) => (
             <option key={s} value={s}>{s}</option>
           ))}
