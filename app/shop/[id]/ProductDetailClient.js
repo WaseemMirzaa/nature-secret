@@ -157,6 +157,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
   }, [product?.id, slugOrId, initialFromServer, initialReviews]);
 
   const addToCart = useCartStore((s) => s.addItem);
+  const cartItems = useCartStore((s) => s.items);
   const openCart = useCartOpenStore((s) => s.open);
   const wishlist = useWishlistStore((s) => s.productIds);
   const toggleWishlist = useWishlistStore((s) => s.toggle);
@@ -237,15 +238,20 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
 
   function handleOrderNow() {
     if (!variant) return;
-    addToCart({
-      productId: product.id,
-      variantId: variant.id,
-      price: variant.price,
-      name: product.name,
-      image: (variant.images && variant.images[0]) || variant.image || product.images?.[0],
-      qty: effectiveQty,
-    });
-    trackAddToCart(product.id, product.name, variant.price / 100, effectiveQty);
+    const alreadyInCart = cartItems.some(
+      (i) => i.productId === product.id && i.variantId === variant.id,
+    );
+    if (!alreadyInCart) {
+      addToCart({
+        productId: product.id,
+        variantId: variant.id,
+        price: variant.price,
+        name: product.name,
+        image: (variant.images && variant.images[0]) || variant.image || product.images?.[0],
+        qty: effectiveQty,
+      });
+      trackAddToCart(product.id, product.name, variant.price / 100, effectiveQty);
+    }
     router.push('/checkout');
   }
 
