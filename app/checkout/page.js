@@ -26,6 +26,7 @@ import {
   isNsPromoWindowActive,
   normalizePromoCode,
   NS_PROMO_CODE,
+  NS_PROMO_DURATION_MINUTES,
   setSessionDiscountCode,
 } from '@/lib/nsSessionPromo';
 
@@ -51,6 +52,9 @@ export default function CheckoutPage() {
   const [placing, setPlacing] = useState(false);
   const [orderError, setOrderError] = useState('');
   const [phoneError, setPhoneError] = useState('');
+  const [discountError, setDiscountError] = useState('');
+
+  const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
 
   useEffect(() => setMounted(true), []);
 
@@ -98,7 +102,6 @@ export default function CheckoutPage() {
     }));
   }, [mounted, customer?.id]);
 
-  const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
   const codes = getDiscountCodes();
   const discountAmount = getDiscountAmountForCode(subtotal, appliedDiscount, codes);
   const total = subtotal - discountAmount;
@@ -150,7 +153,9 @@ export default function CheckoutPage() {
     const c = getDiscountCodes();
     if (isNsPromoCode(code)) {
       if (!isNsPromoWindowActive()) {
-        setDiscountError('This session offer has expired. You can still use other codes.');
+        setDiscountError(
+          `This ${NS_PROMO_DURATION_MINUTES}-minute offer window has ended. You can still use other codes.`,
+        );
         return;
       }
       setAppliedDiscount(NS_PROMO_CODE);
