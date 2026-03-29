@@ -253,8 +253,12 @@ export default function CheckoutPage() {
         <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-neutral-900">Checkout</h1>
         <p className="mt-0.5 lg:mt-1 text-[11px] sm:text-xs lg:text-sm text-neutral-500 leading-snug">Complete your order. Add email if you want order updates by email; we&apos;ll also reach you on your phone.</p>
       </div>
-      <form id="checkout-form" onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-5 lg:gap-12">
-        <div>
+      <form
+        id="checkout-form"
+        onSubmit={handleSubmit}
+        className="flex flex-col lg:grid lg:grid-cols-2 gap-4 md:gap-5 lg:gap-12"
+      >
+        <div className="order-2 lg:order-1 min-w-0">
           <h2 className="text-xs sm:text-sm font-medium text-neutral-900 mb-2 lg:mb-4 tracking-tight">Contact & delivery</h2>
           <div className="space-y-2 sm:space-y-2.5 lg:space-y-4">
             <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 sm:gap-2.5 lg:gap-4">
@@ -319,10 +323,10 @@ export default function CheckoutPage() {
           <p className="mt-2 sm:mt-3 lg:mt-4 text-[11px] sm:text-xs lg:text-sm text-neutral-500">Payment: Cash on delivery.</p>
         </div>
 
-        <div>
-          <div className="rounded-xl lg:rounded-2xl border border-neutral-200 bg-neutral-50 p-3 sm:p-4 lg:p-6 lg:sticky lg:top-24">
+        <div className="order-1 lg:order-2 min-w-0">
+          <div className="rounded-xl lg:rounded-2xl border border-neutral-200 bg-neutral-50 p-3 sm:p-4 lg:p-6 lg:sticky lg:top-24 max-lg:shadow-sm">
             <h2 className="text-xs sm:text-sm font-medium text-neutral-900 mb-2 lg:mb-4 tracking-tight">Order summary</h2>
-            <ul className="space-y-2 sm:space-y-2.5 lg:space-y-4 mb-2 sm:mb-3 lg:mb-4">
+            <ul className="space-y-2 sm:space-y-2.5 lg:space-y-4 mb-2 sm:mb-3 lg:mb-4 max-lg:max-h-[min(42vh,260px)] max-lg:overflow-y-auto max-lg:overscroll-contain max-lg:-mr-1 max-lg:pr-1 touch-pan-y">
               {items.map((i) => {
                 const p = getProduct(i.productId);
                 const variant = getVariant(i.productId, i.variantId);
