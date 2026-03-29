@@ -1,10 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from '@/components/Link';
 import Image from 'next/image';
 import { useCartStore, useCartOpenStore, useProductsStore, useCurrencyStore } from '@/lib/store';
 import { getDiscountCodes } from '@/lib/store';
+import {
+  getDiscountAmountForCode,
+  getSessionDiscountCode,
+  initNsPromoDeadline,
+  isNsPromoCode,
+  isNsPromoWindowActive,
+  normalizePromoCode,
+  NS_PROMO_CODE,
+  setSessionDiscountCode,
+} from '@/lib/nsSessionPromo';
 import { formatPrice } from '@/lib/currency';
 import { Logo } from '@/components/Logo';
 import { useProductsAndCategories } from '@/lib/useApiData';
@@ -20,16 +30,63 @@ export function CartDrawer() {
   const discountCodes = getDiscountCodes();
   const [discountCode, setDiscountCode] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState(null);
-  const discountPercent = appliedDiscount ? (discountCodes[appliedDiscount] ?? 0) : 0;
-  const discountAmount = Math.round((subtotal * discountPercent) / 100);
+  const [discountError, setDiscountError] = useState('');
+  const discountAmount = getDiscountAmountForCode(subtotal, appliedDiscount, discountCodes);
   const total = subtotal - discountAmount;
   const shipping = total >= 99900 ? 0 : 9900; // Free over ₹999, else ₹99
   const totalWithShipping = total + shipping;
 
   function applyDiscount() {
-    const code = discountCode.trim().toUpperCase();
-    if (discountCodes[code] != null) setAppliedDiscount(code);
+    setDiscountError('');
+    const code = normalizePromoCode(discountCode);
+    if (!code) return;
+    initNsPromoDeadline();
+    const c = getDiscountCodes();
+    if (isNsPromoCode(code)) {
+      if (!isNsPromoWindowActive()) {
+        setDiscountError('Session offer expired.');
+        return;
+      }
+      setAppliedDiscount(NS_PROMO_CODE);
+      setSessionDiscountCode(NS_PROMO_CODE);
+      return;
+    }
+    if (c[code] != null) {
+      setAppliedDiscount(code);
+      setSessionDiscountCode(code);
+    } else {
+      setDiscountError('Invalid code.');
+    }
   }
+
+  useEffect(() => {
+    if (!isOpen || items.length === 0) return;
+    initNsPromoDeadline();
+    const saved = getSessionDiscountCode();
+    if (!saved) return;
+    const norm = normalizePromoCode(saved);
+    const c = getDiscountCodes();
+    if (isNsPromoCode(norm) && !isNsPromoWindowActive()) {
+      setSessionDiscountCode('');
+      setAppliedDiscount(null);
+      return;
+    }
+    const d = getDiscountAmountForCode(subtotal, norm, c);
+    if (d > 0 || (!isNsPromoCode(norm) && c[norm] != null)) {
+      setAppliedDiscount(norm);
+    }
+  }, [isOpen, items, subtotal]);
+
+  useEffect(() => {
+    if (!isOpen || !appliedDiscount || !isNsPromoCode(appliedDiscount)) return;
+    const id = setInterval(() => {
+      if (!isNsPromoWindowActive()) {
+        setAppliedDiscount(null);
+        setSessionDiscountCode('');
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [isOpen, appliedDiscount]);
 
   const currency = useCurrencyStore((s) => s.currency);
   const getProduct = (productId) => (products || []).find((p) => p.id === productId);
@@ -98,7 +155,14 @@ export function CartDrawer() {
               />
               <button type="button" onClick={applyDiscount} className="rounded-lg sm:rounded-xl bg-neutral-900 text-white px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium">Apply</button>
             </div>
-            {appliedDiscount && <p className="text-xs text-green-600">Code applied: {discountPercent}% off</p>}
+            {discountError && <p className="text-xs text-red-600">{discountError}</p>}
+            {appliedDiscount && !discountError && (
+              <p className="text-xs text-green-600">
+                {isNsPromoCode(appliedDiscount)
+                  ? `${NS_PROMO_CODE} — Rs 150 off`
+                  : `Code applied: ${discountCodes[appliedDiscount]}% off`}
+              </p>
+            )}
             <div className="text-xs sm:text-sm text-neutral-500">Subtotal: {formatPrice(subtotal, currency)}</div>
             {discountAmount > 0 && <div className="text-xs sm:text-sm text-green-600">Discount: −{formatPrice(discountAmount, currency)}</div>}
             <div className="text-xs sm:text-sm text-neutral-500">Shipping: {shipping === 0 ? 'Free' : formatPrice(shipping, currency)}</div>

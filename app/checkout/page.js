@@ -18,6 +18,16 @@ import { formatPrice } from '@/lib/currency';
 import { createOrder as apiCreateOrder, trackAnalytics } from '@/lib/api';
 import { useProductsAndCategories } from '@/lib/useApiData';
 import { CustomerPageLoader } from '@/components/ui/PageLoader';
+import {
+  getDiscountAmountForCode,
+  getSessionDiscountCode,
+  initNsPromoDeadline,
+  isNsPromoCode,
+  isNsPromoWindowActive,
+  normalizePromoCode,
+  NS_PROMO_CODE,
+  setSessionDiscountCode,
+} from '@/lib/nsSessionPromo';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -36,7 +46,6 @@ export default function CheckoutPage() {
     phone: '',
     address: '',
     city: '',
-    state: '',
     pincode: '',
   });
   const [placing, setPlacing] = useState(false);
@@ -44,6 +53,35 @@ export default function CheckoutPage() {
   const [phoneError, setPhoneError] = useState('');
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!mounted || items.length === 0) return;
+    initNsPromoDeadline();
+    const saved = getSessionDiscountCode();
+    if (!saved) return;
+    const norm = normalizePromoCode(saved);
+    const c = getDiscountCodes();
+    if (isNsPromoCode(norm) && !isNsPromoWindowActive()) {
+      setSessionDiscountCode('');
+      setAppliedDiscount(null);
+      return;
+    }
+    const d = getDiscountAmountForCode(subtotal, norm, c);
+    if (d > 0 || (!isNsPromoCode(norm) && c[norm] != null)) {
+      setAppliedDiscount(norm);
+    }
+  }, [mounted, items, subtotal]);
+
+  useEffect(() => {
+    if (!mounted || !appliedDiscount || !isNsPromoCode(appliedDiscount)) return;
+    const id = setInterval(() => {
+      if (!isNsPromoWindowActive()) {
+        setAppliedDiscount(null);
+        setSessionDiscountCode('');
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [mounted, appliedDiscount]);
   useEffect(() => {
     const onPop = () => router.back();
     window.addEventListener('popstate', onPop);
@@ -62,8 +100,7 @@ export default function CheckoutPage() {
 
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
   const codes = getDiscountCodes();
-  const discountPct = appliedDiscount ? (codes[appliedDiscount] ?? 0) : 0;
-  const discountAmount = Math.round((subtotal * discountPct) / 100);
+  const discountAmount = getDiscountAmountForCode(subtotal, appliedDiscount, codes);
   const total = subtotal - discountAmount;
   const shipping = total >= 99900 ? 0 : 9900;
   const grandTotal = total + shipping;
@@ -72,7 +109,6 @@ export default function CheckoutPage() {
     name: form.name,
     phone: form.phone,
     city: form.city,
-    state: form.state,
     pincode: form.pincode,
     country: 'pk',
   };
@@ -80,7 +116,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (!mounted) return;
     syncMetaPixelUserData(metaCustomer);
-  }, [mounted, form.email, form.name, form.phone, form.city, form.state, form.pincode]);
+  }, [mounted, form.email, form.name, form.phone, form.city, form.pincode]);
 
   const lastInitiateCheckoutKeyRef = useRef(null);
   const lastCheckoutViewKeyRef = useRef(null);
@@ -104,11 +140,29 @@ export default function CheckoutPage() {
     if (lastCheckoutViewKeyRef.current === key) return;
     lastCheckoutViewKeyRef.current = key;
     trackCheckoutPageView(grandTotal / 100, currency, contentIds);
-  }, [mounted, items, grandTotal, currency, form.email, form.name, form.phone, form.city, form.state, form.pincode]);
+  }, [mounted, items, grandTotal, currency, form.email, form.name, form.phone, form.city, form.pincode]);
 
   function applyDiscount() {
-    const code = discountCode.trim().toUpperCase();
-    if (codes[code] != null) setAppliedDiscount(code);
+    setDiscountError('');
+    const code = normalizePromoCode(discountCode);
+    if (!code) return;
+    initNsPromoDeadline();
+    const c = getDiscountCodes();
+    if (isNsPromoCode(code)) {
+      if (!isNsPromoWindowActive()) {
+        setDiscountError('This session offer has expired. You can still use other codes.');
+        return;
+      }
+      setAppliedDiscount(NS_PROMO_CODE);
+      setSessionDiscountCode(NS_PROMO_CODE);
+      return;
+    }
+    if (c[code] != null) {
+      setAppliedDiscount(code);
+      setSessionDiscountCode(code);
+    } else {
+      setDiscountError('Invalid code.');
+    }
   }
 
   const getProduct = (id) => (Array.isArray(products) ? products.find((p) => p.id === id) : null);
@@ -128,7 +182,7 @@ export default function CheckoutPage() {
     setPhoneError('');
     setPlacing(true);
     setOrderError('');
-    const addressStr = `${form.address}, ${form.city}, ${form.state} ${form.pincode}`;
+    const addressStr = `${form.address}, ${form.city}, ${form.pincode}`;
     const orderPayload = {
       customerName: form.name,
       email: form.email,
@@ -170,6 +224,8 @@ export default function CheckoutPage() {
       );
     } catch (_) {}
     try { await trackAnalytics({ type: 'purchase', orderId, sessionId: `sess-${Date.now()}`, payload: {} }); } catch (_) {}
+    /** Let Meta Pixel send Purchase before Next.js navigates away (immediate push often drops the event). */
+    await new Promise((r) => setTimeout(r, 400));
     clear();
     setPlacing(false);
     router.push(`/checkout/confirmation?order=${orderId}`);
@@ -190,7 +246,7 @@ export default function CheckoutPage() {
     <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-2.5 sm:py-4 lg:py-12 animate-slide-up max-lg:pb-[11rem] sm:max-lg:pb-[12rem]">
       <div className="mb-2 sm:mb-5 lg:mb-8">
         <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-neutral-900">Checkout</h1>
-        <p className="mt-0.5 lg:mt-1 text-[11px] sm:text-xs lg:text-sm text-neutral-500 leading-snug">Complete your order. We&apos;ll confirm via email.</p>
+        <p className="mt-0.5 lg:mt-1 text-[11px] sm:text-xs lg:text-sm text-neutral-500 leading-snug">Complete your order. Add email if you want order updates by email; we&apos;ll also reach you on your phone.</p>
       </div>
       <form id="checkout-form" onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-5 lg:gap-12">
         <div>
@@ -198,8 +254,8 @@ export default function CheckoutPage() {
           <div className="space-y-2 sm:space-y-2.5 lg:space-y-4">
             <input
               type="email"
-              required
-              placeholder="Email"
+              autoComplete="email"
+              placeholder="Email (optional)"
               value={form.email}
               onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
               className="w-full rounded-lg lg:rounded-xl border border-neutral-200 px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
@@ -234,21 +290,13 @@ export default function CheckoutPage() {
               onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
               className="w-full rounded-lg lg:rounded-xl border border-neutral-200 px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900 min-h-[3.5rem] sm:min-h-[4rem] lg:min-h-0 resize-y"
             />
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-2.5 lg:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 lg:gap-4">
               <input
                 type="text"
                 required
                 placeholder="City"
                 value={form.city}
                 onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
-                className="rounded-lg lg:rounded-xl border border-neutral-200 px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
-              />
-              <input
-                type="text"
-                required
-                placeholder="State"
-                value={form.state}
-                onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))}
                 className="rounded-lg lg:rounded-xl border border-neutral-200 px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
               />
               <input
@@ -325,7 +373,12 @@ export default function CheckoutPage() {
               />
               <button type="button" onClick={applyDiscount} className="shrink-0 rounded-lg lg:rounded-xl bg-neutral-900 text-white px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium">Apply</button>
             </div>
-            {appliedDiscount && <p className="text-[11px] sm:text-xs text-green-600 mb-1.5 sm:mb-2">Code applied</p>}
+            {discountError && <p className="text-[11px] sm:text-xs text-red-600 mb-1.5 sm:mb-2">{discountError}</p>}
+            {appliedDiscount && !discountError && (
+              <p className="text-[11px] sm:text-xs text-green-600 mb-1.5 sm:mb-2">
+                {isNsPromoCode(appliedDiscount) ? `${NS_PROMO_CODE} applied — Rs 150 off` : `Code applied (${codes[appliedDiscount]}% off)`}
+              </p>
+            )}
             <div className="space-y-1 sm:space-y-1.5 lg:space-y-2 text-xs sm:text-sm">
               <div className="flex justify-between gap-2 text-neutral-600"><span>Subtotal</span><span className="tabular-nums shrink-0">{formatPrice(subtotal, currency)}</span></div>
               {discountAmount > 0 && <div className="flex justify-between gap-2 text-green-600"><span>Discount</span><span className="tabular-nums shrink-0">−{formatPrice(discountAmount, currency)}</span></div>}

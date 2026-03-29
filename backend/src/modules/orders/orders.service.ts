@@ -63,11 +63,12 @@ export class OrdersService {
       if (attempt === 9) throw new BadRequestException('Could not generate unique order ID. Please try again.');
     }
     if (!orderId) throw new BadRequestException('Could not generate order ID. Please try again.');
+    const emailTrimmed = dto.email?.trim() || null;
     const order = this.orderRepo.create({
       id: orderId,
       customerId: dto.customerId ?? null,
       customerName: dto.customerName ?? null,
-      email: dto.email ?? null,
+      email: emailTrimmed,
       phone: dto.phone ?? null,
       address: dto.address ?? null,
       total: dto.total,
