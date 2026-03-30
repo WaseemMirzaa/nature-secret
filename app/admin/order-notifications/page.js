@@ -50,7 +50,6 @@ export default function OrderNotificationsPage() {
         setLoading(false);
         return;
       }
-      const reg = await navigator.serviceWorker.register('/sw.js');
 
       const { getMessaging, getToken } = await import('firebase/messaging');
       const app = getApp();
@@ -60,10 +59,8 @@ export default function OrderNotificationsPage() {
         return;
       }
       const messaging = getMessaging(app);
-      const token = await getToken(
-        messaging,
-        vapidKey ? { vapidKey, serviceWorkerRegistration: reg } : { serviceWorkerRegistration: reg },
-      );
+      // Use default /firebase-messaging-sw.js (rewritten to API with Firebase Messaging + onBackgroundMessage).
+      const token = await getToken(messaging, vapidKey ? { vapidKey } : undefined);
       if (!token) {
         setError('Could not get notification token. Try again or check browser support.');
         setLoading(false);

@@ -68,7 +68,14 @@ export class PushService {
 
   async sendToAllFcm(payload: { title: string; body?: string; url?: string }) {
     const messaging = this.firebaseService.getMessaging();
-    if (!messaging || this.fcmTokens.length === 0) return;
+    if (!messaging) {
+      this.logger.warn('FCM skipped: Firebase Admin not configured (FIREBASE_* env).');
+      return;
+    }
+    if (this.fcmTokens.length === 0) {
+      this.logger.warn('FCM skipped: no admin device tokens (enable notifications on Admin → Order notifications).');
+      return;
+    }
     const data: Record<string, string> = payload.url ? { url: payload.url } : {};
     const results = await Promise.allSettled(
       this.fcmTokens.map((token) =>

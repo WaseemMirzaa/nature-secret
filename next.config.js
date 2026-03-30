@@ -28,6 +28,15 @@ function getImagesConfig() {
 const nextConfig = {
   images: getImagesConfig(),
   compress: true,
+  async rewrites() {
+    // FCM expects /firebase-messaging-sw.js at origin; serve dynamic SW with env-injected config.
+    return [
+      {
+        source: '/firebase-messaging-sw.js',
+        destination: '/api/firebase-messaging-sw',
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
