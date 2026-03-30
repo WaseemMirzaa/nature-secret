@@ -83,7 +83,28 @@ export class PushService {
           token,
           notification: { title: payload.title, body: payload.body || '' },
           ...(Object.keys(data).length > 0 && { data }),
-          ...(payload.url && { webpush: { fcmOptions: { link: payload.url } } }),
+          android: {
+            priority: 'high',
+            notification: {
+              channelId: 'orders',
+              priority: 'max',
+              defaultSound: true,
+              visibility: 'public',
+            },
+          },
+          webpush: {
+            headers: {
+              Urgency: 'high',
+              TTL: '2419200',
+            },
+            notification: {
+              requireInteraction: true,
+              renotify: true,
+              tag: payload.url ? `order-${payload.url}` : 'new-order',
+              vibrate: [300, 150, 300],
+            },
+            ...(payload.url && { fcmOptions: { link: payload.url } }),
+          },
         }),
       ),
     );

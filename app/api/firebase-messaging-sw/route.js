@@ -37,6 +37,10 @@ messaging.onBackgroundMessage((payload) => {
     body,
     icon: '/assets/nature-secret-logo.svg',
     badge: '/assets/nature-secret-logo.svg',
+    tag: url ? 'order-' + url : 'new-order',
+    renotify: true,
+    requireInteraction: true,
+    vibrate: [300, 150, 300],
     data: { url },
   });
 });
