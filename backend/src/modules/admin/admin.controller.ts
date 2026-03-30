@@ -139,6 +139,12 @@ export class AdminController {
     return this.whatsappLink.getQR();
   }
 
+  @Post('whatsapp/relink')
+  @AdminOnly()
+  async whatsappRelink() {
+    return this.whatsappLink.relink();
+  }
+
   @Get('support')
   @AdminOnly()
   async listSupportTickets(

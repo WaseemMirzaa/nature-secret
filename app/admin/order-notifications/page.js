@@ -19,6 +19,7 @@ export default function OrderNotificationsPage() {
   const [error, setError] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || '';
   const fcmSupported = typeof window !== 'undefined' && !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
 
   useEffect(() => {
@@ -43,6 +44,14 @@ export default function OrderNotificationsPage() {
         setLoading(false);
         return;
       }
+
+      if (!('serviceWorker' in navigator)) {
+        setError('Service worker is not supported in this browser.');
+        setLoading(false);
+        return;
+      }
+      const reg = await navigator.serviceWorker.register('/sw.js');
+
       const { getMessaging, getToken } = await import('firebase/messaging');
       const app = getApp();
       if (!app) {
@@ -51,8 +60,10 @@ export default function OrderNotificationsPage() {
         return;
       }
       const messaging = getMessaging(app);
-      const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || undefined;
-      const token = await getToken(messaging, vapidKey ? { vapidKey } : undefined);
+      const token = await getToken(
+        messaging,
+        vapidKey ? { vapidKey, serviceWorkerRegistration: reg } : { serviceWorkerRegistration: reg },
+      );
       if (!token) {
         setError('Could not get notification token. Try again or check browser support.');
         setLoading(false);
@@ -94,7 +105,7 @@ export default function OrderNotificationsPage() {
       {!fcmSupported ? (
         <div className="mt-6 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800">
           <p className="font-medium">Firebase required</p>
-          <p className="text-sm mt-1">Set NEXT_PUBLIC_FIREBASE_* env vars so FCM can be used. Optional: NEXT_PUBLIC_FIREBASE_VAPID_KEY for Web Push.</p>
+          <p className="text-sm mt-1">Set NEXT_PUBLIC_FIREBASE_* env vars so FCM can be used.</p>
         </div>
       ) : subscribed ? (
         <div className="mt-6 p-4 rounded-xl bg-green-50 border border-green-200 text-green-800">

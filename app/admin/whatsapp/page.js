@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from '@/components/Link';
-import { getAdminContactSettings, updateAdminContactSettings, getAdminWhatsAppQR, formatApiError } from '@/lib/api';
+import { getAdminContactSettings, updateAdminContactSettings, getAdminWhatsAppQR, relinkAdminWhatsApp, formatApiError } from '@/lib/api';
 import { InlineLoader } from '@/components/ui/PageLoader';
 
 function whatsappUrl(number) {
@@ -20,6 +20,8 @@ export default function AdminWhatsAppPage() {
   const [error, setError] = useState('');
   const [waLinked, setWaLinked] = useState(false);
   const [qrImage, setQrImage] = useState(null);
+  const [qrError, setQrError] = useState('');
+  const [relinking, setRelinking] = useState(false);
   const qrPollRef = useRef(null);
 
   useEffect(() => {
@@ -40,18 +42,38 @@ export default function AdminWhatsAppPage() {
           if (r.linked) {
             setWaLinked(true);
             setQrImage(null);
+            setQrError('');
             if (qrPollRef.current) clearInterval(qrPollRef.current);
             return;
           }
           setWaLinked(false);
           setQrImage(r.qr || null);
+          setQrError('');
         })
-        .catch(() => setQrImage(null));
+        .catch((e) => {
+          setQrImage(null);
+          setQrError(formatApiError(e, 'Failed to load WhatsApp QR.'));
+        });
     }
     fetchQR();
     qrPollRef.current = setInterval(fetchQR, 5000);
     return () => { if (qrPollRef.current) clearInterval(qrPollRef.current); };
   }, [waLinked]);
+
+  async function handleRelink() {
+    setError('');
+    setQrError('');
+    setRelinking(true);
+    try {
+      await relinkAdminWhatsApp();
+      setWaLinked(false);
+      setQrImage(null);
+    } catch (err) {
+      setError(formatApiError(err, 'Failed to reset WhatsApp.'));
+    } finally {
+      setRelinking(false);
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -93,7 +115,17 @@ export default function AdminWhatsAppPage() {
       <div className="mt-6 p-4 rounded-xl border border-neutral-200 bg-neutral-50">
         <h2 className="text-sm font-semibold text-neutral-900">Send order confirmations via WhatsApp</h2>
         {waLinked ? (
-          <p className="mt-2 text-sm text-green-700 font-medium">✓ Connected. New orders will get a WhatsApp confirmation to the customer&apos;s number.</p>
+          <div className="mt-2">
+            <p className="text-sm text-green-700 font-medium">✓ Connected. New orders will get a WhatsApp confirmation to the customer&apos;s number.</p>
+            <button
+              type="button"
+              onClick={handleRelink}
+              disabled={relinking}
+              className="mt-3 rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+            >
+              {relinking ? 'Resetting…' : 'Reset WhatsApp session'}
+            </button>
+          </div>
         ) : (
           <>
             <p className="mt-1 text-sm text-neutral-600">Scan the QR code with WhatsApp on your phone (WhatsApp → Settings → Linked devices → Link a device).</p>
@@ -104,6 +136,15 @@ export default function AdminWhatsAppPage() {
             ) : (
               <p className="mt-2 text-sm text-amber-700">Loading QR…</p>
             )}
+            {qrError ? <p className="mt-3 text-sm text-red-600">{qrError}</p> : null}
+            <button
+              type="button"
+              onClick={handleRelink}
+              disabled={relinking}
+              className="mt-4 rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+            >
+              {relinking ? 'Resetting…' : 'Resend QR'}
+            </button>
           </>
         )}
       </div>

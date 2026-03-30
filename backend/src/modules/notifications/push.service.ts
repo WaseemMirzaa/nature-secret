@@ -20,6 +20,7 @@ export class PushService {
       fs.mkdirSync(dataDir, { recursive: true });
     } catch {}
     this.filePath = path.join(dataDir, FCM_TOKENS_FILENAME);
+
     this.load();
   }
 
@@ -61,6 +62,7 @@ export class PushService {
     const title = 'New order';
     const body = [order.customerName || 'Customer', total].filter(Boolean).join(' · ') || order.id;
     const url = `/admin/orders/${order.id}`;
+
     await this.sendToAllFcm({ title, body, url });
   }
 

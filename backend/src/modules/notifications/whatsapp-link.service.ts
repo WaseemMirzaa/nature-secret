@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { join } from 'path';
+import * as fs from 'fs';
 import * as QRCode from 'qrcode';
 
 const AUTH_DIR = join(process.cwd(), 'data', 'wa_auth');
@@ -76,6 +77,28 @@ export class WhatsAppLinkService implements OnModuleInit {
     await this.start();
     if (this.linked) return { qr: null, linked: true };
     return { qr: this.qrDataUrl, linked: false };
+  }
+
+  async relink(): Promise<{ linked: boolean }> {
+    // Close any current session and clear auth so Baileys generates a fresh QR.
+    try {
+      await this.sock?.logout?.();
+    } catch {}
+    try {
+      (this.sock as any)?.ws?.close?.();
+    } catch {}
+
+    this.sock = null;
+    this.qrDataUrl = null;
+    this.linked = false;
+    this.initPromise = null;
+
+    try {
+      fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+    } catch {}
+
+    await this.start();
+    return { linked: this.linked && !!this.sock };
   }
 
   private toJid(phone: string): string {
