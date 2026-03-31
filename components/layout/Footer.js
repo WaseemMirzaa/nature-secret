@@ -57,9 +57,10 @@ export function Footer() {
         </div>
         <div className="mt-8 sm:mt-12 lg:mt-14 pt-6 sm:pt-8 border-t border-neutral-200/80 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4">
           <p className="text-xs text-neutral-400">© {new Date().getFullYear()} Nature Secret. All rights reserved.</p>
-          <div className="flex gap-4 sm:gap-6 lg:gap-8">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 lg:gap-8">
             <Link href="/privacy" className="text-xs text-neutral-400 hover:text-gold-600 transition-colors">Privacy</Link>
             <Link href="/terms" className="text-xs text-neutral-400 hover:text-gold-600 transition-colors">Terms</Link>
+            <Link href="/kids-safety" className="text-xs text-neutral-400 hover:text-gold-600 transition-colors">Kids safety</Link>
           </div>
         </div>
         <p className="mt-4 pb-12 sm:pb-14 lg:pb-16 text-[11px] sm:text-xs text-neutral-500 leading-relaxed max-w-4xl">{footerDisclaimer}</p>
