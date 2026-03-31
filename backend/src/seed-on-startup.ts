@@ -18,7 +18,7 @@ const DEFAULT_CATEGORIES = [
 const DEFAULT_HERO_SLIDES = [
   { imageUrl: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=1200', alt: 'Premium herbal oil for daily body care', title: 'Herbal care oils', href: '/shop?category=herbal-oil', sortOrder: 0 },
   { imageUrl: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?w=1200', alt: 'Natural herbal blends', title: 'Herbal oil', href: '/shop?category=herbal-oil', sortOrder: 1 },
-  { imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200', alt: 'Natural ingredients for wellness', title: 'Daily wellness', href: '/shop?category=herbal-oil', sortOrder: 2 },
+  { imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200', alt: 'Natural ingredients for body care', title: 'Daily ritual', href: '/shop?category=herbal-oil', sortOrder: 2 },
   { imageUrl: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=1200', alt: 'Skincare serums and care', title: 'Skincare', href: '/shop?category=skin-care', sortOrder: 3 },
   { imageUrl: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=1200', alt: 'Premium skincare routine', title: 'Skin care', href: '/shop?category=skin-care', sortOrder: 4 },
   { imageUrl: 'https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?w=1200', alt: 'Clean skincare products', title: 'Coming soon', href: '/shop?category=skin-care', sortOrder: 5 },

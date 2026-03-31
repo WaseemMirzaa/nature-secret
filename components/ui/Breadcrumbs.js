@@ -11,7 +11,7 @@ const LABELS = {
   account: 'Account',
   checkout: 'Checkout',
   confirmation: 'Order confirmed',
-  'herbal-oils': 'Herbal Oils',
+  'herbal-oils': 'Botanical oils',
   'skin-care': 'Skin Care',
 };
 

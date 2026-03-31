@@ -67,7 +67,7 @@ export function renderOrderConfirmationEmail(data: OrderConfirmationData): strin
                         </td>
                         <td>
                           <div style="font-size: 18px; font-weight: 600; color:#111827; letter-spacing: 0.04em; text-transform: uppercase; line-height:1.3;">Nature Secret</div>
-                          <div style="margin-top: 1px; font-size: 11px; color:#6b7280; letter-spacing:0.16em; text-transform: uppercase;">Premium herbal oils &amp; skincare</div>
+                          <div style="margin-top: 1px; font-size: 11px; color:#6b7280; letter-spacing:0.16em; text-transform: uppercase;">Skincare &amp; botanical body care</div>
                         </td>
                       </tr>
                     </table>
@@ -142,7 +142,7 @@ export function renderOrderConfirmationEmail(data: OrderConfirmationData): strin
                 We’ll notify you when your order is shipped. For questions, simply reply to this email or reach us via WhatsApp.
               </p>
               <p style="margin: 8px 0 0; font-size: 11px; color:#9ca3af;">
-                Nature Secret · Premium Herbal Oils &amp; Skincare · <a href="https://naturesecret.pk" style="color:#4b5563; text-decoration:none;">naturesecret.pk</a>
+                Nature Secret · Skincare &amp; Botanical Body Care · <a href="https://naturesecret.pk" style="color:#4b5563; text-decoration:none;">naturesecret.pk</a>
               </p>
             </td>
           </tr>

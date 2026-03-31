@@ -14,6 +14,10 @@ export class Product {
   @Column({ type: 'varchar', length: 255, unique: true })
   slug: string;
 
+  /** Short ID for Meta / ads catalog (content_ids). Optional; falls back to UUID in Pixel when empty. */
+  @Column({ type: 'varchar', length: 32, nullable: true })
+  advertisingId: string | null;
+
   @Column({ type: 'varchar', length: 36 })
   categoryId: string;
 

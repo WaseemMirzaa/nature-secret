@@ -137,12 +137,12 @@ export default function AdminAnalyticsPage() {
     });
     const productViews = {};
     filtered.filter((e) => e.type === 'productView').forEach((e) => {
-      const id = e.productId || 'unknown';
+      const id = e.contentId || e.productId || 'unknown';
       productViews[id] = (productViews[id] || 0) + 1;
     });
     const outOfStockClicks = {};
     filtered.filter((e) => e.type === 'outOfStockClick').forEach((e) => {
-      const id = e.productId || 'unknown';
+      const id = e.contentId || e.productId || 'unknown';
       outOfStockClicks[id] = (outOfStockClicks[id] || 0) + 1;
     });
     const addToCarts = filtered.filter((e) => e.type === 'addToCart').length;
@@ -158,7 +158,12 @@ export default function AdminAnalyticsPage() {
     };
   }, [filtered]);
 
-  const productName = (id) => products.find((p) => p.id === id)?.name || id;
+  const productContentId = (id) => {
+    if (!id || id === 'unknown') return id;
+    const p = products.find((x) => x.id === id) || products.find((x) => String(x.advertisingId) === String(id));
+    const a = p?.advertisingId != null && String(p.advertisingId).trim();
+    return a || p?.id || id;
+  };
 
   if (!mounted) {
     return (
@@ -244,7 +249,7 @@ export default function AdminAnalyticsPage() {
               .sort((a, b) => b[1] - a[1])
               .map(([id, count]) => (
                 <tr key={id} className="border-t border-neutral-100">
-                  <td className="py-2">{productName(id)}</td>
+                  <td className="py-2">{productContentId(id)}</td>
                   <td className="py-2 text-right">{count}</td>
                 </tr>
               ))}
@@ -268,7 +273,7 @@ export default function AdminAnalyticsPage() {
               .sort((a, b) => b[1] - a[1])
               .map(([id, count]) => (
                 <tr key={id} className="border-t border-neutral-100">
-                  <td className="py-2">{productName(id)}</td>
+                  <td className="py-2">{productContentId(id)}</td>
                   <td className="py-2 text-right">{count}</td>
                 </tr>
               ))}

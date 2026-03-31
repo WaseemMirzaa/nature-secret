@@ -9,6 +9,8 @@ import { getDiscountCodes } from '@/lib/store';
 import {
   syncMetaPixelUserData,
   metaPurchaseFiredStorageKey,
+  metaContentId,
+  metaPixelAdvertisingId,
   trackCheckoutPageView,
   trackInitiateCheckout,
   trackPlaceOrderClick,
@@ -176,6 +178,27 @@ export default function CheckoutPage() {
     country: 'pk',
   };
 
+  const getProduct = (id) => (Array.isArray(products) ? products.find((p) => p.id === id) : null);
+  /** CAPI + custom Pixel / internal store */
+  const metaIdForProduct = (productId) => {
+    const p = getProduct(productId);
+    return p ? metaContentId(p) : String(productId);
+  };
+  /** Meta standard Pixel content_ids only */
+  const pixelStdIdForProduct = (productId) => {
+    const p = getProduct(productId);
+    return p ? metaPixelAdvertisingId(p) : '';
+  };
+  const metaCategoryIdForProduct = (productId) => {
+    const p = getProduct(productId);
+    const id = p?.categoryAdvertisingId || p?.categoryId;
+    return id ? String(id) : '';
+  };
+  const getVariant = (productId, variantId) => {
+    const p = getProduct(productId);
+    return p?.variants?.find((v) => v.id === variantId);
+  };
+
   useEffect(() => {
     if (!mounted) return;
     syncMetaPixelUserData(metaCustomer);
@@ -186,7 +209,7 @@ export default function CheckoutPage() {
   /** Meta InitiateCheckout: cart / totals only — not on every form keystroke. */
   useEffect(() => {
     if (!mounted || items.length === 0) return;
-    const contentIds = items.map((i) => i.productId);
+    const contentIds = items.map((i) => pixelStdIdForProduct(i.productId)).filter(Boolean);
     const cartSig = items.map((i) => `${i.productId}:${i.variantId ?? ''}:${i.qty}`).join(';');
     const key = `${currency}|${grandTotal}|${cartSig}|${contentIds.join(',')}`;
     if (lastInitiateCheckoutKeyRef.current === key) return;
@@ -197,7 +220,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (!mounted || items.length === 0) return;
-    const contentIds = items.map((i) => i.productId);
+    const contentIds = items.map((i) => pixelStdIdForProduct(i.productId)).filter(Boolean);
     const phoneDigits = String(form.phone || '').replace(/\D/g, '');
     const key = `${currency}|${grandTotal}|${contentIds.join(',')}|${form.email || ''}|${phoneDigits}`;
     if (lastCheckoutViewKeyRef.current === key) return;
@@ -229,12 +252,6 @@ export default function CheckoutPage() {
       setDiscountError('Invalid code.');
     }
   }
-
-  const getProduct = (id) => (Array.isArray(products) ? products.find((p) => p.id === id) : null);
-  const getVariant = (productId, variantId) => {
-    const p = getProduct(productId);
-    return p?.variants?.find((v) => v.id === variantId);
-  };
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -275,7 +292,11 @@ export default function CheckoutPage() {
     let orderId;
     try {
       syncMetaPixelUserData(metaCustomer);
-      trackPlaceOrderClick(grandTotal / 100, currency, items.map((i) => i.productId));
+      trackPlaceOrderClick(
+        grandTotal / 100,
+        currency,
+        items.map((i) => pixelStdIdForProduct(i.productId)).filter(Boolean),
+      );
       const res = await apiCreateOrder(orderPayload);
       orderId = res?.id;
       if (!orderId) throw new Error('Order creation failed');
@@ -286,16 +307,38 @@ export default function CheckoutPage() {
       return;
     }
     syncMetaPixelUserData({ ...metaCustomer, externalId: orderId });
-    const purchaseContentIds = items.map((i) => i.productId);
+    const purchaseContentIds = items.map((i) => metaIdForProduct(i.productId));
+    const purchasePixelStdIds = items.map((i) => pixelStdIdForProduct(i.productId)).filter(Boolean);
+    const purchaseCategoryIds = Array.from(
+      new Set(items.map((i) => metaCategoryIdForProduct(i.productId)).filter(Boolean)),
+    );
     const purchaseNumItems = items.reduce((n, i) => n + (i.qty || 1), 0);
     try {
       const dedupeKey = metaPurchaseFiredStorageKey(orderId);
       if (!sessionStorage.getItem(dedupeKey)) {
-        trackPurchase(orderId, grandTotal / 100, currency, purchaseContentIds, purchaseNumItems);
+        trackPurchase(
+          orderId,
+          grandTotal / 100,
+          currency,
+          purchaseContentIds,
+          purchaseCategoryIds,
+          purchaseNumItems,
+          metaCustomer,
+          purchasePixelStdIds,
+        );
         sessionStorage.setItem(dedupeKey, '1');
       }
     } catch (_) {
-      trackPurchase(orderId, grandTotal / 100, currency, purchaseContentIds, purchaseNumItems);
+      trackPurchase(
+        orderId,
+        grandTotal / 100,
+        currency,
+        purchaseContentIds,
+        purchaseCategoryIds,
+        purchaseNumItems,
+        metaCustomer,
+        purchasePixelStdIds,
+      );
     }
     try {
       localStorage.setItem(

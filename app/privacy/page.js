@@ -67,8 +67,8 @@ export default function PrivacyPage() {
               We use Meta Business Tools (such as the Meta Pixel and Conversions API) for ad targeting and measurement.
             </p>
             <ul className="mt-3 space-y-2 text-sm text-neutral-700 list-disc list-inside">
-              <li><span className="font-medium">No Sensitive Health Data:</span> We do not collect or share sensitive Protected Health Information (PHI), such as specific medical conditions, diagnoses, or health statuses, with Meta.</li>
-              <li><span className="font-medium">Anonymized Identifiers:</span> All product data shared with Meta is anonymized using generic IDs to ensure user privacy and compliance with Meta&apos;s Health and Wellness policies.</li>
+              <li><span className="font-medium">No Sensitive Health Data:</span> We do not intentionally collect or share detailed health-related personal information with Meta for ad delivery.</li>
+              <li><span className="font-medium">Anonymized Identifiers:</span> Product-related data shared with Meta uses generic IDs where possible, consistent with Meta&apos;s advertising and measurement requirements.</li>
               <li><span className="font-medium">Opt-Out:</span> You can manage your ad preferences or opt-out of tracking through your Meta Ad Settings or your browser&apos;s cookie controls.</li>
             </ul>
           </section>
@@ -110,18 +110,12 @@ export default function PrivacyPage() {
           </section>
 
           <section className="mt-8">
-            <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">9. Health &amp; Product Disclaimer</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">9. Product &amp; Site Information (Cosmetic)</h2>
             <p className="mt-3 text-sm text-neutral-700 leading-relaxed">
-              Our herbal oils, skincare, and related wellness products are intended for general self-care and lifestyle use only.
+              Nature Secret offers cosmetic skincare and body-care products for external use. Site copy describes appearance, scent, texture, and routine ideas—not treatment of health conditions.
             </p>
-            <p className="mt-3 text-sm font-medium text-neutral-800">Information on our website:</p>
-            <ul className="mt-2 space-y-2 text-sm text-neutral-700 list-disc list-inside">
-              <li>Is not medical advice</li>
-              <li>Is not intended to diagnose, treat, cure, or prevent any disease</li>
-              <li>Should not replace consultation with a qualified healthcare professional</li>
-            </ul>
             <p className="mt-3 text-sm text-neutral-700 leading-relaxed">
-              Always consult a qualified professional before using supplements or wellness products, especially if you are pregnant, nursing, or have a health concern.
+              Product information here is general. If you need guidance for your skin type, allergies, pregnancy, or medications, seek advice from a qualified professional of your choice.
             </p>
           </section>
 

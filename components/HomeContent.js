@@ -151,10 +151,10 @@ export default function HomeContent({
               Natural care, refined
             </p>
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-semibold text-neutral-900 tracking-tight leading-[1.08]">
-              Natural Care, Refined for Modern Wellness.
+              Natural Care, Refined for Everyday Beauty.
             </h1>
             <p className="mt-4 sm:mt-6 text-sm sm:text-lg text-neutral-600 max-w-md leading-relaxed">
-              Premium herbal solutions for daily comfort and skin wellness. Featuring Nature Secret PX Oil: trusted care for soothing massage and enhanced body mobility
+              Premium botanical skincare and body oils for a calm, polished routine. Featuring Nature Secret PX Oil—silky texture and a soothing massage moment after long days.
             </p>
             <div className="mt-5 sm:mt-10 flex flex-wrap gap-2.5 sm:gap-4">
               <Link
@@ -248,7 +248,7 @@ export default function HomeContent({
               <div>
                 <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Curated</p>
                 <h2 className="text-xl sm:text-3xl font-semibold text-neutral-900 mt-0.5 sm:mt-1 tracking-tight">Bestsellers</h2>
-                <p className="mt-1 text-xs sm:text-sm text-neutral-500 leading-snug">Herbal oils and skincare, most loved by our community</p>
+                <p className="mt-1 text-xs sm:text-sm text-neutral-500 leading-snug">Botanical body care and skincare, most loved by our community</p>
               </div>
               <Link href="/shop" className="text-sm font-medium text-neutral-900 border-b-2 border-gold-500/40 pb-0.5 hover:border-gold-500 transition-colors whitespace-nowrap flex-shrink-0">
                 View all
@@ -356,16 +356,16 @@ export default function HomeContent({
             </h2>
             <div className="mt-3 sm:mt-6 space-y-2.5 sm:space-y-3 text-xs sm:text-base text-neutral-600 leading-relaxed text-left sm:text-center">
               <p>
-                Like many families in Pakistan, we wanted to support our loved ones in staying active and comfortable as they aged. To help them maintain their daily mobility, our father carefully crafted a botanical oil using traditional herbal knowledge and trusted natural ingredients.
+                Like many families in Pakistan, we wanted simple, honest care at home. Our father crafted a botanical body oil from traditional plant knowledge and ingredients we already trusted—first for family, then for friends.
               </p>
               <p>
-                At first, it was only for our own family. Over time, we shared the oil with friends and relatives who were looking for a soothing massage experience. The feedback was overwhelmingly positive. Many told us the oil brought them a true sense of wellness and ease.
+                At first, it was only for our own family. Over time, we shared the oil with friends and relatives who wanted a soothing massage ritual. The feedback was overwhelmingly positive—many loved the feel on skin and the quiet evening routine.
               </p>
               <p>
                 Encouraged by their experiences, we realized this simple formula could support more people in their daily self-care routines. That is how Nature Secret PX Oil was born.
               </p>
               <p>
-                Today, we are proud to share the same heritage-inspired oil with people across Pakistan. Inspired by our belief in natural care, we are now developing a collection of skincare serums and wellness products for your modern lifestyle.
+                Today, we are proud to share the same heritage-inspired oil with people across Pakistan. Inspired by our belief in natural care, we are now developing a collection of skincare serums and body care for your modern routine.
               </p>
               <p className="font-medium text-neutral-700">
                 From our home to yours: Natural care you can trust.

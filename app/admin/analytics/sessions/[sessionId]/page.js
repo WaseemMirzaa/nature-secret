@@ -62,7 +62,12 @@ export default function AnalyticsSessionDetailPage() {
     };
   }, [events]);
 
-  const productName = (id) => products.find((p) => p.id === id)?.name || id;
+  const productContentId = (id) => {
+    if (!id) return id;
+    const p = products.find((x) => x.id === id) || products.find((x) => String(x.advertisingId) === String(id));
+    const a = p?.advertisingId != null && String(p.advertisingId).trim();
+    return a || p?.id || id;
+  };
 
   if (!mounted) {
     return (
@@ -144,7 +149,7 @@ export default function AnalyticsSessionDetailPage() {
         <p className="px-4 pb-3 text-xs text-neutral-400">Chronological list of what this visitor did on the site.</p>
         <ul className="divide-y divide-neutral-100 max-h-[400px] overflow-y-auto">
           {[...sessionEvents].reverse().map((e, i) => {
-            const { label, detail } = getEventLabel(e, productName);
+            const { label, detail } = getEventLabel(e, productContentId);
             return (
               <li key={i} className="p-4 flex flex-wrap items-center justify-between gap-2 text-sm">
                 <div>

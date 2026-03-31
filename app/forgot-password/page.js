@@ -91,7 +91,7 @@ export default function ForgotPasswordPage() {
             </p>
           </div>
         </div>
-        <p className="mt-6 text-center text-xs text-neutral-500">Nature Secret · Premium Herbal Oils &amp; Skincare</p>
+        <p className="mt-6 text-center text-xs text-neutral-500">Nature Secret · Skincare &amp; Botanical Body Care</p>
       </div>
     </div>
   );

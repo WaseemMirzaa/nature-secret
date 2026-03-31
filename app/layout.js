@@ -6,8 +6,8 @@ import { StoreLayout } from '@/components/StoreLayout';
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata = {
-  title: 'Nature Secret | Premium Herbal Oils & Skincare',
-  description: 'Premium minimalistic online store for herbal oils and skincare. Clean, natural, luxurious.',
+  title: 'Nature Secret | Skincare & Botanical Body Care',
+  description: 'Premium minimal online store for botanical skincare and body care. Clean, natural, luxurious.',
   icons: {
     icon: '/assets/nature-secret-logo.svg',
   },

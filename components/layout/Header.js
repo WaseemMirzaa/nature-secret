@@ -25,7 +25,7 @@ export function Header() {
             <nav className="hidden md:flex items-center gap-10">
               <Link href="/" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Home</Link>
               <Link href="/shop" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Shop</Link>
-              <Link href="/shop?category=herbal-oils" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Herbal Oils</Link>
+              <Link href="/shop?category=herbal-oils" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Botanical oils</Link>
               <Link href="/shop?category=skin-care" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Skin Care</Link>
               <Link href="/blog" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Blog</Link>
               <Link href="/contact" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Contact</Link>
@@ -77,7 +77,7 @@ export function Header() {
             <nav className="flex flex-col gap-0 px-3 py-3">
               <Link href="/" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Home</Link>
               <Link href="/shop" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Shop</Link>
-              <Link href="/shop?category=herbal-oils" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Herbal Oils</Link>
+              <Link href="/shop?category=herbal-oils" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Botanical oils</Link>
               <Link href="/shop?category=skin-care" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Skin Care</Link>
               <Link href="/blog" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Blog</Link>
               <Link href="/contact" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Contact</Link>

@@ -8,6 +8,8 @@ import {
   ValidateNested,
   Min,
   MaxLength,
+  Matches,
+  ValidateIf,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -79,6 +81,12 @@ export class CreateProductDto {
   @IsString()
   @MaxLength(255)
   slug: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(32)
+  @Matches(/^[a-zA-Z0-9_-]*$/)
+  advertisingId?: string;
 
   @IsString()
   @MaxLength(36)
@@ -206,6 +214,13 @@ export class UpdateProductDto {
   @IsString()
   @MaxLength(255)
   slug?: string;
+
+  @IsOptional()
+  @ValidateIf((_, v) => v != null && v !== '')
+  @IsString()
+  @MaxLength(32)
+  @Matches(/^[a-zA-Z0-9_-]*$/)
+  advertisingId?: string | null;
 
   @IsOptional()
   @IsString()

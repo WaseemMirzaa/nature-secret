@@ -24,6 +24,7 @@ export default function NewProductPage() {
   const [submitting, setSubmitting] = useState(false);
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
+  const [advertisingId, setAdvertisingId] = useState('');
   const [categoryId, setCategoryId] = useState('');
   useEffect(() => {
     getCategories().then((list) => {
@@ -178,6 +179,7 @@ export default function NewProductPage() {
       const product = {
         name: name.trim(),
         slug: (slug || name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')).trim() || 'product',
+        advertisingId: advertisingId.trim() || undefined,
         categoryId,
         price: basePrice,
         compareAtPrice: compare,
@@ -240,6 +242,17 @@ export default function NewProductPage() {
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-1">Slug (URL)</label>
           <input type="text" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="auto from name" className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-neutral-700 mb-1">Advertising ID (Meta)</label>
+          <input
+            type="text"
+            value={advertisingId}
+            onChange={(e) => setAdvertisingId(e.target.value.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 32))}
+            placeholder="Short id for ads / content_ids"
+            className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900"
+          />
+          <p className="mt-1 text-xs text-neutral-500">Optional. Used for Pixel &amp; CAPI content_ids (A–Z, a–z, 0–9, _, -). Max 32.</p>
         </div>
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-1">Category *</label>

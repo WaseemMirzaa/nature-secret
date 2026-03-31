@@ -64,7 +64,7 @@ export function renderResetPasswordEmail(resetLink: string): string {
           <!-- Footer -->
           <tr>
             <td style="background-color: #1c1917; padding: 24px 32px; border-radius: 0 0 16px 16px; border: 1px solid #1c1917;">
-              <p style="margin: 0; font-size: 12px; color: rgba(250,250,249,0.6);">Nature Secret · Premium Herbal Oils &amp; Skincare</p>
+              <p style="margin: 0; font-size: 12px; color: rgba(250,250,249,0.6);">Nature Secret · Skincare &amp; Botanical Body Care</p>
             </td>
           </tr>
         </table>

@@ -8,7 +8,7 @@ import { getContentSettings } from '@/lib/api';
 
 export function Footer() {
   const [footerDisclaimer, setFooterDisclaimer] = useState(
-    'Nature Secret products are intended for general wellness and relaxation purposes only. Our botanical oils are designed to support a comfortable lifestyle and are not intended to diagnose, treat, cure, or prevent any disease or medical condition.',
+    'Nature Secret sells cosmetic and body-care products for external use. Website content describes look, feel, and everyday routines—not health or treatment claims.',
   );
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export function Footer() {
             <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-gold-700/90">Shop</h3>
             <ul className="mt-3 sm:mt-4 space-y-2 sm:space-y-3">
               <li><Link href="/shop" className="text-xs sm:text-sm text-neutral-600 hover:text-gold-700 transition-colors">All products</Link></li>
-              <li><Link href="/shop?category=herbal-oils" className="text-xs sm:text-sm text-neutral-600 hover:text-gold-700 transition-colors">Herbal Oils</Link></li>
+              <li><Link href="/shop?category=herbal-oils" className="text-xs sm:text-sm text-neutral-600 hover:text-gold-700 transition-colors">Botanical oils</Link></li>
               <li><Link href="/shop?category=skin-care" className="text-xs sm:text-sm text-neutral-600 hover:text-gold-700 transition-colors">Skin Care</Link></li>
             </ul>
           </div>

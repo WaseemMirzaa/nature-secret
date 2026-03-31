@@ -3,11 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AnalyticsEvent } from '../../entities/analytics-event.entity';
 import { AnalyticsController } from './analytics.controller';
 import { AnalyticsService } from './analytics.service';
+import { MetaConversionsService } from './meta-conversions.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([AnalyticsEvent])],
   controllers: [AnalyticsController],
-  providers: [AnalyticsService],
-  exports: [AnalyticsService],
+  providers: [AnalyticsService, MetaConversionsService],
+  exports: [AnalyticsService, MetaConversionsService],
 })
 export class AnalyticsModule {}

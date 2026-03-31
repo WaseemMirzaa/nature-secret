@@ -47,6 +47,9 @@ export default function AdminProductDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm text-neutral-500">Slug: {product.slug}</p>
+            {product.advertisingId ? (
+              <p className="text-sm text-neutral-500 mt-0.5">Advertising ID: {product.advertisingId}</p>
+            ) : null}
             <p className="text-neutral-700 mt-1">Category: {categoryName}</p>
             <p className="mt-2 font-medium">{formatPrice(product.price, currency)}</p>
             {product.compareAtPrice && <p className="text-sm text-neutral-500">Compare at: {formatPrice(product.compareAtPrice, currency)}</p>}

@@ -94,7 +94,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
   const [isLg, setIsLg] = useState(false);
   const [productDisclaimerTitle, setProductDisclaimerTitle] = useState('Important Note');
   const [productDisclaimerText, setProductDisclaimerText] = useState(
-    'This product is a non-medicated, herbal massage oil. It is not a pharmaceutical drug. Results may vary based on individual usage and consistency. Always perform a patch test before full application.',
+    'Cosmetic body oil for external use only. Not a drug. Individual experience may vary. Patch test before wider use.',
   );
 
   useEffect(() => {
@@ -168,8 +168,8 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
       const vals = variants.map((v) => Number(v.price)).filter((p) => Number.isFinite(p) && p > 0);
       if (vals.length) cents = Math.min(...vals);
     }
-    trackViewContent(product.id, product.name ?? product.slug ?? 'Product', cents / 100, currency);
-    if ((product.inventory ?? 0) === 0) trackOutOfStockView(product.id);
+    trackViewContent(product, cents / 100, currency);
+    if ((product.inventory ?? 0) === 0) trackOutOfStockView(product);
   }, [product, currency]);
 
   useEffect(() => {
@@ -202,7 +202,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
     toggleWishlist(product.id);
     if (willAdd) {
       const cents = Number(variant?.price ?? product.price) || 0;
-      trackAddToWishlist(product.id, product.name ?? product.slug ?? 'Product', cents / 100, currency);
+      trackAddToWishlist(product, cents / 100, currency);
     }
   }
 
@@ -266,7 +266,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
       qty: effectiveQty,
     });
     openCart();
-    trackAddToCart(product.id, product.name, variant.price / 100, effectiveQty);
+    trackAddToCart(product, variant.price / 100, effectiveQty);
   }
 
   function handleOrderNow() {
@@ -283,7 +283,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
         image: (variant.images && variant.images[0]) || variant.image || product.images?.[0],
         qty: effectiveQty,
       });
-      trackAddToCart(product.id, product.name, variant.price / 100, effectiveQty);
+      trackAddToCart(product, variant.price / 100, effectiveQty);
     }
     router.push('/checkout');
   }

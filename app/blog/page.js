@@ -25,7 +25,7 @@ export default function BlogPage() {
           <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-2 sm:mb-3">Journal</p>
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-neutral-900 tracking-tight">Stories & insights</h1>
           <p className="mt-3 sm:mt-4 max-w-xl text-sm sm:text-base text-neutral-600 leading-relaxed">
-            Ingredients, wellness tips, and updates from Nature Secret. Clean, minimal, honest.
+            Ingredients, skincare tips, and updates from Nature Secret. Clean, minimal, honest.
           </p>
         </div>
       </section>

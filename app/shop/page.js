@@ -56,7 +56,7 @@ function ShopContent() {
       image: (variant.images && variant.images[0]) || variant.image || product.images?.[0],
     });
     openCart();
-    trackAddToCart(product.id, product.name, variant.price / 100, 1);
+    trackAddToCart(product, variant.price / 100, 1);
   }
 
   return (
@@ -167,12 +167,7 @@ function ShopContent() {
                           const willAdd = !wishlist.includes(product.id);
                           toggleWishlist(product.id);
                           if (willAdd) {
-                            trackAddToWishlist(
-                              product.id,
-                              product.name ?? product.slug ?? 'Product',
-                              price / 100,
-                              currency,
-                            );
+                            trackAddToWishlist(product, price / 100, currency);
                           }
                         }}
                         className="absolute top-3 right-3 p-2 rounded-full bg-white/95 text-neutral-500 hover:text-gold-600 shadow-soft transition-colors"

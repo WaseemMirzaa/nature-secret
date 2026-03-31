@@ -63,8 +63,11 @@ export class ProductsService {
 
   async create(dto: CreateProductDto): Promise<Product> {
     this.logger.log(`Product create requested: name=${dto.name} slug=${dto.slug} categoryId=${dto.categoryId}`);
-    const { variants, ...productData } = dto;
-    const product = this.repo.create(productData);
+    const { variants, advertisingId, ...rest } = dto;
+    const product = this.repo.create({
+      ...rest,
+      advertisingId: advertisingId?.trim() || null,
+    });
     const saved = await this.repo.save(product);
     this.logger.log(`Product saved to DB id=${saved.id}`);
     if (variants?.length) {
@@ -85,8 +88,11 @@ export class ProductsService {
   async update(id: string, dto: UpdateProductDto): Promise<Product> {
     const product = await this.repo.findOne({ where: { id } });
     if (!product) throw new NotFoundException('Product not found');
-    const { variants, ...updates } = dto;
+    const { variants, advertisingId, ...updates } = dto;
     Object.assign(product, updates);
+    if (advertisingId !== undefined) {
+      product.advertisingId = advertisingId === null ? null : String(advertisingId).trim() || null;
+    }
     await this.repo.save(product);
     if (variants !== undefined) {
       await this.variantRepo.delete({ productId: id });

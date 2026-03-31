@@ -8,10 +8,10 @@ const DEFAULTS: Record<string, string> = {
   contact_phone: '+92 3714165937',
   contact_emails: 'support@naturesecret.pk',
   footer_disclaimer:
-    'Nature Secret products are intended for general wellness and relaxation purposes only. Our botanical oils are designed to support a comfortable lifestyle and are not intended to diagnose, treat, cure, or prevent any disease or medical condition.',
+    'Nature Secret sells cosmetic and body-care products for external use. Website content describes look, feel, and everyday routines—not health or treatment claims.',
   product_disclaimer_title: 'Important Note',
   product_disclaimer_text:
-    'This product is a non-medicated, herbal massage oil. It is not a pharmaceutical drug. Results may vary based on individual usage and consistency. Always perform a patch test before full application.',
+    'Cosmetic body oil for external use only. Not a drug. Individual experience may vary. Patch test before wider use.',
 };
 
 @Injectable()
