@@ -15,6 +15,19 @@ import { InlineLoader } from '@/components/ui/PageLoader';
 
 const isUuid = (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 
+function scrubMedicalTerms(input = '') {
+  const text = String(input || '');
+  return text
+    .replace(/\barthritis\b/gi, 'daily care')
+    .replace(/\b(back|knee|neck|joint|muscle)\s+pain\b/gi, 'daily discomfort')
+    .replace(/\bpain\s+relief\b/gi, 'daily comfort')
+    .replace(/\brelief\b/gi, 'comfort')
+    .replace(/\bpain\b/gi, 'discomfort')
+    .replace(/\binjury\b/gi, 'daily strain')
+    .replace(/\bstiffness\b/gi, 'tiredness')
+    .replace(/\bache\b/gi, 'discomfort');
+}
+
 export default function ProductDetailClient({ slugOrId, initialProduct: initialFromServer, initialReviews = [] }) {
   const storeProducts = useProductsStore((s) => s.products);
   const [apiProduct, setApiProduct] = useState(initialFromServer ?? null);
@@ -381,7 +394,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                   className={`text-sm xl:text-[15px] text-neutral-600 leading-relaxed lg:leading-[1.65] product-description transition-all lg:[&_p]:text-[15px] lg:[&_li]:text-[15px] xl:[&_p]:text-[15px] xl:[&_li]:text-[15px] ${
                     descriptionExpanded ? '' : 'line-clamp-3 max-h-[4.5rem] overflow-hidden'
                   }`}
-                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(scrubMedicalTerms(product.description)) }}
                 />
                 <button
                   type="button"
@@ -514,9 +527,9 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
               {(product.faq || []).map((item, i) => (
                 <li key={i} className="border-b border-neutral-100">
                   <button type="button" onClick={() => setFaqOpen(faqOpen === i ? null : i)} className="w-full py-3.5 xl:py-4 text-left text-sm text-neutral-700 flex justify-between gap-4 font-medium">
-                    <span className="min-w-0 pr-2">{item.q}</span><span className="shrink-0">{faqOpen === i ? '−' : '+'}</span>
+                    <span className="min-w-0 pr-2">{scrubMedicalTerms(item.q)}</span><span className="shrink-0">{faqOpen === i ? '−' : '+'}</span>
                   </button>
-                  {faqOpen === i && <p className="pb-3.5 xl:pb-4 text-sm text-neutral-500 leading-relaxed max-w-2xl">{item.a}</p>}
+                  {faqOpen === i && <p className="pb-3.5 xl:pb-4 text-sm text-neutral-500 leading-relaxed max-w-2xl">{scrubMedicalTerms(item.a)}</p>}
                 </li>
               ))}
             </ul>
@@ -546,7 +559,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
               className={`text-[13px] sm:text-sm text-neutral-600 leading-relaxed product-description transition-all max-lg:[&_p]:text-[13px] max-lg:[&_li]:text-[13px] sm:[&_p]:text-sm sm:[&_li]:text-sm ${
                 descriptionExpanded ? '' : 'max-h-52 sm:max-h-64 overflow-hidden'
               }`}
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(scrubMedicalTerms(product.description)) }}
             />
             <button
               type="button"
@@ -564,9 +577,9 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
               {(product.faq || []).map((item, i) => (
                 <li key={i} className="border-b border-neutral-100">
                   <button type="button" onClick={() => setFaqOpen(faqOpen === i ? null : i)} className="w-full py-2.5 sm:py-3 text-left text-xs sm:text-sm font-medium text-neutral-700 flex justify-between gap-2">
-                    <span className="min-w-0 pr-2">{item.q}</span><span className="shrink-0">{faqOpen === i ? '−' : '+'}</span>
+                    <span className="min-w-0 pr-2">{scrubMedicalTerms(item.q)}</span><span className="shrink-0">{faqOpen === i ? '−' : '+'}</span>
                   </button>
-                  {faqOpen === i && <p className="pb-2.5 sm:pb-3 text-xs sm:text-sm text-neutral-500 leading-relaxed">{item.a}</p>}
+                  {faqOpen === i && <p className="pb-2.5 sm:pb-3 text-xs sm:text-sm text-neutral-500 leading-relaxed">{scrubMedicalTerms(item.a)}</p>}
                 </li>
               ))}
             </ul>
@@ -649,7 +662,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                       <span className="text-neutral-400 text-sm sm:text-base lg:text-lg">{'★'.repeat(5 - Math.min(5, r.rating || 0))}</span>
                       <span className="text-xs sm:text-sm lg:text-base font-medium text-neutral-700">{r.authorName}</span>
                     </div>
-                    <p className="text-xs sm:text-sm lg:text-[15px] text-neutral-600 leading-relaxed lg:leading-[1.65]">{r.body}</p>
+                    <p className="text-xs sm:text-sm lg:text-[15px] text-neutral-600 leading-relaxed lg:leading-[1.65]">{scrubMedicalTerms(r.body)}</p>
                   </div>
                 ))}
                 {primaryReviews.length > reviewPreviewCount && (

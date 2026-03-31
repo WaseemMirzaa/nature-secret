@@ -152,7 +152,7 @@ export default function HomeContent({
               Natural care, refined
             </p>
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-semibold text-neutral-900 tracking-tight leading-[1.08]">
-              Natural Care, Refined
+              Natural Care, Refined for Modern Wellness.
             </h1>
             <p className="mt-4 sm:mt-6 text-sm sm:text-lg text-neutral-600 max-w-md leading-relaxed">
               Premium herbal oils and skin wellness essentials made with trusted ingredients for everyday self-care.
@@ -357,25 +357,19 @@ export default function HomeContent({
             </h2>
             <div className="mt-3 sm:mt-6 space-y-2.5 sm:space-y-3 text-xs sm:text-base text-neutral-600 leading-relaxed text-left sm:text-center">
               <p>
-                Like many families in Pakistan, we were looking for clean, dependable products for daily body care.
-                Wanting a natural option for regular self-care, our father carefully created a herbal oil using traditional knowledge and
-                ingredients we trusted.
+                Like many families in Pakistan, we wanted to support our loved ones in staying active and comfortable as they aged. To help them maintain their daily mobility, our father carefully crafted a botanical oil using traditional herbal knowledge and trusted natural ingredients.
               </p>
               <p>
-                At first, it was only for our own family. Over time, we shared the oil with friends and relatives.
-                The feedback was overwhelmingly positive. Many told us they liked the texture, feel and quality.
+                At first, it was only for our own family. Over time, we shared the oil with friends and relatives who were looking for a soothing massage experience. The feedback was overwhelmingly positive. Many told us the oil brought them a true sense of wellness and ease.
               </p>
               <p>
-                Encouraged by their experiences and our own, we realized this simple formula could help more people. That is how Painrex
-                Oil was born.
+                Encouraged by their experiences, we realized this simple formula could support more people in their daily self-care routines. That is how Nature Secret PX Oil was born.
               </p>
               <p>
-                Today, we are proud to share the same oil that started in our home with people across Pakistan. And this is just the
-                beginning. Inspired by the same belief in natural care, we are now working on skincare serums and wellness products that
-                will soon join our collection.
+                Today, we are proud to share the same heritage-inspired oil with people across Pakistan. And this is just the beginning. Inspired by our belief in natural care, we are now developing a collection of skincare serums and wellness products designed for your modern lifestyle.
               </p>
               <p className="font-medium text-neutral-700">
-                From our home to yours: care you can trust.
+                From our home to yours: Natural care you can trust.
               </p>
             </div>
           </div>
