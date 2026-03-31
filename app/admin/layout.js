@@ -16,6 +16,7 @@ const ADMIN_NAV = [
   { href: '/admin/whatsapp', label: 'WhatsApp & Contact', adminOnly: true },
   { href: '/admin/support', label: 'Support tickets', adminOnly: true },
   { href: '/admin/slider', label: 'Home slider', adminOnly: true },
+  { href: '/admin/content', label: 'Content settings', adminOnly: true },
   { href: '/admin/blog', label: 'Blog', adminOnly: true },
   { href: '/admin/analytics', label: 'Analytics', adminOnly: true },
 ];

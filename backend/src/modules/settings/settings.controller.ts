@@ -11,4 +11,10 @@ export class SettingsController {
   getContact() {
     return this.settings.getContact();
   }
+
+  @Public()
+  @Get('content')
+  getContent() {
+    return this.settings.getContent();
+  }
 }

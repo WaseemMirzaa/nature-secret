@@ -10,7 +10,7 @@ import { SHIPPING_POLICY, RETURN_POLICY } from '@/lib/constants';
 import { trackViewContent, trackAddToCart, trackAddToWishlist, trackOutOfStockView } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
 import { sanitizeHtml } from '@/lib/sanitizeHtml';
-import { getProductById, getProductBySlug, resolveImageUrl, getReviews, submitReview, productPath } from '@/lib/api';
+import { getProductById, getProductBySlug, resolveImageUrl, getReviews, submitReview, productPath, getContentSettings } from '@/lib/api';
 import { InlineLoader } from '@/components/ui/PageLoader';
 
 const isUuid = (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
@@ -100,6 +100,10 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
   const purchasePanelRef = useRef(null);
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [isLg, setIsLg] = useState(false);
+  const [productDisclaimerTitle, setProductDisclaimerTitle] = useState('Important Note');
+  const [productDisclaimerText, setProductDisclaimerText] = useState(
+    'This product is a non-medicated, herbal massage oil. It is not a pharmaceutical drug. Results may vary based on individual usage and consistency. Always perform a patch test before full application.',
+  );
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -129,6 +133,20 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
     obs.observe(el);
     return () => obs.disconnect();
   }, [isLg, product?.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getContentSettings()
+      .then((r) => {
+        if (cancelled || !r) return;
+        if (r.productDisclaimerTitle) setProductDisclaimerTitle(r.productDisclaimerTitle);
+        if (r.productDisclaimerText) setProductDisclaimerText(r.productDisclaimerText);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const variant = selectedVariant ?? defaultVariant ?? product?.variants?.[0];
   const variantImageList = (variant?.images && variant.images.length) ? variant.images : (variant?.image ? [variant.image] : product?.images || []);
@@ -490,6 +508,10 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                   </button>
                 </>
               )}
+              <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5">
+                <p className="text-[11px] font-semibold text-neutral-700">{productDisclaimerTitle}</p>
+                <p className="mt-1 text-[11px] text-neutral-500 leading-relaxed">{productDisclaimerText}</p>
+              </div>
               <p className="text-xs font-medium text-gold-700 flex items-center gap-1.5 pt-1 lg:pt-1.5">
                 <svg className="w-4 h-4 text-gold-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1h-1m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
@@ -820,6 +842,10 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                 <span>Order now</span>
                 <span className="text-[10px] font-medium text-neutral-800/90">Cash on delivery</span>
               </button>
+            </div>
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 py-2">
+              <p className="text-[10px] font-semibold text-neutral-700">{productDisclaimerTitle}</p>
+              <p className="mt-1 text-[10px] text-neutral-500 leading-relaxed">{productDisclaimerText}</p>
             </div>
           </div>
         </div>

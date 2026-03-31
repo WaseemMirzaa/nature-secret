@@ -36,6 +36,21 @@ export class AdminController {
     return this.settingsService.getContact();
   }
 
+  @Get('settings/content')
+  @AdminOnly()
+  getContentSettings() {
+    return this.settingsService.getContent();
+  }
+
+  @Patch('settings/content')
+  @AdminOnly()
+  async updateContentSettings(
+    @Body() body: { footerDisclaimer?: string; productDisclaimerTitle?: string; productDisclaimerText?: string },
+  ) {
+    await this.settingsService.setContent(body);
+    return this.settingsService.getContent();
+  }
+
   @Get('dashboard')
   @AdminOnly()
   async dashboard(@Query('dateFrom') dateFrom?: string, @Query('dateTo') dateTo?: string) {

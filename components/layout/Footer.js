@@ -1,8 +1,28 @@
+ 'use client';
+
+import { useEffect, useState } from 'react';
 import Link from '@/components/Link';
 import { Logo } from '@/components/Logo';
 import { FooterContact } from '@/components/FooterContact';
+import { getContentSettings } from '@/lib/api';
 
 export function Footer() {
+  const [footerDisclaimer, setFooterDisclaimer] = useState(
+    'Nature Secret products are intended for general wellness and relaxation purposes only. Our botanical oils are designed to support a comfortable lifestyle and are not intended to diagnose, treat, cure, or prevent any disease or medical condition.',
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    getContentSettings()
+      .then((r) => {
+        if (!cancelled && r?.footerDisclaimer) setFooterDisclaimer(r.footerDisclaimer);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <footer className="border-t border-neutral-200 bg-neutral-50/80 mt-16 sm:mt-20 lg:mt-24">
       <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-6 sm:py-10 lg:py-16">
@@ -42,6 +62,7 @@ export function Footer() {
             <Link href="/terms" className="text-xs text-neutral-400 hover:text-gold-600 transition-colors">Terms</Link>
           </div>
         </div>
+        <p className="mt-4 text-[11px] sm:text-xs text-neutral-500 leading-relaxed max-w-4xl">{footerDisclaimer}</p>
       </div>
     </footer>
   );
