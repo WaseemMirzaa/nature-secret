@@ -58,15 +58,15 @@ async function seed() {
         badge: 'Bestseller',
         badgeSub: 'Top selling',
         price: 49900,
-        description: 'Fast pain relief herbal oil for muscle, bones & joint pain. Nature Secret premium formulation.',
-        benefits: ['Muscle pain', 'Joint pain', 'Arthritis & back pain', 'Neck & knee pain', '50 ml'],
+        description: 'Premium herbal oil for daily body care with a clean, trusted formulation.',
+        benefits: ['Herbal body care', 'Daily comfort routine', 'Fast-absorbing texture', 'Non-greasy finish', '50 ml'],
         images: ['/assets/painrex-oil-main.png'],
         rating: 4.8,
         reviewCount: 0,
         inventory: 100,
         isBestseller: true,
         outOfStock: false,
-        faq: [{ q: 'Where to use?', a: 'Muscle pain, joint pain, arthritis, back pain, neck pain, knee pain.' }, { q: 'How to apply?', a: 'Apply a few drops to the affected area and massage gently.' }],
+        faq: [{ q: 'Where to use?', a: 'For external body care use. Apply as needed to clean skin.' }, { q: 'How to apply?', a: 'Apply a few drops to the desired area and massage gently.' }],
       });
       await productRepo.save(p);
       await variantRepo.save([

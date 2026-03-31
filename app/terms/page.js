@@ -22,8 +22,8 @@ export default function TermsPage() {
         <h2 className="text-lg font-semibold text-neutral-900">2. Product information</h2>
         <p className="mt-3 text-sm text-neutral-600">
           We make every effort to display product information (ingredients, usage, benefits) accurately. However, minor variations in
-          packaging or formulation may occur over time. Our products are not intended to diagnose, treat, cure or prevent any disease.
-          Individual results may vary.
+          packaging or formulation may occur over time. Our products are for general personal care and are not a substitute for
+          professional medical advice. Individual experiences may vary.
         </p>
         <p className="mt-3 text-sm text-neutral-600">
           Always follow the usage instructions on the label and consult a qualified healthcare professional if you are pregnant,

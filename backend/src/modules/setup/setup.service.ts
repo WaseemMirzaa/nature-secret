@@ -17,9 +17,9 @@ const DEFAULT_CATEGORIES = [
 ];
 
 const DEFAULT_HERO_SLIDES = [
-  { imageUrl: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=1200', alt: 'Premium herbal oil for pain relief', title: 'Pain care oils', href: '/shop?category=herbal-oil', sortOrder: 0 },
+  { imageUrl: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=1200', alt: 'Premium herbal oil for daily body care', title: 'Herbal care oils', href: '/shop?category=herbal-oil', sortOrder: 0 },
   { imageUrl: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?w=1200', alt: 'Natural herbal blends', title: 'Herbal oil', href: '/shop?category=herbal-oil', sortOrder: 1 },
-  { imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200', alt: 'Natural ingredients for wellness', title: 'Natural relief', href: '/shop?category=herbal-oil', sortOrder: 2 },
+  { imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200', alt: 'Natural ingredients for wellness', title: 'Daily wellness', href: '/shop?category=herbal-oil', sortOrder: 2 },
 ];
 
 @Injectable()
