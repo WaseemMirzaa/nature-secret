@@ -3,11 +3,11 @@ import { fetchHomePageData } from '@/lib/fetchHomeServer';
 
 export const metadata = {
   title: 'Nature Secret | Premium Herbal Oils & Skincare | Pakistan',
-  description: 'Painrex Oil and premium herbal care products trusted in Pakistan. Clean ingredients, refined quality, and skincare coming soon.',
-  keywords: 'herbal oil, painrex oil, Pakistan, skincare, herbal oils, wellness, self-care',
+  description: 'Premium herbal solutions for daily comfort and skin wellness. Featuring Nature Secret PX Oil with trusted care for soothing massage and enhanced body mobility.',
+  keywords: 'nature secret px oil, herbal oil, pakistan, skincare, wellness, self-care, botanical massage oil',
   openGraph: {
     title: 'Nature Secret | Premium Herbal Oils & Skincare',
-    description: 'Painrex Oil and premium herbal care products trusted in Pakistan. Clean, minimal, refined.',
+    description: 'Premium herbal solutions for daily comfort and skin wellness, featuring Nature Secret PX Oil.',
     type: 'website',
   },
 };
@@ -19,13 +19,13 @@ const JSON_LD = {
       '@type': 'Organization',
       name: 'Nature Secret',
       url: 'https://naturesecret.pk',
-      description: 'Premium herbal oils and skincare products. Painrex Oil and natural wellness essentials trusted in Pakistan.',
+      description: 'Natural care brand inspired by traditional herbal wisdom, focused on daily comfort, self-care, and skin wellness in Pakistan.',
     },
     {
       '@type': 'WebSite',
       name: 'Nature Secret',
       url: 'https://naturesecret.pk',
-      description: 'Shop premium herbal oils and skincare. Painrex Oil, natural and trusted in Pakistan.',
+      description: 'Shop premium herbal oils and skincare from Nature Secret, including Nature Secret PX Oil and upcoming skincare essentials.',
       potentialAction: { '@type': 'SearchAction', target: 'https://naturesecret.pk/shop?q={search_term_string}', 'query-input': 'required name=search_term_string' },
     },
   ],

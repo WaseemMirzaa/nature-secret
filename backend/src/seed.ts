@@ -52,8 +52,8 @@ async function seed() {
     const skinId = cats.find((c) => c.slug === 'skin-care')?.id;
     if (herbalId) {
       const p = productRepo.create({
-        name: 'Painrex Oil',
-        slug: 'painrex-oil',
+        name: 'Nature Secret PX Oil',
+        slug: 'nature-secret-px-oil',
         categoryId: herbalId,
         badge: 'Bestseller',
         badgeSub: 'Top selling',
