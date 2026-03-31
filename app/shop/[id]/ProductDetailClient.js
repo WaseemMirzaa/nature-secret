@@ -6,7 +6,7 @@ import Link from '@/components/Link';
 import Image from 'next/image';
 import { useProductsStore, useCartStore, useCartOpenStore, useWishlistStore, useCurrencyStore } from '@/lib/store';
 import { useBreadcrumbLabel } from '@/lib/BreadcrumbContext';
-import { SHIPPING_POLICY, RETURN_POLICY } from '@/lib/constants';
+import { SHIPPING_POLICY, RETURN_POLICY, POLICY_DISCLAIMER } from '@/lib/constants';
 import { trackViewContent, trackAddToCart, trackAddToWishlist, trackOutOfStockView } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
 import { sanitizeHtml } from '@/lib/sanitizeHtml';
@@ -574,6 +574,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
         <div className={`rounded-2xl bg-neutral-50 border border-neutral-100 p-6 xl:p-8 text-sm xl:text-[15px] text-neutral-600 space-y-3 leading-relaxed max-w-2xl xl:max-w-3xl ${(product.faq || []).length ? 'mt-10 xl:mt-12' : ''}`}>
           <p><strong>Shipping:</strong> {SHIPPING_POLICY}</p>
           <p><strong>Returns:</strong> {RETURN_POLICY}</p>
+          <p><strong>Disclaimer:</strong> {POLICY_DISCLAIMER}</p>
         </div>
         <div className="mt-6 xl:mt-8 flex flex-wrap gap-x-6 gap-y-2 text-xs text-neutral-500">
           {customProductBadges.length > 0 ? (
@@ -594,7 +595,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
             })
           ) : (
             <>
-              <span>Secure payment</span><span>Authentic & organic</span><span>30-day returns</span>
+              <span>Secure payment</span><span>Authentic & organic</span><span>7-day return policy</span>
             </>
           )}
         </div>
@@ -644,6 +645,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
         <div className="mt-4 sm:mt-6 rounded-xl sm:rounded-2xl bg-neutral-100 p-3 sm:p-4 text-xs sm:text-sm text-neutral-600 space-y-1.5 sm:space-y-2 leading-relaxed">
           <p><strong>Shipping:</strong> {SHIPPING_POLICY}</p>
           <p><strong>Returns:</strong> {RETURN_POLICY}</p>
+          <p><strong>Disclaimer:</strong> {POLICY_DISCLAIMER}</p>
         </div>
         <div className="mt-3 sm:mt-4 flex flex-wrap gap-x-3 gap-y-1 text-[10px] sm:text-xs text-neutral-500">
           {customProductBadges.length > 0 ? (
@@ -664,7 +666,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
             })
           ) : (
             <>
-              <span>Secure payment</span><span>Authentic & organic</span><span>30-day returns</span>
+              <span>Secure payment</span><span>Authentic & organic</span><span>7-day return policy</span>
             </>
           )}
         </div>
