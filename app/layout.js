@@ -32,8 +32,36 @@ const chunkReloadScript = `
 })();
 `;
 
+function versionRefreshScript(appVersion) {
+  return `
+(function(){
+  var version=${JSON.stringify(appVersion || '')};
+  if(!version) return;
+  var key='ns_app_version';
+  var reloadedKey='ns_app_version_reloaded';
+  try{
+    var prev=localStorage.getItem(key);
+    if(!prev){localStorage.setItem(key,version);return;}
+    if(prev===version) return;
+    localStorage.setItem(key,version);
+    if(sessionStorage.getItem(reloadedKey)===version) return;
+    sessionStorage.setItem(reloadedKey,version);
+    if(window.caches&&caches.keys){
+      caches.keys().then(function(names){
+        return Promise.all(names.map(function(n){return caches.delete(n);}));
+      }).catch(function(){});
+    }
+    var url=new URL(window.location.href);
+    url.searchParams.set('v',version);
+    window.location.replace(url.toString());
+  }catch(e){}
+})();
+`;
+}
+
 export default function RootLayout({ children }) {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  const appVersion = process.env.NEXT_PUBLIC_APP_VERSION || '';
   const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
   /** Only set in staging / when debugging — required for Events Manager → Test events tab */
   const metaTestEventCode = process.env.NEXT_PUBLIC_META_TEST_EVENT_CODE || '';
@@ -53,6 +81,7 @@ export default function RootLayout({ children }) {
         ) : null}
       </head>
       <body className="min-h-screen flex flex-col font-sans">
+        <script dangerouslySetInnerHTML={{ __html: versionRefreshScript(appVersion) }} />
         <script dangerouslySetInnerHTML={{ __html: chunkReloadScript }} />
         <Providers>
           <StoreLayout>{children}</StoreLayout>
