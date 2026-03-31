@@ -155,7 +155,7 @@ export default function HomeContent({
               Natural Care, Refined for Modern Wellness.
             </h1>
             <p className="mt-4 sm:mt-6 text-sm sm:text-lg text-neutral-600 max-w-md leading-relaxed">
-              Premium herbal oils and skin wellness essentials made with trusted ingredients for everyday self-care.
+              Premium herbal solutions for daily comfort and skin wellness. Featuring Nature Secret PX Oil: trusted care for soothing massage and enhanced body mobility
             </p>
             <div className="mt-5 sm:mt-10 flex flex-wrap gap-2.5 sm:gap-4">
               <Link
@@ -366,7 +366,7 @@ export default function HomeContent({
                 Encouraged by their experiences, we realized this simple formula could support more people in their daily self-care routines. That is how Nature Secret PX Oil was born.
               </p>
               <p>
-                Today, we are proud to share the same heritage-inspired oil with people across Pakistan. And this is just the beginning. Inspired by our belief in natural care, we are now developing a collection of skincare serums and wellness products designed for your modern lifestyle.
+                Today, we are proud to share the same heritage-inspired oil with people across Pakistan. Inspired by our belief in natural care, we are now developing a collection of skincare serums and wellness products for your modern lifestyle.
               </p>
               <p className="font-medium text-neutral-700">
                 From our home to yours: Natural care you can trust.
@@ -408,25 +408,6 @@ export default function HomeContent({
         </section>
       )}
 
-
-      {/* CTA */}
-      <section className="py-7 sm:py-11 lg:py-28">
-        <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
-          <div className="rounded-xl sm:rounded-2xl bg-neutral-900 px-4 sm:px-6 py-8 sm:py-14 lg:py-20 text-center relative overflow-hidden">
-            <div className="absolute inset-0 opacity-20" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(203,168,71,0.4) 0%, transparent 50%)' }} aria-hidden />
-            <div className="relative">
-              <h2 className="text-xl sm:text-3xl font-semibold text-white leading-snug">Try our best-selling herbal oil</h2>
-              <p className="mt-2 sm:mt-3 text-sm sm:text-base text-neutral-300 max-w-md mx-auto leading-relaxed">Painrex Oil, trusted across Pakistan for daily body care. Skincare range coming soon.</p>
-              <Link
-                href="/shop"
-                className="mt-4 sm:mt-8 inline-flex items-center justify-center rounded-xl sm:rounded-2xl bg-gold-500 px-6 sm:px-8 py-3 sm:py-3.5 text-xs sm:text-sm font-semibold text-neutral-900 transition hover:bg-gold-400 shadow-gold-md focus:outline-none focus:ring-2 focus:ring-gold-400 focus:ring-offset-2 focus:ring-offset-neutral-900"
-              >
-                Shop herbal oils
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from '@/components/Link';
 import { useRouter, useParams } from 'next/navigation';
 import { useProductsStore } from '@/lib/store';
-import { getCategories, uploadProductImage, updateProduct as updateProductApi, formatApiError, getAdminReviews, assignReviewToProduct, unassignReview, setProductRating, approveReview } from '@/lib/api';
+import { getCategories, uploadProductImage, updateProduct as updateProductApi, formatApiError, getAdminReviews, unassignReview, setProductRating, approveReview } from '@/lib/api';
 import { Spinner } from '@/components/ui/PageLoader';
 
 const emptyVariant = () => ({ id: `v-${Date.now()}`, name: '', volume: '', price: 0, compareAtPrice: null, images: [] });
@@ -50,8 +50,6 @@ export default function EditProductPage() {
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [assignedReviews, setAssignedReviews] = useState([]);
-  const [poolReviews, setPoolReviews] = useState([]);
-  const [reviewCollection, setReviewCollection] = useState('quality');
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [customerReviews, setCustomerReviews] = useState([]);
   const [customerReviewsLoading, setCustomerReviewsLoading] = useState(false);
@@ -141,14 +139,6 @@ export default function EditProductPage() {
       .catch(() => setAssignedReviews([]))
       .finally(() => setReviewsLoading(false));
   }, [product?.id]);
-
-  useEffect(() => {
-    setReviewsLoading(true);
-    getAdminReviews({ collection: reviewCollection })
-      .then((list) => setPoolReviews(Array.isArray(list) ? list : []))
-      .catch(() => setPoolReviews([]))
-      .finally(() => setReviewsLoading(false));
-  }, [reviewCollection]);
 
   useEffect(() => {
     if (!product?.id) return;
@@ -466,7 +456,7 @@ export default function EditProductPage() {
         </div>
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-2">Reviews</label>
-          <p className="text-xs text-neutral-500 mb-2">Assign seed reviews from pool. Set overall 5 star from admin.</p>
+          <p className="text-xs text-neutral-500 mb-2">Manage approved product reviews and overall rating.</p>
           <div className="flex flex-wrap gap-2 mb-2">
             <span className="text-sm text-neutral-600">Overall rating:</span>
             <input type="number" min="0" max="5" step="0.1" value={rating} onChange={(e) => setRating(e.target.value)} className="w-16 rounded-lg border border-neutral-200 px-2 py-1 text-sm" />
@@ -496,34 +486,7 @@ export default function EditProductPage() {
               </li>
             ))}
           </ul>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-neutral-600">Add from pool:</span>
-            <select value={reviewCollection} onChange={(e) => setReviewCollection(e.target.value)} className="rounded-lg border border-neutral-200 px-2 py-1 text-sm">
-              <option value="quality">Quality</option>
-              <option value="pain_relief">Pain relief</option>
-              <option value="value">Value</option>
-            </select>
-            <select
-              className="rounded-lg border border-neutral-200 px-2 py-1 text-sm min-w-[200px]"
-              onChange={async (e) => {
-                const id = e.target.value;
-                if (!id || !product) return;
-                e.target.value = '';
-                try {
-                  await assignReviewToProduct(id, product.id);
-                  const r = poolReviews.find((x) => x.id === id);
-                  if (r) setAssignedReviews((prev) => [r, ...prev]);
-                  setPoolReviews((prev) => prev.filter((x) => x.id !== id));
-                  setReviewCount((c) => c + 1);
-                } catch (_) {}
-              }}
-            >
-              <option value="">— Choose review —</option>
-              {poolReviews.slice(0, 50).map((r) => (
-                <option key={r.id} value={r.id}>{r.body?.slice(0, 60)}…</option>
-              ))}
-            </select>
-          </div>
+          <p className="text-xs text-neutral-500">New reviews can be submitted from product pages and approved below.</p>
         </div>
 
         <div className="mt-8">

@@ -3,8 +3,6 @@ import * as bcrypt from 'bcryptjs';
 import { AdminUser } from './entities/admin-user.entity';
 import { Category } from './entities/category.entity';
 import { HeroSlide } from './entities/hero-slide.entity';
-import { Review } from './entities/review.entity';
-import { SEED_REVIEWS } from './seed-reviews-data';
 
 const DEFAULT_ADMINS = [
   { email: 'admin@naturesecret.pk', password: 'Admin123!', role: 'admin' as const },
@@ -94,34 +92,6 @@ export async function seedAdminAndCategoriesIfEmpty(dataSource: DataSource): Pro
       await slideRepo.save(slideRepo.create(DEFAULT_HERO_SLIDES[i]));
     }
     console.log('Seeded hero slides:', DEFAULT_HERO_SLIDES.length);
-  }
-
-  try {
-    const reviewRepo = dataSource.getRepository(Review);
-    const reviewCount = await reviewRepo.count();
-    if (reviewCount === 0 && SEED_REVIEWS.length > 0) {
-      const now = Date.now();
-      const oneDayMs = 24 * 60 * 60 * 1000;
-      const twoMonthsMs = 60 * oneDayMs;
-      // Random date between yesterday and 2 months ago: [now - 60d, now - 1d]
-      for (const r of SEED_REVIEWS) {
-        const offsetMs = oneDayMs + Math.floor(Math.random() * (twoMonthsMs - oneDayMs));
-        const createdAt = new Date(now - offsetMs);
-        await reviewRepo.save(
-          reviewRepo.create({
-            authorName: r.authorName,
-            rating: r.rating,
-            body: r.body,
-            collection: r.collection,
-            productId: null,
-            createdAt,
-          }),
-        );
-      }
-      console.log('Seeded reviews (pool):', SEED_REVIEWS.length, 'in 3 collections (quality, pain_relief, value)');
-    }
-  } catch (e) {
-    console.error('Seed: reviews failed', e?.message || e);
   }
 
   console.log('Seed completed');

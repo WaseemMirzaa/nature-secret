@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not, IsNull } from 'typeorm';
 import { Review } from '../../entities/review.entity';
 import { Product } from '../../entities/product.entity';
 
@@ -13,14 +13,15 @@ export class ReviewsService {
 
   async findByProductId(productId: string): Promise<Review[]> {
     return this.reviewRepo.find({
-      where: { productId, approved: true },
+      where: { productId, approved: true, collection: 'user' },
       order: { createdAt: 'DESC' },
     });
   }
 
   async findHighlights(limit = 12): Promise<Review[]> {
     return this.reviewRepo.find({
-      where: { approved: true },
+      // Homepage highlights should come from real product reviews only.
+      where: { approved: true, productId: Not(IsNull()), collection: 'user' },
       order: { createdAt: 'DESC' },
       take: limit,
     });
@@ -104,7 +105,7 @@ export class ReviewsService {
   }
 
   async updateProductReviewStats(productId: string): Promise<void> {
-    const reviews = await this.reviewRepo.find({ where: { productId, approved: true } });
+    const reviews = await this.reviewRepo.find({ where: { productId, approved: true, collection: 'user' } });
     const count = reviews.length;
     const avg = count ? reviews.reduce((s, r) => s + r.rating, 0) / count : 0;
     const product = await this.productRepo.findOne({ where: { id: productId } });
