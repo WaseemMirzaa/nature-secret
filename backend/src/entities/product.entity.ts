@@ -73,6 +73,18 @@ export class Product {
   @Column({ type: 'json', nullable: true })
   faq: Array<{ q: string; a: string }> | null;
 
+  @Column({ type: 'boolean', default: false })
+  showDisclaimer: boolean;
+
+  @Column({ type: 'varchar', length: 120, nullable: true })
+  disclaimerTitle: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  disclaimerText: string | null;
+
+  @Column({ type: 'json', nullable: true })
+  disclaimerItems: string[] | null;
+
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 

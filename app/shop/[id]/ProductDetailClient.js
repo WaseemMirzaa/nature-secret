@@ -149,6 +149,11 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
   }, []);
 
   const variant = selectedVariant ?? defaultVariant ?? product?.variants?.[0];
+  const disclaimerEnabled = !!product?.showDisclaimer;
+  const disclaimerTitleToShow = product?.disclaimerTitle || productDisclaimerTitle;
+  const disclaimerItemsToShow = Array.isArray(product?.disclaimerItems) && product.disclaimerItems.length
+    ? product.disclaimerItems
+    : ((product?.disclaimerText || productDisclaimerText) ? [product?.disclaimerText || productDisclaimerText] : []);
   const variantImageList = (variant?.images && variant.images.length) ? variant.images : (variant?.image ? [variant.image] : product?.images || []);
   useEffect(() => { setSelectedImageIndex(0); }, [variant?.id]);
   useEffect(() => { setQty(1); }, [variant?.id]);
@@ -508,10 +513,16 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                   </button>
                 </>
               )}
-              <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5">
-                <p className="text-[11px] font-semibold text-neutral-700">{productDisclaimerTitle}</p>
-                <p className="mt-1 text-[11px] text-neutral-500 leading-relaxed">{productDisclaimerText}</p>
-              </div>
+              {disclaimerEnabled ? (
+                <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5">
+                  <p className="text-[11px] font-semibold text-neutral-700">{disclaimerTitleToShow}</p>
+                  <ul className="mt-1 space-y-1 text-[11px] text-neutral-500 leading-relaxed list-disc pl-4">
+                    {disclaimerItemsToShow.map((item, idx) => (
+                      <li key={`${idx}-${item.slice(0, 12)}`}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
               <p className="text-xs font-medium text-gold-700 flex items-center gap-1.5 pt-1 lg:pt-1.5">
                 <svg className="w-4 h-4 text-gold-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1h-1m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
@@ -843,10 +854,16 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                 <span className="text-[10px] font-medium text-neutral-800/90">Cash on delivery</span>
               </button>
             </div>
-            <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 py-2">
-              <p className="text-[10px] font-semibold text-neutral-700">{productDisclaimerTitle}</p>
-              <p className="mt-1 text-[10px] text-neutral-500 leading-relaxed">{productDisclaimerText}</p>
-            </div>
+            {disclaimerEnabled ? (
+              <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 py-2">
+                <p className="text-[10px] font-semibold text-neutral-700">{disclaimerTitleToShow}</p>
+                <ul className="mt-1 space-y-1 text-[10px] text-neutral-500 leading-relaxed list-disc pl-3.5">
+                  {disclaimerItemsToShow.map((item, idx) => (
+                    <li key={`${idx}-${item.slice(0, 12)}`}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </div>
         </div>
       )}

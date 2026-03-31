@@ -1,118 +1,74 @@
 export default function TermsPage() {
   return (
-    <div className="mx-auto max-w-3xl px-3 sm:px-5 lg:px-8 py-5 sm:py-8 lg:py-16">
-      <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-neutral-900">Terms of Service</h1>
-      <p className="mt-3 text-sm text-neutral-500">Last updated: {new Date().getFullYear()}</p>
+    <div className="bg-gradient-to-b from-neutral-50 to-white">
+      <div className="mx-auto max-w-4xl px-3 sm:px-5 lg:px-8 py-6 sm:py-10 lg:py-16">
+        <div className="rounded-3xl border border-neutral-200 bg-white/90 shadow-sm p-5 sm:p-8 lg:p-10">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-neutral-900 tracking-tight">Terms of Service for Nature Secret</h1>
+          <p className="mt-3 inline-flex rounded-full border border-gold-200 bg-gold-50 px-3 py-1 text-xs sm:text-sm text-gold-800">
+            Last Updated: March 31, 2026
+          </p>
 
-      <p className="mt-5 text-sm sm:text-base text-neutral-600 leading-relaxed">
-        These Terms of Service govern your use of the Nature Secret website, products and services. By accessing or placing an order
-        through our site, you agree to be bound by these terms.
-      </p>
+          <section className="mt-8">
+            <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">1. Acceptance of Terms</h2>
+            <p className="mt-3 text-sm text-neutral-700 leading-relaxed">
+              By accessing naturesecret.pk, you agree to be bound by these Terms of Service. If you do not agree to all terms, you may not access the website or use our services.
+            </p>
+          </section>
 
-      <section className="mt-6">
-        <h2 className="text-lg font-semibold text-neutral-900">1. Use of the website</h2>
-        <p className="mt-3 text-sm text-neutral-600">
-          You agree to use this website for lawful purposes only and in a way that does not infringe the rights of, restrict or inhibit
-          anyone else&apos;s use and enjoyment of the site. You must not attempt to interfere with the security or proper functioning of
-          the website.
-        </p>
-      </section>
+          <section className="mt-8">
+            <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">2. Eligibility &amp; Age Restriction</h2>
+            <p className="mt-3 text-sm text-neutral-700 leading-relaxed">
+              Our services and products are intended for users who are at least 18 years of age. By using this site, you represent that you meet this age requirement.
+            </p>
+          </section>
 
-      <section className="mt-6">
-        <h2 className="text-lg font-semibold text-neutral-900">2. Product information</h2>
-        <p className="mt-3 text-sm text-neutral-600">
-          We make every effort to display product information (ingredients, usage, benefits) accurately. However, minor variations in
-          packaging or formulation may occur over time. Our products are for general personal care and are not a substitute for
-          professional medical advice. Individual experiences may vary.
-        </p>
-        <p className="mt-3 text-sm text-neutral-600">
-          Always follow the usage instructions on the label and consult a qualified healthcare professional if you are pregnant,
-          nursing, on medication or have a medical condition.
-        </p>
-      </section>
+          <section className="mt-8">
+            <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">3. Medical Disclaimer (Critical for Meta Compliance)</h2>
+            <ul className="mt-3 space-y-2 text-sm text-neutral-700 list-disc list-inside">
+              <li><span className="font-medium">Non-Medical Status:</span> All products offered by Nature Secret are herbal and intended for general wellness, relaxation, and cosmetic use only.</li>
+              <li><span className="font-medium">Not a Substitute:</span> Our products and content are not a substitute for professional medical advice, diagnosis, or treatment. We make no claims to cure, treat, or prevent specific medical conditions like arthritis, sciatica, or chronic disease.</li>
+              <li><span className="font-medium">Consultation:</span> Always consult a healthcare professional before using new herbal oils, especially if you have pre-existing health conditions or are pregnant.</li>
+            </ul>
+          </section>
 
-      <section className="mt-6">
-        <h2 className="text-lg font-semibold text-neutral-900">3. Orders &amp; pricing</h2>
-        <ul className="mt-3 space-y-1.5 text-sm text-neutral-600 list-disc list-inside">
-          <li>All prices are listed in PKR unless stated otherwise.</li>
-          <li>Placing an order constitutes an offer to purchase the selected products.</li>
-          <li>We reserve the right to accept or decline any order at our discretion (e.g., due to stock issues or suspected fraud).</li>
-          <li>If a pricing or stock error is discovered after you place an order, we may cancel or adjust the order and notify you.</li>
-        </ul>
-      </section>
+          <section className="mt-8">
+            <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">4. Product Use &amp; Safety</h2>
+            <ul className="mt-3 space-y-2 text-sm text-neutral-700 list-disc list-inside">
+              <li><span className="font-medium">External Use Only:</span> All oils are for topical application only. Do not ingest.</li>
+              <li><span className="font-medium">Patch Test:</span> We strongly recommend a patch test before first use to check for skin sensitivity.</li>
+              <li><span className="font-medium">Variable Results:</span> Individual results from natural products may vary and are not guaranteed.</li>
+            </ul>
+          </section>
 
-      <section className="mt-6">
-        <h2 className="text-lg font-semibold text-neutral-900">4. Shipping &amp; delivery</h2>
-        <p className="mt-3 text-sm text-neutral-600">
-          We offer nationwide delivery in Pakistan, including cash on delivery where available. Estimated delivery times shown at
-          checkout are approximate and may vary due to courier delays, holidays or other external factors.
-        </p>
-        <p className="mt-3 text-sm text-neutral-600">
-          Risk of loss passes to you once the order has been handed over to the courier. Please inspect your package on arrival and
-          contact us promptly if there is any issue with the delivery or contents.
-        </p>
-      </section>
+          <section className="mt-8">
+            <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">5. Intellectual Property</h2>
+            <p className="mt-3 text-sm text-neutral-700 leading-relaxed">
+              All content on this site, including text, graphics, logos, and product names (e.g., PX Comfort Oil), is the property of Nature Secret and protected by the laws of Pakistan.
+            </p>
+          </section>
 
-      <section className="mt-6">
-        <h2 className="text-lg font-semibold text-neutral-900">5. Returns &amp; exchanges</h2>
-        <p className="mt-3 text-sm text-neutral-600">
-          Our standard policy is: <span className="font-semibold">30-day hassle-free returns. Product must be unopened, seal must not be opened.</span>
-        </p>
-        <p className="mt-3 text-sm text-neutral-600">
-          For hygiene and safety reasons, we cannot accept returns of opened or used products unless there is a clear quality issue
-          attributable to us. To initiate a return or exchange, please contact our support team with your order details.
-        </p>
-      </section>
+          <section className="mt-8">
+            <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">6. Limitation of Liability</h2>
+            <p className="mt-3 text-sm text-neutral-700 leading-relaxed">
+              Nature Secret shall not be liable for any indirect, incidental, or consequential damages arising from the use of our products. You agree to use our services at your own risk.
+            </p>
+          </section>
 
-      <section className="mt-6">
-        <h2 className="text-lg font-semibold text-neutral-900">6. Accounts &amp; security</h2>
-        <p className="mt-3 text-sm text-neutral-600">
-          If you create an account on our site, you are responsible for maintaining the confidentiality of your login details and for
-          all activities that occur under your account. Notify us immediately if you suspect any unauthorized access.
-        </p>
-        <p className="mt-3 text-sm text-neutral-600">
-          We reserve the right to suspend or close accounts that violate these terms, abuse offers or attempt to harm our systems or
-          customers.
-        </p>
-      </section>
+          <section className="mt-8">
+            <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">7. Governing Law</h2>
+            <p className="mt-3 text-sm text-neutral-700 leading-relaxed">
+              These terms are governed by and construed in accordance with the laws of Pakistan.
+            </p>
+          </section>
 
-      <section className="mt-6">
-        <h2 className="text-lg font-semibold text-neutral-900">7. Reviews &amp; user content</h2>
-        <p className="mt-3 text-sm text-neutral-600">
-          When you submit a product review or testimonial, you confirm that it is based on your genuine experience and does not contain
-          offensive, misleading or illegal content. We may moderate, edit or remove reviews at our discretion (for example, to remove
-          personal data, abusive language or spam).
-        </p>
-        <p className="mt-3 text-sm text-neutral-600">
-          By submitting a review, you grant Nature Secret a non-exclusive, royalty-free license to use, display and share your content
-          on our website, marketing materials and social channels, with or without attribution, in accordance with our Privacy Policy.
-        </p>
-      </section>
-
-      <section className="mt-6">
-        <h2 className="text-lg font-semibold text-neutral-900">8. Limitation of liability</h2>
-        <p className="mt-3 text-sm text-neutral-600">
-          To the maximum extent permitted by law, Nature Secret will not be liable for any indirect, incidental or consequential
-          damages arising from your use of our products or website. Our total liability for any claim related to your purchase will not
-          exceed the amount you paid for the relevant order.
-        </p>
-      </section>
-
-      <section className="mt-6">
-        <h2 className="text-lg font-semibold text-neutral-900">9. Changes to these terms</h2>
-        <p className="mt-3 text-sm text-neutral-600">
-          We may update these Terms of Service from time to time. The latest version will always be available on this page. Continued
-          use of the website after changes are posted constitutes your acceptance of the updated terms.
-        </p>
-      </section>
-
-      <section className="mt-6">
-        <h2 className="text-lg font-semibold text-neutral-900">10. Contact</h2>
-        <p className="mt-3 text-sm text-neutral-600">
-          If you have any questions about these terms, your order or our products, please reach out via our Contact page or by using
-          the support details shown in the footer of our website.
-        </p>
-      </section>
+          <section className="mt-8">
+            <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">8. Changes to Terms</h2>
+            <p className="mt-3 text-sm text-neutral-700 leading-relaxed">
+              We reserve the right to update these terms at any time. Your continued use of the site following any changes constitutes acceptance of the new terms.
+            </p>
+          </section>
+        </div>
+      </div>
     </div>
   );
 }

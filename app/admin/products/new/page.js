@@ -41,6 +41,9 @@ export default function NewProductPage() {
   const [badgeSub, setBadgeSub] = useState('');
   const [variants, setVariants] = useState([emptyVariant()]);
   const [faq, setFaq] = useState([emptyFaq()]);
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const [disclaimerTitle, setDisclaimerTitle] = useState('Important Note');
+  const [disclaimerItems, setDisclaimerItems] = useState(['']);
   const [rating, setRating] = useState(4.5);
   const [reviewCount, setReviewCount] = useState(0);
   const [uploadingIndex, setUploadingIndex] = useState(null);
@@ -136,6 +139,9 @@ export default function NewProductPage() {
   function addFaq() { setFaq((f) => [...f, emptyFaq()]); }
   function updateFaq(i, field, value) { setFaq((f) => { const n = [...f]; n[i] = { ...n[i], [field]: value }; return n; }); }
   function removeFaq(i) { setFaq((f) => f.filter((_, j) => j !== i)); }
+  function addDisclaimerItem() { setDisclaimerItems((list) => [...list, '']); }
+  function updateDisclaimerItem(i, value) { setDisclaimerItems((list) => list.map((x, idx) => (idx === i ? value : x))); }
+  function removeDisclaimerItem(i) { setDisclaimerItems((list) => (list.length > 1 ? list.filter((_, idx) => idx !== i) : [''])); }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -176,6 +182,9 @@ export default function NewProductPage() {
           images: Array.isArray(v.images) ? v.images.filter(Boolean) : (v.image ? [v.image] : []),
         })),
         faq: Array.isArray(faq) ? faq.filter((f) => f && f.q && f.a) : [],
+        showDisclaimer: !!showDisclaimer,
+        disclaimerTitle: disclaimerTitle?.trim() || undefined,
+        disclaimerItems: disclaimerItems.map((x) => x.trim()).filter(Boolean),
       };
       if (!product.variants.length) product.variants = [{ id: `v-${Date.now()}`, name: 'Default', volume: '-', price: basePrice, images: (Array.isArray(images) && images[0]) ? [images[0]] : [] }];
       const created = await createProduct(product);
@@ -316,6 +325,40 @@ export default function NewProductPage() {
             </div>
           ))}
           <button type="button" onClick={addFaq} className="text-sm text-neutral-600 hover:text-neutral-900">+ Add FAQ</button>
+        </div>
+        <div className="rounded-xl border border-neutral-200 p-4">
+          <label className="inline-flex items-center gap-2 text-sm font-medium text-neutral-700">
+            <input
+              type="checkbox"
+              checked={showDisclaimer}
+              onChange={(e) => setShowDisclaimer(e.target.checked)}
+            />
+            Show disclaimer section on product page
+          </label>
+          <div className="mt-3 grid gap-3">
+            <input
+              type="text"
+              value={disclaimerTitle}
+              onChange={(e) => setDisclaimerTitle(e.target.value)}
+              placeholder="Disclaimer title"
+              className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900"
+            />
+            <div className="space-y-2">
+              {disclaimerItems.map((item, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={item}
+                    onChange={(e) => updateDisclaimerItem(i, e.target.value)}
+                    placeholder={`Point ${i + 1}`}
+                    className="flex-1 rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900"
+                  />
+                  <button type="button" onClick={() => removeDisclaimerItem(i)} className="text-neutral-500 hover:text-red-600">×</button>
+                </div>
+              ))}
+              <button type="button" onClick={addDisclaimerItem} className="text-sm text-neutral-600 hover:text-neutral-900">+ Add point</button>
+            </div>
+          </div>
         </div>
         <div className="flex gap-4">
           <button type="submit" disabled={submitting} className="rounded-xl bg-neutral-900 text-white px-6 py-2.5 text-sm font-medium disabled:opacity-50">Save product</button>

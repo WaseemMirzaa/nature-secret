@@ -155,6 +155,24 @@ export class CreateProductDto {
   @ValidateNested({ each: true })
   @Type(() => ProductFaqDto)
   faq?: ProductFaqDto[];
+
+  @IsOptional()
+  @IsBoolean()
+  showDisclaimer?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  disclaimerTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  disclaimerText?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  disclaimerItems?: string[];
 }
 
 export class UpdateProductDto {
@@ -260,4 +278,22 @@ export class UpdateProductDto {
   @ValidateNested({ each: true })
   @Type(() => ProductFaqDto)
   faq?: ProductFaqDto[];
+
+  @IsOptional()
+  @IsBoolean()
+  showDisclaimer?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  disclaimerTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  disclaimerText?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  disclaimerItems?: string[];
 }
