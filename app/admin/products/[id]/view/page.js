@@ -132,6 +132,20 @@ export default function AdminProductDetailPage() {
             ))}
           </ul>
         </section>
+        <section className="p-6">
+          <h2 className="text-sm font-medium text-neutral-500 uppercase tracking-wider mb-2">Disclaimer</h2>
+          <p className="text-sm text-neutral-700">Enabled: {product.showDisclaimer ? 'Yes' : 'No'}</p>
+          {product.showDisclaimer ? (
+            <>
+              <p className="mt-2 text-sm font-medium text-neutral-800">{product.disclaimerTitle || 'Important Note'}</p>
+              <ul className="mt-2 list-disc list-inside text-sm text-neutral-700 space-y-1">
+                {(Array.isArray(product.disclaimerItems) ? product.disclaimerItems : []).map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+        </section>
       </div>
     </div>
   );

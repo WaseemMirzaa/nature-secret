@@ -312,6 +312,40 @@ export default function EditProductPage() {
           <label className="block text-sm font-medium text-neutral-700 mb-1">Description (HTML allowed)</label>
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={5} placeholder="<p>...</p>, <strong>, <ul><li>...</li></ul>" className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900 font-mono text-sm" />
         </div>
+        <div className="rounded-xl border border-neutral-200 p-4">
+          <label className="inline-flex items-center gap-2 text-sm font-medium text-neutral-700">
+            <input
+              type="checkbox"
+              checked={showDisclaimer}
+              onChange={(e) => setShowDisclaimer(e.target.checked)}
+            />
+            Show disclaimer section on product page
+          </label>
+          <div className="mt-3 grid gap-3">
+            <input
+              type="text"
+              value={disclaimerTitle}
+              onChange={(e) => setDisclaimerTitle(e.target.value)}
+              placeholder="Disclaimer title"
+              className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900"
+            />
+            <div className="space-y-2">
+              {disclaimerItems.map((item, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={item}
+                    onChange={(e) => updateDisclaimerItem(i, e.target.value)}
+                    placeholder={`Point ${i + 1}`}
+                    className="flex-1 rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900"
+                  />
+                  <button type="button" onClick={() => removeDisclaimerItem(i)} className="text-neutral-500 hover:text-red-600">×</button>
+                </div>
+              ))}
+              <button type="button" onClick={addDisclaimerItem} className="text-sm text-neutral-600 hover:text-neutral-900">+ Add point</button>
+            </div>
+          </div>
+        </div>
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-1">Benefits</label>
           {benefits.map((b, i) => (
@@ -392,40 +426,6 @@ export default function EditProductPage() {
             </div>
           ))}
           <button type="button" onClick={addFaq} className="text-sm text-neutral-600 hover:text-neutral-900">+ Add FAQ</button>
-        </div>
-        <div className="rounded-xl border border-neutral-200 p-4">
-          <label className="inline-flex items-center gap-2 text-sm font-medium text-neutral-700">
-            <input
-              type="checkbox"
-              checked={showDisclaimer}
-              onChange={(e) => setShowDisclaimer(e.target.checked)}
-            />
-            Show disclaimer section on product page
-          </label>
-          <div className="mt-3 grid gap-3">
-            <input
-              type="text"
-              value={disclaimerTitle}
-              onChange={(e) => setDisclaimerTitle(e.target.value)}
-              placeholder="Disclaimer title"
-              className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900"
-            />
-            <div className="space-y-2">
-              {disclaimerItems.map((item, i) => (
-                <div key={i} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={item}
-                    onChange={(e) => updateDisclaimerItem(i, e.target.value)}
-                    placeholder={`Point ${i + 1}`}
-                    className="flex-1 rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900"
-                  />
-                  <button type="button" onClick={() => removeDisclaimerItem(i)} className="text-neutral-500 hover:text-red-600">×</button>
-                </div>
-              ))}
-              <button type="button" onClick={addDisclaimerItem} className="text-sm text-neutral-600 hover:text-neutral-900">+ Add point</button>
-            </div>
-          </div>
         </div>
         <div className="rounded-xl border border-neutral-200 p-4">
           <div className="flex items-center justify-between gap-3">
