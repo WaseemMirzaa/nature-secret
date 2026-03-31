@@ -22,7 +22,7 @@ export class Review {
   @Column({ type: 'text' })
   body: string;
 
-  /** Collection/category: quality | pain_relief | value */
+  /** Collection/category label (legacy + user-generated). */
   @Column({ type: 'varchar', length: 50, default: 'quality' })
   collection: string;
 

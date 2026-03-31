@@ -48,7 +48,7 @@ export default function HomeContent({
   const categories = clientCategories != null ? clientCategories : initialCategories;
   const highlightReviews = clientReviews != null ? clientReviews : initialHighlightReviews;
   const safeHighlightReviews = useMemo(() => {
-    const risky = /\b(pain|arthritis|joint|muscle|knee|neck|back)\b/i;
+    const risky = /\b(cure|treat|diagnose|disease|medical)\b/i;
     return Array.isArray(highlightReviews) ? highlightReviews.filter((r) => !risky.test(String(r?.body || ''))) : [];
   }, [highlightReviews]);
 

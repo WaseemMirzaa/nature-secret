@@ -60,7 +60,7 @@ async function seed() {
         price: 49900,
         description: 'Premium herbal oil for daily body care with a clean, trusted formulation.',
         benefits: ['Herbal body care', 'Daily comfort routine', 'Fast-absorbing texture', 'Non-greasy finish', '50 ml'],
-        images: ['/assets/painrex-oil-main.png'],
+        images: ['/assets/nature-secret-logo.svg'],
         rating: 4.8,
         reviewCount: 0,
         inventory: 100,
@@ -70,8 +70,8 @@ async function seed() {
       });
       await productRepo.save(p);
       await variantRepo.save([
-        variantRepo.create({ productId: p.id, name: '50 ml', volume: '50ml', price: 49900, image: '/assets/painrex-oil-main.png' }),
-        variantRepo.create({ productId: p.id, name: '100 ml', volume: '100ml', price: 89900, image: '/assets/painrex-oil-main.png' }),
+        variantRepo.create({ productId: p.id, name: '50 ml', volume: '50ml', price: 49900, image: '/assets/nature-secret-logo.svg' }),
+        variantRepo.create({ productId: p.id, name: '100 ml', volume: '100ml', price: 89900, image: '/assets/nature-secret-logo.svg' }),
       ]);
     }
     console.log('Seeded products.');

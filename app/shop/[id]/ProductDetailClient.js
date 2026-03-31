@@ -6,7 +6,7 @@ import Link from '@/components/Link';
 import Image from 'next/image';
 import { useProductsStore, useCartStore, useCartOpenStore, useWishlistStore, useCurrencyStore } from '@/lib/store';
 import { useBreadcrumbLabel } from '@/lib/BreadcrumbContext';
-import { SHIPPING_POLICY, RETURN_POLICY, POLICY_DISCLAIMER } from '@/lib/constants';
+import { SHIPPING_POLICY, RETURN_POLICY } from '@/lib/constants';
 import { trackViewContent, trackAddToCart, trackAddToWishlist, trackOutOfStockView } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
 import { sanitizeHtml } from '@/lib/sanitizeHtml';
@@ -17,15 +17,7 @@ const isUuid = (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]
 
 function scrubMedicalTerms(input = '') {
   const text = String(input || '');
-  return text
-    .replace(/\barthritis\b/gi, 'daily care')
-    .replace(/\b(back|knee|neck|joint|muscle)\s+pain\b/gi, 'daily discomfort')
-    .replace(/\bpain\s+relief\b/gi, 'daily comfort')
-    .replace(/\brelief\b/gi, 'comfort')
-    .replace(/\bpain\b/gi, 'discomfort')
-    .replace(/\binjury\b/gi, 'daily strain')
-    .replace(/\bstiffness\b/gi, 'tiredness')
-    .replace(/\bache\b/gi, 'discomfort');
+  return text;
 }
 
 export default function ProductDetailClient({ slugOrId, initialProduct: initialFromServer, initialReviews = [] }) {
@@ -149,7 +141,9 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
   }, []);
 
   const variant = selectedVariant ?? defaultVariant ?? product?.variants?.[0];
-  const disclaimerEnabled = !!product?.showDisclaimer;
+  const hasProductDisclaimerItems = Array.isArray(product?.disclaimerItems) && product.disclaimerItems.some((x) => String(x || '').trim().length > 0);
+  const hasProductDisclaimerText = String(product?.disclaimerText || '').trim().length > 0;
+  const disclaimerEnabled = !!product?.showDisclaimer || hasProductDisclaimerItems || hasProductDisclaimerText;
   const disclaimerTitleToShow = product?.disclaimerTitle || productDisclaimerTitle;
   const disclaimerItemsToShow = Array.isArray(product?.disclaimerItems) && product.disclaimerItems.length
     ? product.disclaimerItems
@@ -517,9 +511,9 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                 </>
               )}
               {disclaimerEnabled ? (
-                <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5">
-                  <p className="text-[11px] font-semibold text-neutral-700">{disclaimerTitleToShow}</p>
-                  <ul className="mt-1 space-y-1 text-[11px] text-neutral-500 leading-relaxed list-disc pl-4">
+                <div className="rounded-xl border-2 border-gold-300/70 bg-gold-50/60 px-3 py-2.5 shadow-gold-sm">
+                  <p className="text-[11px] font-semibold text-neutral-900">{disclaimerTitleToShow}</p>
+                  <ul className="mt-1.5 space-y-1 text-[11px] text-neutral-700 leading-relaxed list-disc pl-4">
                     {disclaimerItemsToShow.map((item, idx) => (
                       <li key={`${idx}-${item.slice(0, 12)}`}>{item}</li>
                     ))}
@@ -574,7 +568,6 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
         <div className={`rounded-2xl bg-neutral-50 border border-neutral-100 p-6 xl:p-8 text-sm xl:text-[15px] text-neutral-600 space-y-3 leading-relaxed max-w-2xl xl:max-w-3xl ${(product.faq || []).length ? 'mt-10 xl:mt-12' : ''}`}>
           <p><strong>Shipping:</strong> {SHIPPING_POLICY}</p>
           <p><strong>Returns:</strong> {RETURN_POLICY}</p>
-          <p><strong>Disclaimer:</strong> {POLICY_DISCLAIMER}</p>
         </div>
         <div className="mt-6 xl:mt-8 flex flex-wrap gap-x-6 gap-y-2 text-xs text-neutral-500">
           {customProductBadges.length > 0 ? (
@@ -645,7 +638,6 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
         <div className="mt-4 sm:mt-6 rounded-xl sm:rounded-2xl bg-neutral-100 p-3 sm:p-4 text-xs sm:text-sm text-neutral-600 space-y-1.5 sm:space-y-2 leading-relaxed">
           <p><strong>Shipping:</strong> {SHIPPING_POLICY}</p>
           <p><strong>Returns:</strong> {RETURN_POLICY}</p>
-          <p><strong>Disclaimer:</strong> {POLICY_DISCLAIMER}</p>
         </div>
         <div className="mt-3 sm:mt-4 flex flex-wrap gap-x-3 gap-y-1 text-[10px] sm:text-xs text-neutral-500">
           {customProductBadges.length > 0 ? (
@@ -900,9 +892,9 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
               </button>
             </div>
             {disclaimerEnabled ? (
-              <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 py-2">
-                <p className="text-[10px] font-semibold text-neutral-700">{disclaimerTitleToShow}</p>
-                <ul className="mt-1 space-y-1 text-[10px] text-neutral-500 leading-relaxed list-disc pl-3.5">
+              <div className="rounded-xl border-2 border-gold-300/70 bg-gold-50/60 px-2.5 py-2 shadow-gold-sm">
+                <p className="text-[10px] font-semibold text-neutral-900">{disclaimerTitleToShow}</p>
+                <ul className="mt-1.5 space-y-1 text-[10px] text-neutral-700 leading-relaxed list-disc pl-3.5">
                   {disclaimerItemsToShow.map((item, idx) => (
                     <li key={`${idx}-${item.slice(0, 12)}`}>{item}</li>
                   ))}

@@ -62,7 +62,7 @@ export function Footer() {
             <Link href="/terms" className="text-xs text-neutral-400 hover:text-gold-600 transition-colors">Terms</Link>
           </div>
         </div>
-        <p className="mt-4 text-[11px] sm:text-xs text-neutral-500 leading-relaxed max-w-4xl">{footerDisclaimer}</p>
+        <p className="mt-4 pb-12 sm:pb-14 lg:pb-16 text-[11px] sm:text-xs text-neutral-500 leading-relaxed max-w-4xl">{footerDisclaimer}</p>
       </div>
     </footer>
   );

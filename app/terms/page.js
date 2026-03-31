@@ -26,7 +26,7 @@ export default function TermsPage() {
             <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">3. Medical Disclaimer (Critical for Meta Compliance)</h2>
             <ul className="mt-3 space-y-2 text-sm text-neutral-700 list-disc list-inside">
               <li><span className="font-medium">Non-Medical Status:</span> All products offered by Nature Secret are herbal and intended for general wellness, relaxation, and cosmetic use only.</li>
-              <li><span className="font-medium">Not a Substitute:</span> Our products and content are not a substitute for professional medical advice, diagnosis, or treatment. We make no claims to cure, treat, or prevent specific medical conditions like arthritis, sciatica, or chronic disease.</li>
+              <li><span className="font-medium">Not a Substitute:</span> Our products and content are not a substitute for professional medical advice, diagnosis, or treatment. We make no claims to cure, treat, or prevent any disease or medical condition.</li>
               <li><span className="font-medium">Consultation:</span> Always consult a healthcare professional before using new herbal oils, especially if you have pre-existing health conditions or are pregnant.</li>
             </ul>
           </section>
