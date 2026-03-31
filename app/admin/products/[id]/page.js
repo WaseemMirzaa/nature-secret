@@ -9,6 +9,12 @@ import { Spinner } from '@/components/ui/PageLoader';
 
 const emptyVariant = () => ({ id: `v-${Date.now()}`, name: '', volume: '', price: 0, compareAtPrice: null, images: [] });
 const emptyFaq = () => ({ q: '', a: '' });
+const emptyProductBadge = () => ({ label: '', imageUrl: '', href: '' });
+const demoBadges = [
+  { label: '100% Organic', imageUrl: 'https://img.shields.io/badge/100%25-Organic-2e7d32?style=for-the-badge' },
+  { label: '100% Natural', imageUrl: 'https://img.shields.io/badge/100%25-Natural-388e3c?style=for-the-badge' },
+  { label: 'Secure', imageUrl: 'https://img.shields.io/badge/Secure-SSL-1e88e5?style=for-the-badge' },
+];
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -36,6 +42,7 @@ export default function EditProductPage() {
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [disclaimerTitle, setDisclaimerTitle] = useState('Important Note');
   const [disclaimerItems, setDisclaimerItems] = useState(['']);
+  const [productBadges, setProductBadges] = useState([emptyProductBadge()]);
   const [rating, setRating] = useState(4.5);
   const [reviewCount, setReviewCount] = useState(0);
   const [uploadingIndex, setUploadingIndex] = useState(null);
@@ -117,6 +124,11 @@ export default function EditProductPage() {
         ? product.disclaimerItems
         : (product.disclaimerText ? [product.disclaimerText] : ['']),
     );
+    setProductBadges(
+      Array.isArray(product.productBadges) && product.productBadges.length
+        ? product.productBadges.map((b) => ({ label: b.label || '', imageUrl: b.imageUrl || '', href: b.href || '' }))
+        : [emptyProductBadge()],
+    );
     setRating(product.rating ?? 4.5);
     setReviewCount(product.reviewCount ?? 0);
   }, [product]);
@@ -193,6 +205,19 @@ export default function EditProductPage() {
   function addDisclaimerItem() { setDisclaimerItems((list) => [...list, '']); }
   function updateDisclaimerItem(i, value) { setDisclaimerItems((list) => list.map((x, idx) => (idx === i ? value : x))); }
   function removeDisclaimerItem(i) { setDisclaimerItems((list) => (list.length > 1 ? list.filter((_, idx) => idx !== i) : [''])); }
+  function addProductBadge() { setProductBadges((list) => [...list, emptyProductBadge()]); }
+  function updateProductBadge(i, field, value) {
+    setProductBadges((list) => list.map((x, idx) => (idx === i ? { ...x, [field]: value } : x)));
+  }
+  function removeProductBadge(i) {
+    setProductBadges((list) => (list.length > 1 ? list.filter((_, idx) => idx !== i) : [emptyProductBadge()]));
+  }
+  function addDemoBadges() {
+    setProductBadges((list) => {
+      const existing = list.filter((x) => x.label || x.imageUrl);
+      return [...existing, ...demoBadges.map((b) => ({ ...b, href: '' }))];
+    });
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -226,6 +251,9 @@ export default function EditProductPage() {
       showDisclaimer: !!showDisclaimer,
       disclaimerTitle: disclaimerTitle?.trim() || undefined,
       disclaimerItems: disclaimerItems.map((x) => x.trim()).filter(Boolean),
+      productBadges: productBadges
+        .filter((b) => b?.label?.trim() && b?.imageUrl?.trim())
+        .map((b) => ({ label: b.label.trim(), imageUrl: b.imageUrl.trim(), href: b.href?.trim() || undefined })),
     };
     if (!updates.variants.length) updates.variants = [{ id: `v-${Date.now()}`, name: 'Default', volume: '-', price: basePrice, images: images[0] ? [images[0]] : [] }];
     setSubmitError('');
@@ -397,6 +425,43 @@ export default function EditProductPage() {
               ))}
               <button type="button" onClick={addDisclaimerItem} className="text-sm text-neutral-600 hover:text-neutral-900">+ Add point</button>
             </div>
+          </div>
+        </div>
+        <div className="rounded-xl border border-neutral-200 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <label className="text-sm font-medium text-neutral-700">Product badges (optional)</label>
+            <button type="button" onClick={addDemoBadges} className="text-xs text-neutral-600 hover:text-neutral-900">
+              + Add demo badges
+            </button>
+          </div>
+          <div className="mt-3 space-y-2">
+            {productBadges.map((b, i) => (
+              <div key={i} className="grid gap-2 sm:grid-cols-12">
+                <input
+                  type="text"
+                  value={b.label}
+                  onChange={(e) => updateProductBadge(i, 'label', e.target.value)}
+                  placeholder="Label"
+                  className="sm:col-span-3 rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-900"
+                />
+                <input
+                  type="text"
+                  value={b.imageUrl}
+                  onChange={(e) => updateProductBadge(i, 'imageUrl', e.target.value)}
+                  placeholder="Badge image URL"
+                  className="sm:col-span-6 rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-900"
+                />
+                <input
+                  type="text"
+                  value={b.href || ''}
+                  onChange={(e) => updateProductBadge(i, 'href', e.target.value)}
+                  placeholder="Optional click URL"
+                  className="sm:col-span-2 rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-900"
+                />
+                <button type="button" onClick={() => removeProductBadge(i)} className="sm:col-span-1 text-neutral-500 hover:text-red-600">×</button>
+              </div>
+            ))}
+            <button type="button" onClick={addProductBadge} className="text-sm text-neutral-600 hover:text-neutral-900">+ Add badge</button>
           </div>
         </div>
         <div>

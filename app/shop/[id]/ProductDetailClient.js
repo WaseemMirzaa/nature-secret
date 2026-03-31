@@ -154,6 +154,9 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
   const disclaimerItemsToShow = Array.isArray(product?.disclaimerItems) && product.disclaimerItems.length
     ? product.disclaimerItems
     : ((product?.disclaimerText || productDisclaimerText) ? [product?.disclaimerText || productDisclaimerText] : []);
+  const customProductBadges = Array.isArray(product?.productBadges)
+    ? product.productBadges.filter((b) => b?.label && b?.imageUrl)
+    : [];
   const variantImageList = (variant?.images && variant.images.length) ? variant.images : (variant?.image ? [variant.image] : product?.images || []);
   useEffect(() => { setSelectedImageIndex(0); }, [variant?.id]);
   useEffect(() => { setQty(1); }, [variant?.id]);
@@ -573,7 +576,27 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
           <p><strong>Returns:</strong> {RETURN_POLICY}</p>
         </div>
         <div className="mt-6 xl:mt-8 flex flex-wrap gap-x-6 gap-y-2 text-xs text-neutral-500">
-          <span>Secure payment</span><span>Authentic & organic</span><span>30-day returns</span>
+          {customProductBadges.length > 0 ? (
+            customProductBadges.map((b, idx) => {
+              const content = (
+                <span className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2 py-1">
+                  <img src={b.imageUrl} alt={b.label} className="h-5 w-auto object-contain" loading="lazy" />
+                  <span>{b.label}</span>
+                </span>
+              );
+              return b.href ? (
+                <a key={`${b.label}-${idx}`} href={b.href} target="_blank" rel="noopener noreferrer" className="hover:opacity-90">
+                  {content}
+                </a>
+              ) : (
+                <span key={`${b.label}-${idx}`}>{content}</span>
+              );
+            })
+          ) : (
+            <>
+              <span>Secure payment</span><span>Authentic & organic</span><span>30-day returns</span>
+            </>
+          )}
         </div>
       </section>
 
@@ -623,7 +646,27 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
           <p><strong>Returns:</strong> {RETURN_POLICY}</p>
         </div>
         <div className="mt-3 sm:mt-4 flex flex-wrap gap-x-3 gap-y-1 text-[10px] sm:text-xs text-neutral-500">
-          <span>Secure payment</span><span>Authentic & organic</span><span>30-day returns</span>
+          {customProductBadges.length > 0 ? (
+            customProductBadges.map((b, idx) => {
+              const content = (
+                <span className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-1.5 py-1 sm:px-2">
+                  <img src={b.imageUrl} alt={b.label} className="h-4 w-auto object-contain" loading="lazy" />
+                  <span>{b.label}</span>
+                </span>
+              );
+              return b.href ? (
+                <a key={`${b.label}-${idx}`} href={b.href} target="_blank" rel="noopener noreferrer" className="hover:opacity-90">
+                  {content}
+                </a>
+              ) : (
+                <span key={`${b.label}-${idx}`}>{content}</span>
+              );
+            })
+          ) : (
+            <>
+              <span>Secure payment</span><span>Authentic & organic</span><span>30-day returns</span>
+            </>
+          )}
         </div>
       </section>
 

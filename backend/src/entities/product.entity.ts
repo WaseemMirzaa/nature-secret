@@ -85,6 +85,9 @@ export class Product {
   @Column({ type: 'json', nullable: true })
   disclaimerItems: string[] | null;
 
+  @Column({ type: 'json', nullable: true })
+  productBadges: Array<{ label: string; imageUrl: string; href?: string }> | null;
+
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 

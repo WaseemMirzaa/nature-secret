@@ -56,6 +56,21 @@ export class ProductFaqDto {
   a: string;
 }
 
+export class ProductBadgeDto {
+  @IsString()
+  @MaxLength(80)
+  label: string;
+
+  @IsString()
+  @MaxLength(1000)
+  imageUrl: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  href?: string;
+}
+
 export class CreateProductDto {
   @IsString()
   @MaxLength(2000)
@@ -173,6 +188,12 @@ export class CreateProductDto {
   @IsArray()
   @IsString({ each: true })
   disclaimerItems?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductBadgeDto)
+  productBadges?: ProductBadgeDto[];
 }
 
 export class UpdateProductDto {
@@ -296,4 +317,10 @@ export class UpdateProductDto {
   @IsArray()
   @IsString({ each: true })
   disclaimerItems?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductBadgeDto)
+  productBadges?: ProductBadgeDto[];
 }
