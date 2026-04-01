@@ -45,7 +45,16 @@ export class AdminController {
   @Patch('settings/content')
   @AdminOnly()
   async updateContentSettings(
-    @Body() body: { footerDisclaimer?: string; productDisclaimerTitle?: string; productDisclaimerText?: string },
+    @Body()
+    body: {
+      footerDisclaimer?: string;
+      productDisclaimerTitle?: string;
+      productDisclaimerText?: string;
+      homeHeroIntro?: string;
+      homeStoryLabel?: string;
+      homeStoryHeading?: string;
+      homeStoryHtml?: string;
+    },
   ) {
     await this.settingsService.setContent(body);
     return this.settingsService.getContent();

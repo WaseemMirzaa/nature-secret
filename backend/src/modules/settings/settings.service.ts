@@ -12,6 +12,11 @@ const DEFAULTS: Record<string, string> = {
   product_disclaimer_title: 'Important Note',
   product_disclaimer_text:
     'Cosmetic body oil for external use only. Not a drug. Individual experience may vary. Patch test before wider use.',
+  home_hero_intro:
+    'Premium botanical skincare and body oils for a calm routine. Nature Secret PX Oil is a relaxing massage oil—comforting neck, muscles, and joints when they feel tired or tight after long days.',
+  home_story_label: 'Our story',
+  home_story_heading: 'Our journey began at home.',
+  home_story_html: `<p>Like many families in Pakistan, we wanted simple, honest care at home. Our father crafted a botanical body oil from traditional plant knowledge and ingredients we already trusted—first for family, then for friends.</p><p>At first, it was only for our own family. Over time, we shared the oil with friends and relatives who wanted a soothing massage ritual. The feedback was overwhelmingly positive—many loved the feel on skin and the quiet evening routine.</p><p>Encouraged by their experiences, we realized this simple formula could support more people in their daily self-care routines. That is how <strong>Nature Secret PX Oil</strong> was born—a relaxing massage oil many use to comfort neck, muscles, and joints as part of their unwind ritual.</p><p>Today, we are proud to share the same heritage-inspired oil with people across Pakistan. Inspired by our belief in natural care, we are now developing a collection of skincare serums and body care for your modern routine.</p><p><strong>From our home to yours: Natural care you can trust.</strong></p>`,
 };
 
 @Injectable()
@@ -49,21 +54,49 @@ export class SettingsService {
   }
 
   async getContent() {
-    const [footerDisclaimer, productDisclaimerTitle, productDisclaimerText] = await Promise.all([
+    const [
+      footerDisclaimer,
+      productDisclaimerTitle,
+      productDisclaimerText,
+      homeHeroIntro,
+      homeStoryLabel,
+      homeStoryHeading,
+      homeStoryHtml,
+    ] = await Promise.all([
       this.get('footer_disclaimer'),
       this.get('product_disclaimer_title'),
       this.get('product_disclaimer_text'),
+      this.get('home_hero_intro'),
+      this.get('home_story_label'),
+      this.get('home_story_heading'),
+      this.get('home_story_html'),
     ]);
     return {
       footerDisclaimer: footerDisclaimer || DEFAULTS.footer_disclaimer,
       productDisclaimerTitle: productDisclaimerTitle || DEFAULTS.product_disclaimer_title,
       productDisclaimerText: productDisclaimerText || DEFAULTS.product_disclaimer_text,
+      homeHeroIntro: homeHeroIntro || DEFAULTS.home_hero_intro,
+      homeStoryLabel: homeStoryLabel || DEFAULTS.home_story_label,
+      homeStoryHeading: homeStoryHeading || DEFAULTS.home_story_heading,
+      homeStoryHtml: homeStoryHtml || DEFAULTS.home_story_html,
     };
   }
 
-  async setContent(data: { footerDisclaimer?: string; productDisclaimerTitle?: string; productDisclaimerText?: string }) {
+  async setContent(data: {
+    footerDisclaimer?: string;
+    productDisclaimerTitle?: string;
+    productDisclaimerText?: string;
+    homeHeroIntro?: string;
+    homeStoryLabel?: string;
+    homeStoryHeading?: string;
+    homeStoryHtml?: string;
+  }) {
     if (data.footerDisclaimer != null) await this.set('footer_disclaimer', data.footerDisclaimer.trim());
     if (data.productDisclaimerTitle != null) await this.set('product_disclaimer_title', data.productDisclaimerTitle.trim());
     if (data.productDisclaimerText != null) await this.set('product_disclaimer_text', data.productDisclaimerText.trim());
+    if (data.homeHeroIntro != null) await this.set('home_hero_intro', data.homeHeroIntro.trim());
+    if (data.homeStoryLabel != null) await this.set('home_story_label', data.homeStoryLabel.trim());
+    if (data.homeStoryHeading != null) await this.set('home_story_heading', data.homeStoryHeading.trim());
+    if (data.homeStoryHtml != null) await this.set('home_story_html', data.homeStoryHtml.trim());
   }
 }

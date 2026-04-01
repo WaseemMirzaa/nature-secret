@@ -13,6 +13,10 @@ export default function AdminContentSettingsPage() {
   const [footerDisclaimer, setFooterDisclaimer] = useState('');
   const [productDisclaimerTitle, setProductDisclaimerTitle] = useState('');
   const [productDisclaimerText, setProductDisclaimerText] = useState('');
+  const [homeHeroIntro, setHomeHeroIntro] = useState('');
+  const [homeStoryLabel, setHomeStoryLabel] = useState('');
+  const [homeStoryHeading, setHomeStoryHeading] = useState('');
+  const [homeStoryHtml, setHomeStoryHtml] = useState('');
 
   useEffect(() => {
     getAdminContentSettings()
@@ -20,6 +24,10 @@ export default function AdminContentSettingsPage() {
         setFooterDisclaimer(r.footerDisclaimer || '');
         setProductDisclaimerTitle(r.productDisclaimerTitle || 'Important Note');
         setProductDisclaimerText(r.productDisclaimerText || '');
+        setHomeHeroIntro(r.homeHeroIntro || '');
+        setHomeStoryLabel(r.homeStoryLabel || '');
+        setHomeStoryHeading(r.homeStoryHeading || '');
+        setHomeStoryHtml(r.homeStoryHtml || '');
       })
       .catch((err) => setError(formatApiError(err, 'Failed to load content settings.')))
       .finally(() => setLoading(false));
@@ -35,6 +43,10 @@ export default function AdminContentSettingsPage() {
         footerDisclaimer,
         productDisclaimerTitle,
         productDisclaimerText,
+        homeHeroIntro,
+        homeStoryLabel,
+        homeStoryHeading,
+        homeStoryHtml,
       });
       setMessage('Saved successfully.');
     } catch (err) {
@@ -56,9 +68,49 @@ export default function AdminContentSettingsPage() {
     <div className="max-w-3xl">
       <Link href="/admin" className="text-sm text-neutral-500 hover:text-neutral-900">← Dashboard</Link>
       <h1 className="mt-4 text-2xl font-semibold text-neutral-900">Content settings</h1>
-      <p className="mt-1 text-sm text-neutral-600">Manage disclaimer text shown on footer and product detail.</p>
+      <p className="mt-1 text-sm text-neutral-600">Footer, product disclaimer, and home page hero &amp; story (stored in the database).</p>
 
       <form onSubmit={handleSave} className="mt-6 space-y-5 rounded-2xl border border-neutral-200 bg-white p-5">
+        <div className="border-b border-neutral-100 pb-5">
+          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Home — hero (under main headline)</h2>
+          <label className="block text-sm font-medium text-neutral-700 mb-1">Intro paragraph (plain text)</label>
+          <textarea
+            value={homeHeroIntro}
+            onChange={(e) => setHomeHeroIntro(e.target.value)}
+            rows={4}
+            className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm text-neutral-900"
+          />
+        </div>
+        <div className="border-b border-neutral-100 pb-5 space-y-3">
+          <h2 className="text-sm font-semibold text-neutral-900">Home — story section</h2>
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1">Label (e.g. Our story)</label>
+            <input
+              type="text"
+              value={homeStoryLabel}
+              onChange={(e) => setHomeStoryLabel(e.target.value)}
+              className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm text-neutral-900"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1">Heading</label>
+            <input
+              type="text"
+              value={homeStoryHeading}
+              onChange={(e) => setHomeStoryHeading(e.target.value)}
+              className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm text-neutral-900"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1">Body (HTML: &lt;p&gt;, &lt;strong&gt;, &lt;br&gt;, lists)</label>
+            <textarea
+              value={homeStoryHtml}
+              onChange={(e) => setHomeStoryHtml(e.target.value)}
+              rows={12}
+              className="w-full font-mono text-xs rounded-xl border border-neutral-200 px-4 py-2.5 text-neutral-900"
+            />
+          </div>
+        </div>
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-1">Footer disclaimer</label>
           <textarea

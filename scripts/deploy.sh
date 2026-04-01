@@ -20,5 +20,5 @@ if [ -z "${SKIP_PUSH:-}" ]; then
 fi
 
 echo "Deploying on $VPS_USER@$VPS_HOST..."
-ssh "$VPS_USER@$VPS_HOST" "cd $REPO_DIR && git pull && npm ci && (cd backend && npm ci && npm run build) && rm -rf .next && npm run build && pm2 restart nature-secret-api nature-secret-web && pm2 save"
+ssh "$VPS_USER@$VPS_HOST" "cd $REPO_DIR && git pull && npm ci && (cd backend && npm ci && npm run build && npm run migration:run:prod) && rm -rf .next && npm run build && pm2 restart nature-secret-api nature-secret-web && pm2 save"
 echo "Done."

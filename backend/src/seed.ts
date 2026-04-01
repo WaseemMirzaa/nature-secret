@@ -58,8 +58,15 @@ async function seed() {
         badge: 'Bestseller',
         badgeSub: 'Top selling',
         price: 49900,
-        description: 'Premium herbal oil for daily body care with a clean, trusted formulation.',
-        benefits: ['Herbal body care', 'Daily comfort routine', 'Fast-absorbing texture', 'Non-greasy finish', '50 ml'],
+        description:
+          'Relaxing herbal body oil for massage on neck, muscles, and joints—cosmetic comfort when areas feel sore or tight. External use only; not a medicine.',
+        benefits: [
+          'Relaxing massage for neck & muscles',
+          'Comforting joints & tight-feeling areas',
+          'Daily unwind ritual',
+          'Fast-absorbing texture',
+          'Non-greasy finish',
+        ],
         images: ['/assets/nature-secret-logo.svg'],
         rating: 4.8,
         reviewCount: 0,

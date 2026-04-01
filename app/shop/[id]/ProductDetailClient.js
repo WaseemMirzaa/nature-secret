@@ -97,6 +97,11 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
     'Cosmetic body oil for external use only. Not a drug. Individual experience may vary. Patch test before wider use.',
   );
 
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [slugOrId]);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const mq = window.matchMedia('(min-width: 1024px)');
@@ -383,10 +388,10 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
             </p>
           </div>
 
-          {/* Desktop: sticky purchase column — title → rating → price → summary → variant → qty → CTAs → shipping */}
+          {/* Desktop: purchase column (scrolls with page; disclaimer below description, not sticky) */}
           <div
             ref={purchasePanelRef}
-            className="max-lg:hidden block lg:sticky lg:top-24 xl:top-28 lg:self-start space-y-3 xl:space-y-4 pb-6 lg:pb-8 rounded-2xl lg:pl-0 xl:pl-1"
+            className="max-lg:hidden block space-y-3 xl:space-y-4 pb-6 lg:pb-8 rounded-2xl lg:pl-0 xl:pl-1"
           >
             <div>
               <h1 className="text-3xl xl:text-[2.125rem] font-semibold text-neutral-900 tracking-tight leading-[1.15]">{productDisplayName}</h1>
@@ -425,6 +430,16 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                 </button>
               </div>
             )}
+            {disclaimerEnabled ? (
+              <div className="rounded-xl border-2 border-gold-300/70 bg-gold-50/60 px-3 py-2.5 shadow-gold-sm">
+                <p className="text-[11px] font-semibold text-neutral-900">{disclaimerTitleToShow}</p>
+                <ul className="mt-1.5 space-y-1 text-[11px] text-neutral-700 leading-relaxed list-disc pl-4">
+                  {disclaimerItemsToShow.map((item, idx) => (
+                    <li key={`d-${idx}-${item.slice(0, 12)}`}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
             {product.variants?.length > 1 && (
               <div className="pt-1 lg:pt-2">
                 <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Size / Variant</p>
@@ -510,16 +525,6 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                   </button>
                 </>
               )}
-              {disclaimerEnabled ? (
-                <div className="rounded-xl border-2 border-gold-300/70 bg-gold-50/60 px-3 py-2.5 shadow-gold-sm">
-                  <p className="text-[11px] font-semibold text-neutral-900">{disclaimerTitleToShow}</p>
-                  <ul className="mt-1.5 space-y-1 text-[11px] text-neutral-700 leading-relaxed list-disc pl-4">
-                    {disclaimerItemsToShow.map((item, idx) => (
-                      <li key={`${idx}-${item.slice(0, 12)}`}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
               <p className="text-xs font-medium text-gold-700 flex items-center gap-1.5 pt-1 lg:pt-1.5">
                 <svg className="w-4 h-4 text-gold-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1h-1m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
@@ -620,6 +625,16 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
             </button>
           </div>
         )}
+        {disclaimerEnabled ? (
+          <div className="mt-3 sm:mt-4 rounded-xl border-2 border-gold-300/70 bg-gold-50/60 px-3 py-2.5 shadow-gold-sm">
+            <p className="text-[11px] sm:text-xs font-semibold text-neutral-900">{disclaimerTitleToShow}</p>
+            <ul className="mt-1.5 space-y-1 text-[11px] sm:text-sm text-neutral-700 leading-relaxed list-disc pl-4">
+              {disclaimerItemsToShow.map((item, idx) => (
+                <li key={`m-d-${idx}-${item.slice(0, 12)}`}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
         {(product.faq || []).length > 0 && (
           <div className="mt-5 sm:mt-8">
             <h3 className="text-xs sm:text-sm font-semibold text-neutral-900 mb-2 sm:mb-3 tracking-tight">FAQ</h3>
@@ -891,16 +906,6 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                 <span className="text-[10px] font-medium text-neutral-800/90">Cash on delivery</span>
               </button>
             </div>
-            {disclaimerEnabled ? (
-              <div className="rounded-xl border-2 border-gold-300/70 bg-gold-50/60 px-2.5 py-2 shadow-gold-sm">
-                <p className="text-[10px] font-semibold text-neutral-900">{disclaimerTitleToShow}</p>
-                <ul className="mt-1.5 space-y-1 text-[10px] text-neutral-700 leading-relaxed list-disc pl-3.5">
-                  {disclaimerItemsToShow.map((item, idx) => (
-                    <li key={`${idx}-${item.slice(0, 12)}`}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
           </div>
         </div>
       )}

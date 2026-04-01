@@ -52,14 +52,17 @@ export class MetaConversionsService {
       req?.socket?.remoteAddress;
     if (ip && /^[\d.:a-fA-F]+$/.test(ip)) user_data.client_ip_address = ip.slice(0, 45);
 
+    const ids = (dto.contentIds ?? []).map((id) => String(id));
     const custom_data: Record<string, string | number | string[]> = {
-      content_ids: dto.contentIds.map((id) => String(id)),
       content_type: 'product',
       currency: (dto.currency || 'PKR').toUpperCase().slice(0, 3),
       value: Number(dto.value) || 0,
-      num_items: dto.numItems ?? dto.contentIds.length,
     };
-    if (Array.isArray(dto.categoryIds) && dto.categoryIds.length) {
+    if (ids.length) custom_data.content_ids = ids;
+    if (dto.numItems != null && dto.numItems >= 0) {
+      custom_data.num_items = dto.numItems;
+    }
+    if (dto.categoryIds != null) {
       custom_data.content_category_ids = dto.categoryIds.map((id) => String(id));
     }
     if (dto.orderId) custom_data.order_id = String(dto.orderId);

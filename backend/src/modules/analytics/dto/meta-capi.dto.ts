@@ -32,9 +32,11 @@ export class MetaCapiDto {
   @IsNumber()
   value?: number;
 
+  /** Mirrors Pixel custom_data content_ids (omit or [] when Pixel omits). */
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  contentIds: string[];
+  contentIds?: string[];
 
   @IsOptional()
   @IsArray()

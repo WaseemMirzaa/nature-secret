@@ -4,11 +4,13 @@ import { fetchHomePageData } from '@/lib/fetchHomeServer';
 export const metadata = {
   title: 'Nature Secret | Skincare & Botanical Body Care | Pakistan',
   description:
-    'Premium botanical skincare and body oils for your daily ritual. Featuring Nature Secret PX Oil—crafted for gentle massage and soft, nourished-feeling skin.',
-  keywords: 'nature secret px oil, skincare pakistan, botanical body care, self-care, natural cosmetics, body oil',
+    'Nature Secret botanical skincare and body care. Nature Secret PX Oil is a relaxing massage oil for comforting neck, muscles, and joints.',
+  keywords:
+    'nature secret px oil, massage oil pakistan, neck muscles joints, botanical body care, relaxing body oil, skincare pakistan',
   openGraph: {
     title: 'Nature Secret | Skincare & Botanical Body Care',
-    description: 'Premium botanical skincare and body oils for everyday care, featuring Nature Secret PX Oil.',
+    description:
+      'Nature Secret PX Oil—relaxing massage oil for neck, muscles, and joints. Botanical skincare and body care from Pakistan.',
     type: 'website',
   },
 };
@@ -21,20 +23,21 @@ const JSON_LD = {
       name: 'Nature Secret',
       url: 'https://naturesecret.pk',
       description:
-        'Pakistan-based brand for botanical skincare and body care—thoughtful formulas inspired by traditional ingredients and modern minimal routines.',
+        'Pakistan-based brand for botanical skincare and body care—including Nature Secret PX Oil, a relaxing massage oil for neck, muscles, and joints.',
     },
     {
       '@type': 'WebSite',
       name: 'Nature Secret',
       url: 'https://naturesecret.pk',
-      description: 'Shop botanical skincare and body oils from Nature Secret, including Nature Secret PX Oil and upcoming skincare essentials.',
+      description:
+        'Shop Nature Secret—including PX Oil, a relaxing massage oil for neck, muscles, and joints—and botanical skincare.',
       potentialAction: { '@type': 'SearchAction', target: 'https://naturesecret.pk/shop?q={search_term_string}', 'query-input': 'required name=search_term_string' },
     },
   ],
 };
 
 export default async function HomePage() {
-  const { products, categories, slider, highlightReviews } = await fetchHomePageData();
+  const { products, categories, slider, homeContent } = await fetchHomePageData();
 
   return (
     <>
@@ -43,7 +46,7 @@ export default async function HomePage() {
         initialProducts={products}
         initialCategories={categories}
         initialSlider={slider}
-        initialHighlightReviews={highlightReviews}
+        initialHomeContent={homeContent}
       />
     </>
   );

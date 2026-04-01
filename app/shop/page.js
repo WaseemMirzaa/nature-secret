@@ -1,7 +1,7 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
-import { useMemo, useState, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useMemo, useState, useEffect, Suspense } from 'react';
 import Link from '@/components/Link';
 import Image from 'next/image';
 import { useProductsStore } from '@/lib/store';
@@ -23,10 +23,26 @@ const SORT_OPTIONS = [
 
 function ShopContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const categorySlug = searchParams.get('category') || '';
   const [sort, setSort] = useState('featured');
   const storeProducts = useProductsStore((s) => s.products);
   const { products, categories, loading: apiLoading, error: apiError } = useProductsAndCategories(storeProducts);
+
+  const activeCategory = useMemo(() => {
+    if (!categorySlug || !Array.isArray(categories)) return null;
+    return categories.find((c) => c.slug === categorySlug) ?? null;
+  }, [categorySlug, categories]);
+
+  const sidebarCategories = useMemo(() => {
+    const list = [...(categories || [])];
+    if (!categorySlug || !activeCategory) return list;
+    const i = list.findIndex((c) => c.slug === categorySlug);
+    if (i <= 0) return list;
+    const next = [...list];
+    const [sel] = next.splice(i, 1);
+    return [sel, ...next];
+  }, [categories, categorySlug, activeCategory]);
 
   const filtered = useMemo(() => {
     let list = [...(products || [])];
@@ -38,7 +54,14 @@ function ShopContent() {
     else if (sort === 'price-desc') list.sort((a, b) => b.price - a.price);
     else if (sort === 'newest') list.reverse();
     return list;
-  }, [categorySlug, sort, products]);
+  }, [categorySlug, sort, products, categories]);
+
+  useEffect(() => {
+    if (apiLoading || !activeCategory) return;
+    if (filtered.length !== 1) return;
+    const p = filtered[0];
+    router.replace(`/shop/${productPath(p)}`);
+  }, [apiLoading, activeCategory, filtered, router]);
 
   const addToCart = useCartStore((s) => s.addItem);
   const openCart = useCartOpenStore((s) => s.open);
@@ -73,7 +96,7 @@ function ShopContent() {
                 All
               </Link>
             </li>
-            {(categories || []).map((c) => (
+            {sidebarCategories.map((c) => (
               <li key={c.id || c.slug}>
                 <Link
                   href={`/shop?category=${c.slug}`}

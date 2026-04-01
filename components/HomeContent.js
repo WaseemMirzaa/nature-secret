@@ -9,11 +9,21 @@ import {
   getSlider,
   resolveImageUrl,
   productPath,
-  getHighlightReviews,
   getProducts,
   getCategories,
+  getContentSettings,
 } from '@/lib/api';
 import { TRUST_BADGES } from '@/lib/constants';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
+
+/** Client fallback if API unavailable (mirrors backend SettingsService DEFAULTS). */
+const HOME_CONTENT_FALLBACK = {
+  homeHeroIntro:
+    'Premium botanical skincare and body oils for a calm routine. Nature Secret PX Oil is a relaxing massage oil—comforting neck, muscles, and joints when they feel tired or tight after long days.',
+  homeStoryLabel: 'Our story',
+  homeStoryHeading: 'Our journey began at home.',
+  homeStoryHtml: `<p>Like many families in Pakistan, we wanted simple, honest care at home. Our father crafted a botanical body oil from traditional plant knowledge and ingredients we already trusted—first for family, then for friends.</p><p>At first, it was only for our own family. Over time, we shared the oil with friends and relatives who wanted a soothing massage ritual. The feedback was overwhelmingly positive—many loved the feel on skin and the quiet evening routine.</p><p>Encouraged by their experiences, we realized this simple formula could support more people in their daily self-care routines. That is how <strong>Nature Secret PX Oil</strong> was born—a relaxing massage oil many use to comfort neck, muscles, and joints as part of their unwind ritual.</p><p>Today, we are proud to share the same heritage-inspired oil with people across Pakistan. Inspired by our belief in natural care, we are now developing a collection of skincare serums and body care for your modern routine.</p><p><strong>From our home to yours: Natural care you can trust.</strong></p>`,
+};
 
 function mapSliderSlides(list) {
   if (!Array.isArray(list) || list.length === 0) return [];
@@ -30,26 +40,22 @@ export default function HomeContent({
   initialProducts = [],
   initialCategories = [],
   initialSlider = [],
-  initialHighlightReviews = [],
+  initialHomeContent = null,
 }) {
   const setStoreProducts = useProductsStore((s) => s.setProducts);
   const [clientProducts, setClientProducts] = useState(null);
   const [clientCategories, setClientCategories] = useState(null);
   const [clientSlider, setClientSlider] = useState(null);
-  const [clientReviews, setClientReviews] = useState(null);
   const [productsError, setProductsError] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
   const [sliderError, setSliderError] = useState(false);
+  const [homeContent, setHomeContent] = useState(initialHomeContent);
 
   const ssrSlides = useMemo(() => mapSliderSlides(initialSlider), [initialSlider]);
   const heroSlides = clientSlider != null ? clientSlider : ssrSlides;
 
   const products = clientProducts != null ? clientProducts : initialProducts;
   const categories = clientCategories != null ? clientCategories : initialCategories;
-  const highlightReviews = clientReviews != null ? clientReviews : initialHighlightReviews;
-  const safeHighlightReviews = useMemo(() => {
-    return Array.isArray(highlightReviews) ? highlightReviews : [];
-  }, [highlightReviews]);
 
   const bestsellerProducts = Array.isArray(products)
     ? products.filter((p) => (p.inventory ?? 1) > 0).slice(0, 4)
@@ -119,19 +125,22 @@ export default function HomeContent({
   }, [ssrSlides.length]);
 
   useEffect(() => {
-    if (initialHighlightReviews.length > 0) return;
+    if (homeContent?.homeHeroIntro) return;
     let cancelled = false;
-    getHighlightReviews()
-      .then((list) => {
-        if (!cancelled) setClientReviews(Array.isArray(list) ? list : []);
+    getContentSettings()
+      .then((r) => {
+        if (!cancelled && r?.homeHeroIntro) setHomeContent(r);
       })
-      .catch(() => {
-        if (!cancelled) setClientReviews([]);
-      });
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [initialHighlightReviews.length]);
+  }, [homeContent?.homeHeroIntro]);
+
+  const home = useMemo(() => {
+    if (homeContent?.homeHeroIntro) return homeContent;
+    return HOME_CONTENT_FALLBACK;
+  }, [homeContent]);
 
   useEffect(() => {
     const n = heroSlides.length;
@@ -153,8 +162,8 @@ export default function HomeContent({
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-semibold text-neutral-900 tracking-tight leading-[1.08]">
               Natural Care, Refined for Everyday Beauty.
             </h1>
-            <p className="mt-4 sm:mt-6 text-sm sm:text-lg text-neutral-600 max-w-md leading-relaxed">
-              Premium botanical skincare and body oils for a calm, polished routine. Featuring Nature Secret PX Oil—silky texture and a soothing massage moment after long days.
+            <p className="mt-4 sm:mt-6 text-sm sm:text-lg text-neutral-600 max-w-md leading-relaxed whitespace-pre-wrap">
+              {home.homeHeroIntro}
             </p>
             <div className="mt-5 sm:mt-10 flex flex-wrap gap-2.5 sm:gap-4">
               <Link
@@ -317,7 +326,7 @@ export default function HomeContent({
               {featuredCategories.map((cat) => {
                 const firstProduct = Array.isArray(products) ? products.find((p) => p.categoryId === cat.id) : null;
                 return (
-                  <Link key={cat.id} href={`/shop?category=${cat.id}`} className="group block rounded-2xl overflow-hidden bg-white shadow-premium ring-1 ring-neutral-200/60 hover:ring-gold-400/30 transition-all duration-300">
+                  <Link key={cat.id} href={`/shop?category=${encodeURIComponent(cat.slug)}`} className="group block rounded-2xl overflow-hidden bg-white shadow-premium ring-1 ring-neutral-200/60 hover:ring-gold-400/30 transition-all duration-300">
                     <div className="aspect-[4/3] relative">
                       {firstProduct?.images?.[0] ? (
                         <Image
@@ -350,62 +359,17 @@ export default function HomeContent({
         <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
           <div className="max-w-2xl mx-auto text-center">
             <div className="inline-block w-10 h-px bg-gold-400/50 mb-4 sm:mb-5" aria-hidden />
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-3 sm:mb-4">Our story</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-3 sm:mb-4">{home.homeStoryLabel}</p>
             <h2 className="text-xl sm:text-3xl lg:text-4xl font-semibold text-neutral-900 tracking-tight leading-snug">
-              Our journey began at home.
+              {home.homeStoryHeading}
             </h2>
-            <div className="mt-3 sm:mt-6 space-y-2.5 sm:space-y-3 text-xs sm:text-base text-neutral-600 leading-relaxed text-left sm:text-center">
-              <p>
-                Like many families in Pakistan, we wanted simple, honest care at home. Our father crafted a botanical body oil from traditional plant knowledge and ingredients we already trusted—first for family, then for friends.
-              </p>
-              <p>
-                At first, it was only for our own family. Over time, we shared the oil with friends and relatives who wanted a soothing massage ritual. The feedback was overwhelmingly positive—many loved the feel on skin and the quiet evening routine.
-              </p>
-              <p>
-                Encouraged by their experiences, we realized this simple formula could support more people in their daily self-care routines. That is how Nature Secret PX Oil was born.
-              </p>
-              <p>
-                Today, we are proud to share the same heritage-inspired oil with people across Pakistan. Inspired by our belief in natural care, we are now developing a collection of skincare serums and body care for your modern routine.
-              </p>
-              <p className="font-medium text-neutral-700">
-                From our home to yours: Natural care you can trust.
-              </p>
-            </div>
+            <div
+              className="mt-3 sm:mt-6 text-xs sm:text-base text-neutral-600 leading-relaxed text-left sm:text-center [&_p]:text-left [&_p]:sm:text-center [&_p]:mb-3 [&_p:last-child]:mb-0"
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(home.homeStoryHtml || '') }}
+            />
           </div>
         </div>
       </section>
-
-      {/* Customer reviews strip */}
-      {safeHighlightReviews.length > 0 && (
-        <section className="py-8 sm:py-10 bg-neutral-50 border-y border-neutral-200/80">
-          <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
-            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-2 sm:mb-3">
-              What customers say
-            </p>
-            <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-neutral-300">
-              {safeHighlightReviews.map((r) => (
-                <div
-                  key={r.id}
-                  className="min-w-[220px] max-w-xs rounded-2xl border border-neutral-200 bg-white px-4 py-3 shadow-sm flex-shrink-0"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-gold-600 text-sm">
-                      {'★'.repeat(Math.min(5, r.rating || 0))}
-                    </span>
-                    <span className="text-neutral-300 text-sm">
-                      {'★'.repeat(5 - Math.min(5, r.rating || 0))}
-                    </span>
-                  </div>
-                  <p className="text-xs font-medium text-neutral-800 line-clamp-2">{r.body}</p>
-                  <p className="mt-2 text-[11px] text-neutral-500 truncate">
-                    {r.authorName || 'Customer'}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
     </div>
   );
