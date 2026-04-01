@@ -12,6 +12,7 @@ import { HeartIcon } from '@/components/icons/HeartIcon';
 import { trackAddToCart, trackAddToWishlist } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
 import { resolveImageUrl, productPath } from '@/lib/api';
+import { buildPathWithStoredAttribution } from '@/lib/attribution';
 import { InlineLoader } from '@/components/ui/PageLoader';
 
 const SORT_OPTIONS = [
@@ -66,7 +67,7 @@ function ShopContent() {
     if (apiLoading || !resolvedCategory) return;
     if (filtered.length !== 1) return;
     const p = filtered[0];
-    router.replace(`/shop/${productPath(p)}`);
+    router.replace(buildPathWithStoredAttribution(`/shop/${productPath(p)}`));
   }, [apiLoading, resolvedCategory, filtered, router]);
 
   const addToCart = useCartStore((s) => s.addItem);
@@ -177,7 +178,10 @@ function ShopContent() {
                         width={400}
                         height={533}
                         className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
-                        unoptimized
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        quality={75}
+                        priority={index === 0}
+                        fetchPriority={index === 0 ? 'high' : 'low'}
                       />
                       {product.images?.[1] && (
                         <Image
@@ -186,7 +190,9 @@ function ShopContent() {
                           width={400}
                           height={533}
                           className="absolute inset-0 h-full w-full object-cover opacity-0 transition duration-300 group-hover:opacity-100"
-                          unoptimized
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          quality={70}
+                          loading="lazy"
                         />
                       )}
                       <button

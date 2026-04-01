@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { Suspense, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { NsPromoBanner } from '@/components/NsPromoBanner';
 import { Footer } from '@/components/layout/Footer';
@@ -17,15 +17,37 @@ const AuthModal = dynamic(() => import('@/components/auth/AuthModal').then((m) =
 const ReviewPopup = dynamic(() => import('@/components/ReviewPopup').then((m) => m.ReviewPopup), { ssr: false });
 const FloatingWhatsApp = dynamic(() => import('@/components/FloatingWhatsApp').then((m) => m.FloatingWhatsApp), { ssr: false });
 
-export function StoreLayout({ children }) {
-  const pathname = usePathname();
-  const isAdmin = pathname?.startsWith('/admin');
+function StoreAttributionEffects({ pathname, isAdmin }) {
+  const searchParams = useSearchParams();
+  const searchKey = searchParams?.toString() ?? '';
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     captureAttributionFromUrl();
-    if (!isAdmin && pathname) trackPageView(pathname);
+  }, [pathname, searchKey]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onUrl = () => captureAttributionFromUrl();
+    window.addEventListener('hashchange', onUrl);
+    window.addEventListener('popstate', onUrl);
+    return () => {
+      window.removeEventListener('hashchange', onUrl);
+      window.removeEventListener('popstate', onUrl);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || isAdmin || !pathname) return;
+    trackPageView(pathname);
   }, [pathname, isAdmin]);
+
+  return null;
+}
+
+export function StoreLayout({ children }) {
+  const pathname = usePathname();
+  const isAdmin = pathname?.startsWith('/admin');
 
   // Sync customer session from localStorage if store hasn't rehydrated yet (e.g. new tab)
   useEffect(() => {
@@ -42,28 +64,44 @@ export function StoreLayout({ children }) {
     }
   }, []);
 
-  if (isAdmin) return <>{children}</>;
+  const attribution = (
+    <Suspense fallback={null}>
+      <StoreAttributionEffects pathname={pathname} isAdmin={!!isAdmin} />
+    </Suspense>
+  );
+
+  if (isAdmin) {
+    return (
+      <>
+        {attribution}
+        {children}
+      </>
+    );
+  }
 
   const showBreadcrumbs = pathname && pathname !== '/' && pathname.split('/').filter(Boolean).length > 0;
   return (
-    <BreadcrumbProvider>
-      <Header />
-      <NsPromoBanner />
-      <div className="flex-1 flex flex-col">
-        {showBreadcrumbs && (
-          <div className="mx-auto w-full max-w-7xl px-3 sm:px-5 lg:px-8 py-1.5 sm:py-2.5 lg:py-3 border-b border-neutral-100 bg-neutral-50/30">
-            <Breadcrumbs />
-          </div>
-        )}
-        <main className="flex-1 min-w-0">{children}</main>
-      </div>
-      <Footer />
-      <FloatingWhatsApp />
-      <CartDrawer />
-      <Suspense fallback={null}>
-        <AuthModal />
-      </Suspense>
-      <ReviewPopup />
-    </BreadcrumbProvider>
+    <>
+      {attribution}
+      <BreadcrumbProvider>
+        <Header />
+        <NsPromoBanner />
+        <div className="flex-1 flex flex-col">
+          {showBreadcrumbs && (
+            <div className="mx-auto w-full max-w-7xl px-3 sm:px-5 lg:px-8 py-1.5 sm:py-2.5 lg:py-3 border-b border-neutral-100 bg-neutral-50/30">
+              <Breadcrumbs />
+            </div>
+          )}
+          <main className="flex-1 min-w-0">{children}</main>
+        </div>
+        <Footer />
+        <FloatingWhatsApp />
+        <CartDrawer />
+        <Suspense fallback={null}>
+          <AuthModal />
+        </Suspense>
+        <ReviewPopup />
+      </BreadcrumbProvider>
+    </>
   );
 }

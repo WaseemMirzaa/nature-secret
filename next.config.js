@@ -7,7 +7,7 @@ function getImagesConfig() {
       // AVIF/WebP + resizing when API host is known (faster loads than full-size unoptimized).
       unoptimized: false,
       formats: ['image/avif', 'image/webp'],
-      minimumCacheTTL: 120,
+      minimumCacheTTL: 86400,
       deviceSizes: [640, 750, 828, 1080, 1200, 1920],
       imageSizes: [32, 48, 64, 96, 128, 256],
       remotePatterns: [

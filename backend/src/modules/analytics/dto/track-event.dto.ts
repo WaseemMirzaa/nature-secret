@@ -21,8 +21,28 @@ export class TrackEventDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(255)
+  contentId?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(100)
   orderId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  campaignId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  adsetId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  adId?: string;
 
   @IsOptional()
   @IsString()

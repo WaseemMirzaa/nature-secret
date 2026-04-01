@@ -28,11 +28,9 @@ export async function generateMetadata({ params }) {
 export default async function ProductPage({ params }) {
   const slugOrId = slugFromParams(params);
   const { product, reviews } = await fetchProductPageData(slugOrId);
-  const mainImg = product?.images?.[0] ? resolveAbsoluteImageUrl(product.images[0]) : null;
 
   return (
     <>
-      {mainImg ? <link rel="preload" as="image" href={mainImg} fetchPriority="high" /> : null}
       <ProductDetailClient
         key={slugOrId}
         slugOrId={slugOrId}

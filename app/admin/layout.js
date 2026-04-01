@@ -19,6 +19,7 @@ const ADMIN_NAV = [
   { href: '/admin/content', label: 'Content settings', adminOnly: true },
   { href: '/admin/blog', label: 'Blog', adminOnly: true },
   { href: '/admin/analytics', label: 'Analytics', adminOnly: true },
+  { href: '/admin/analytics/meta-campaigns', label: 'Meta campaigns', adminOnly: true },
 ];
 
 function NavSidebar({ pathname, auth, onNavClick, onLogout }) {

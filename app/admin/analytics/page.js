@@ -2,68 +2,30 @@
 
 import Link from '@/components/Link';
 import { useMemo, useState, useEffect } from 'react';
-import { useAnalyticsStore, useProductsStore } from '@/lib/store';
+import { useProductsStore } from '@/lib/store';
 import { formatAttributionLine, getAttributionFromSessionEvents } from '@/lib/attribution';
+import { formatSessionEventBreakdown } from '@/lib/analytics-labels';
 import { TableSkeleton, InlineLoader } from '@/components/ui/PageLoader';
+import { useAdminAnalyticsEvents } from '@/lib/useAdminAnalyticsEvents';
 
 const PAGE_SIZE = 50;
 
-/** `datetime-local` is `yyyy-mm-ddThh:mm` (local). Do not append `T23:59:59` to that — it becomes invalid. */
-function parseRangeStart(raw) {
-  const v = String(raw || '').trim();
-  if (!v) return null;
-  const d = new Date(v.length === 10 ? `${v}T00:00:00` : v);
-  return Number.isNaN(d.getTime()) ? null : d;
-}
-
-function parseRangeEnd(raw) {
-  const v = String(raw || '').trim();
-  if (!v) return null;
-  if (v.length === 10) {
-    const d = new Date(`${v}T23:59:59.999`);
-    return Number.isNaN(d.getTime()) ? null : d;
-  }
-  const d = new Date(v);
-  return Number.isNaN(d.getTime()) ? null : d;
-}
-
 export default function AdminAnalyticsPage() {
-  const rawEvents = useAnalyticsStore((s) => s.events);
-  const events = Array.isArray(rawEvents) ? rawEvents : [];
   const products = useProductsStore((s) => s.products);
-  const [mounted, setMounted] = useState(false);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [visitorFilter, setVisitorFilter] = useState('all'); // 'all' | 'purchased' | 'not_purchased'
   const [sessionPage, setSessionPage] = useState(1);
   const [visitorPage, setVisitorPage] = useState(1);
 
-  useEffect(() => setMounted(true), []);
-
-  const filtered = useMemo(() => {
-    const from = parseRangeStart(dateFrom);
-    const to = parseRangeEnd(dateTo);
-    let list = events;
-    if (from) {
-      const fromMs = from.getTime();
-      list = list.filter((e) => {
-        const t = e.timestamp ? new Date(e.timestamp).getTime() : NaN;
-        return !Number.isNaN(t) && t >= fromMs;
-      });
-    }
-    if (to) {
-      const toMs = to.getTime();
-      list = list.filter((e) => {
-        const t = e.timestamp ? new Date(e.timestamp).getTime() : NaN;
-        return !Number.isNaN(t) && t <= toMs;
-      });
-    }
-    return list;
-  }, [events, dateFrom, dateTo]);
+  const { events, loading: eventsLoading, error: eventsError } = useAdminAnalyticsEvents({
+    from: dateFrom || undefined,
+    to: dateTo || undefined,
+  });
 
   const sessionsList = useMemo(() => {
     const bySession = new Map();
-    filtered.forEach((e) => {
+    events.forEach((e) => {
       const sid = e.sessionId || 'unknown';
       if (!bySession.has(sid)) {
         bySession.set(sid, {
@@ -84,12 +46,17 @@ export default function AdminAnalyticsPage() {
     });
     return Array.from(bySession.values())
       .map((s) => {
-        const evs = filtered.filter((e) => e.sessionId === s.sessionId);
+        const evs = events.filter((e) => e.sessionId === s.sessionId);
         const attr = getAttributionFromSessionEvents(evs);
-        return { ...s, attributionLine: attr ? formatAttributionLine(attr) : '' };
+        return {
+          ...s,
+          attributionLine: attr ? formatAttributionLine(attr) : '',
+          attribution: attr,
+          activitySummary: formatSessionEventBreakdown(evs),
+        };
       })
       .sort((a, b) => b.lastSeen.localeCompare(a.lastSeen));
-  }, [filtered]);
+  }, [events]);
 
   const sessionTotalPages = Math.max(1, Math.ceil(sessionsList.length / PAGE_SIZE));
   const sessionPageIndex = Math.min(sessionPage, sessionTotalPages);
@@ -101,7 +68,7 @@ export default function AdminAnalyticsPage() {
 
   const loggedInVisitors = useMemo(() => {
     const byEmail = new Map();
-    filtered.forEach((e) => {
+    events.forEach((e) => {
       const email = e.customerEmail;
       if (!email) return;
       if (!byEmail.has(email)) {
@@ -122,12 +89,17 @@ export default function AdminAnalyticsPage() {
     });
     return Array.from(byEmail.values())
       .map((v) => {
-        const evs = filtered.filter((e) => e.customerEmail === v.email);
+        const evs = events.filter((e) => e.customerEmail === v.email);
         const attr = getAttributionFromSessionEvents(evs);
-        return { ...v, sessionCount: v.sessionIds.size, attributionLine: attr ? formatAttributionLine(attr) : '' };
+        return {
+          ...v,
+          sessionCount: v.sessionIds.size,
+          attributionLine: attr ? formatAttributionLine(attr) : '',
+          attribution: attr,
+        };
       })
       .sort((a, b) => b.lastSeen.localeCompare(a.lastSeen));
-  }, [filtered]);
+  }, [events]);
 
   const filteredLoggedInVisitors = useMemo(() => {
     if (visitorFilter === 'all') return loggedInVisitors;
@@ -149,7 +121,7 @@ export default function AdminAnalyticsPage() {
     const guestSessions = sessionsList.filter((s) => !s.customerEmail && !s.customerName);
     const guestSessionIds = new Set(guestSessions.map((s) => s.sessionId));
     const purchaseSessionIds = new Set(
-      filtered.filter((e) => e.type === 'purchase').map((e) => e.sessionId).filter(Boolean)
+      events.filter((e) => e.type === 'purchase').map((e) => e.sessionId).filter(Boolean)
     );
     let guestPurchased = 0;
     let guestNotPurchased = 0;
@@ -165,31 +137,32 @@ export default function AdminAnalyticsPage() {
       guestPurchased,
       guestNotPurchased,
     };
-  }, [loggedInVisitors, sessionsList, filtered]);
+  }, [loggedInVisitors, sessionsList, events]);
 
   const stats = useMemo(() => {
-    const sessions = new Set(filtered.map((e) => e.sessionId).filter(Boolean));
+    const sessions = new Set(events.map((e) => e.sessionId).filter(Boolean));
     const sessionsWithPurchase = new Set(
-      filtered.filter((e) => e.type === 'purchase').map((e) => e.sessionId).filter(Boolean)
+      events.filter((e) => e.type === 'purchase').map((e) => e.sessionId).filter(Boolean)
     );
     const dailyVisits = {};
-    filtered.forEach((e) => {
+    events.forEach((e) => {
       if (e.type !== 'pageView') return;
-      const day = e.timestamp.slice(0, 10);
+      const day = String(e.timestamp || '').slice(0, 10);
+      if (!day) return;
       if (!dailyVisits[day]) dailyVisits[day] = new Set();
       dailyVisits[day].add(e.sessionId);
     });
     const productViews = {};
-    filtered.filter((e) => e.type === 'productView').forEach((e) => {
+    events.filter((e) => e.type === 'productView').forEach((e) => {
       const id = e.contentId || e.productId || 'unknown';
       productViews[id] = (productViews[id] || 0) + 1;
     });
     const outOfStockClicks = {};
-    filtered.filter((e) => e.type === 'outOfStockClick').forEach((e) => {
+    events.filter((e) => e.type === 'outOfStockClick').forEach((e) => {
       const id = e.contentId || e.productId || 'unknown';
       outOfStockClicks[id] = (outOfStockClicks[id] || 0) + 1;
     });
-    const addToCarts = filtered.filter((e) => e.type === 'addToCart').length;
+    const addToCarts = events.filter((e) => e.type === 'addToCart').length;
     const noPurchaseSessions = [...sessions].filter((s) => !sessionsWithPurchase.has(s)).length;
     return {
       totalSessions: sessions.size,
@@ -200,7 +173,7 @@ export default function AdminAnalyticsPage() {
       outOfStockClicks,
       addToCarts,
     };
-  }, [filtered]);
+  }, [events]);
 
   const productContentId = (id) => {
     if (!id || id === 'unknown') return id;
@@ -209,7 +182,7 @@ export default function AdminAnalyticsPage() {
     return a || p?.id || id;
   };
 
-  if (!mounted) {
+  if (eventsLoading && events.length === 0) {
     return (
       <div>
         <h1 className="text-2xl font-semibold text-neutral-900">Visitor analytics</h1>
@@ -236,10 +209,14 @@ export default function AdminAnalyticsPage() {
     <div>
       <h1 className="text-2xl font-semibold text-neutral-900">Visitor analytics</h1>
       <p className="mt-1 text-sm text-neutral-500">See how visitors use your site: pages viewed, products seen, cart and orders.</p>
+      <p className="mt-1 text-xs text-neutral-400">Data is stored on the server (last 90 days if no dates selected).</p>
       <div className="mt-4 flex flex-wrap gap-4">
         <input type="datetime-local" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="rounded-xl border border-neutral-200 px-4 py-2 text-sm" />
         <input type="datetime-local" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="rounded-xl border border-neutral-200 px-4 py-2 text-sm" />
       </div>
+      {eventsError && (
+        <p className="mt-3 text-sm text-red-600">Could not load analytics. Check admin login and API.</p>
+      )}
 
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="rounded-2xl border border-neutral-200 bg-white p-6">
@@ -337,7 +314,8 @@ export default function AdminAnalyticsPage() {
             <thead className="sticky top-0 bg-white border-b border-neutral-200">
               <tr className="text-neutral-500">
                 <th className="pb-2 pr-4">Visit</th>
-                <th className="pb-2 pr-4">Campaign / ad</th>
+                <th className="pb-2 pr-4">Meta / URL attribution</th>
+                <th className="pb-2 pr-4">Session activity</th>
                 <th className="pb-2 pr-4">First / Last seen</th>
                 <th className="pb-2 pr-4">Actions</th>
                 <th className="pb-2 pr-4">Visitor (if logged in)</th>
@@ -348,8 +326,28 @@ export default function AdminAnalyticsPage() {
               {paginatedSessions.map((s) => (
                 <tr key={s.sessionId} className="border-b border-neutral-100">
                   <td className="py-3 pr-4 font-mono text-xs text-neutral-600 truncate max-w-[120px]" title={s.sessionId}>{s.sessionId}</td>
-                  <td className="py-3 pr-4 text-xs text-neutral-600 max-w-[200px] truncate" title={s.attributionLine || undefined}>
-                    {s.attributionLine || <span className="text-neutral-400">—</span>}
+                  <td className="py-3 pr-4 text-xs text-neutral-600 max-w-[240px]">
+                    {s.attribution ? (
+                      <dl className="space-y-1 font-mono">
+                        <div>
+                          <dt className="text-neutral-400 font-sans text-[10px] uppercase tracking-wide">Campaign</dt>
+                          <dd className="truncate" title={s.attribution.campaignId || ''}>{s.attribution.campaignId || '—'}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-neutral-400 font-sans text-[10px] uppercase tracking-wide">Ad set</dt>
+                          <dd className="truncate" title={s.attribution.adsetId || ''}>{s.attribution.adsetId || '—'}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-neutral-400 font-sans text-[10px] uppercase tracking-wide">Ad</dt>
+                          <dd className="truncate" title={s.attribution.adId || ''}>{s.attribution.adId || '—'}</dd>
+                        </div>
+                      </dl>
+                    ) : (
+                      <span className="text-neutral-400">—</span>
+                    )}
+                  </td>
+                  <td className="py-3 pr-4 text-xs text-neutral-600 max-w-[220px]" title={s.activitySummary || undefined}>
+                    {s.activitySummary || <span className="text-neutral-400">—</span>}
                   </td>
                   <td className="py-3 pr-4 text-neutral-600">
                     {new Date(s.firstSeen).toLocaleString()} — {new Date(s.lastSeen).toLocaleString()}
@@ -428,7 +426,7 @@ export default function AdminAnalyticsPage() {
               <tr className="text-neutral-500 border-b border-neutral-200">
                 <th className="pb-2 pr-4">Name</th>
                 <th className="pb-2 pr-4">Email</th>
-                <th className="pb-2 pr-4">Campaign / ad</th>
+                <th className="pb-2 pr-4">Meta / URL attribution</th>
                 <th className="pb-2 pr-4">Last seen</th>
                 <th className="pb-2 pr-4">Sessions</th>
                 <th className="pb-2 pr-4">Purchased</th>
@@ -440,8 +438,25 @@ export default function AdminAnalyticsPage() {
                 <tr key={v.email} className="border-b border-neutral-100">
                   <td className="py-3 pr-4 font-medium text-neutral-900">{v.name}</td>
                   <td className="py-3 pr-4 text-neutral-600">{v.email}</td>
-                  <td className="py-3 pr-4 text-xs text-neutral-600 max-w-[180px] truncate" title={v.attributionLine || undefined}>
-                    {v.attributionLine || <span className="text-neutral-400">—</span>}
+                  <td className="py-3 pr-4 text-xs text-neutral-600 max-w-[240px]">
+                    {v.attribution ? (
+                      <dl className="space-y-1 font-mono">
+                        <div>
+                          <dt className="text-neutral-400 font-sans text-[10px] uppercase tracking-wide">Campaign</dt>
+                          <dd className="truncate" title={v.attribution.campaignId || ''}>{v.attribution.campaignId || '—'}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-neutral-400 font-sans text-[10px] uppercase tracking-wide">Ad set</dt>
+                          <dd className="truncate" title={v.attribution.adsetId || ''}>{v.attribution.adsetId || '—'}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-neutral-400 font-sans text-[10px] uppercase tracking-wide">Ad</dt>
+                          <dd className="truncate" title={v.attribution.adId || ''}>{v.attribution.adId || '—'}</dd>
+                        </div>
+                      </dl>
+                    ) : (
+                      <span className="text-neutral-400">—</span>
+                    )}
                   </td>
                   <td className="py-3 pr-4 text-neutral-600">{new Date(v.lastSeen).toLocaleString()}</td>
                   <td className="py-3 pr-4">{v.sessionCount}</td>

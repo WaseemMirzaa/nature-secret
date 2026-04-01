@@ -93,8 +93,8 @@ export default function PrivacyPage() {
               <li><span className="font-medium">Payment Processors:</span> To securely handle transactions.</li>
               <li><span className="font-medium">Shipping Partners:</span> To deliver your orders.</li>
               <li><span className="font-medium">Regulatory Authorities:</span> Only if required by law.</li>
-            </ul>
-          </section>
+        </ul>
+      </section>
 
           <section className="mt-8">
             <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">8. Your Rights</h2>
@@ -103,7 +103,7 @@ export default function PrivacyPage() {
               <li>Request access to the personal data we hold about you</li>
               <li>Request correction or deletion of your data, subject to legal and operational limits</li>
               <li>Opt out of marketing communications at any time (use the unsubscribe link in emails or contact us)</li>
-            </ul>
+        </ul>
             <p className="mt-3 text-sm text-neutral-700">
               To exercise these rights, email <span className="font-medium">support@naturesecret.pk</span>.
             </p>
@@ -148,8 +148,8 @@ export default function PrivacyPage() {
             <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">13. Accuracy of Information</h2>
             <p className="mt-3 text-sm text-neutral-700 leading-relaxed">
               We may correct typographical errors, outdated details, or omissions on this policy or elsewhere on the site at any time without prior notice.
-            </p>
-          </section>
+        </p>
+      </section>
 
           <section className="mt-8">
             <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">14. No Warranties; Limitation of Liability</h2>
@@ -157,31 +157,31 @@ export default function PrivacyPage() {
               The website and its content are provided on an &ldquo;as is&rdquo; and &ldquo;as available&rdquo; basis. To the maximum extent allowed by applicable law,
               Nature Secret disclaims warranties implied by law where permissible and is not liable for indirect or consequential loss arising from your use of the site
               or reliance on information here, except where liability cannot be excluded by law.
-            </p>
-          </section>
+        </p>
+      </section>
 
           <section className="mt-8">
             <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">15. Indemnity</h2>
             <p className="mt-3 text-sm text-neutral-700 leading-relaxed">
               You agree to defend and hold Nature Secret harmless from claims, losses, or costs (including reasonable legal fees) arising from your breach of this
               policy, misuse of the site, or unlawful content you submit.
-            </p>
-          </section>
+        </p>
+      </section>
 
           <section className="mt-8">
             <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">16. Severability</h2>
             <p className="mt-3 text-sm text-neutral-700 leading-relaxed">
               If any part of this Privacy Policy is held invalid, the remaining provisions stay in effect.
-            </p>
-          </section>
+        </p>
+      </section>
 
           <section className="mt-8">
             <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">17. Access to the Service</h2>
             <p className="mt-3 text-sm text-neutral-700 leading-relaxed">
               We may suspend or end access to the website where reasonably necessary. Obligations that logically survive (such as limits on liability where allowed, or
               duties regarding data already processed) continue after any suspension or closure.
-            </p>
-          </section>
+        </p>
+      </section>
 
           <section className="mt-8">
             <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">18. Relationship With Other Documents</h2>
@@ -194,16 +194,16 @@ export default function PrivacyPage() {
             <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">19. Governing Law</h2>
             <p className="mt-3 text-sm text-neutral-700 leading-relaxed">
               This Privacy Policy is governed by the laws of Pakistan, without regard to conflict-of-law rules, except where mandatory local consumer protections apply.
-            </p>
-          </section>
+        </p>
+      </section>
 
           <section className="mt-8">
             <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">20. Changes to This Privacy Policy</h2>
             <p className="mt-3 text-sm text-neutral-700 leading-relaxed">
               Nature Secret may update this Privacy Policy from time to time to reflect changes in laws, our practices, or our services. When we update it, we will post
               the new version on this page and change the effective date at the top. We encourage you to review this policy periodically.
-            </p>
-          </section>
+        </p>
+      </section>
         </div>
       </div>
     </div>

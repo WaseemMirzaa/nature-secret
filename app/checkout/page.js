@@ -17,7 +17,7 @@ import {
   trackPurchase,
 } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
-import { createOrder as apiCreateOrder, trackAnalytics } from '@/lib/api';
+import { createOrder as apiCreateOrder } from '@/lib/api';
 import { useProductsAndCategories } from '@/lib/useApiData';
 import { CustomerPageLoader } from '@/components/ui/PageLoader';
 import {
@@ -346,7 +346,6 @@ export default function CheckoutPage() {
         JSON.stringify({ ...metaCustomer, externalId: orderId }),
       );
     } catch (_) {}
-    try { await trackAnalytics({ type: 'purchase', orderId, sessionId: `sess-${Date.now()}`, payload: {} }); } catch (_) {}
     /** Let Meta Pixel send Purchase before Next.js navigates away (immediate push often drops the event). */
     await new Promise((r) => setTimeout(r, 400));
     clear();

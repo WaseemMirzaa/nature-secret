@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Param, Patch, Delete, Body, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Param, Patch, Delete, Body, Query, Req, UseGuards, BadRequestException } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { ProductsService } from '../products/products.service';
 import { PushService } from '../notifications/push.service';
 import { WhatsAppLinkService } from '../notifications/whatsapp-link.service';
 import { SettingsService } from '../settings/settings.service';
 import { SupportService } from '../support/support.service';
+import { AnalyticsService } from '../analytics/analytics.service';
 import { CreateProductDto, UpdateProductDto } from '../products/dto/product.dto';
 import { CreateBlogPostDto, UpdateBlogPostDto } from './dto/blog.dto';
 import { AdminJwtAuthGuard } from '../../common/guards/admin-jwt.guard';
@@ -21,7 +22,53 @@ export class AdminController {
     private whatsappLink: WhatsAppLinkService,
     private settingsService: SettingsService,
     private supportService: SupportService,
+    private analyticsService: AnalyticsService,
   ) {}
+
+  @Get('analytics/events')
+  @AdminOnly()
+  async analyticsEvents(
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('sessionId') sessionId?: string,
+    @Query('email') email?: string,
+    @Query('limit') limitStr?: string,
+  ) {
+    let fromD: Date | undefined;
+    let toD: Date | undefined;
+    if (from) {
+      fromD = new Date(from);
+      if (Number.isNaN(fromD.getTime())) throw new BadRequestException('Invalid from date');
+    }
+    if (to) {
+      toD = new Date(to);
+      if (Number.isNaN(toD.getTime())) throw new BadRequestException('Invalid to date');
+    }
+    const limit = limitStr ? parseInt(limitStr, 10) : undefined;
+    return this.analyticsService.listEventsForAdmin({
+      from: fromD,
+      to: toD,
+      sessionId: sessionId || undefined,
+      customerEmail: email || undefined,
+      limit: Number.isFinite(limit) ? limit : undefined,
+    });
+  }
+
+  @Get('analytics/meta-campaigns')
+  @AdminOnly()
+  async analyticsMetaCampaigns(@Query('from') from?: string, @Query('to') to?: string) {
+    let fromD: Date | undefined;
+    let toD: Date | undefined;
+    if (from) {
+      fromD = new Date(from);
+      if (Number.isNaN(fromD.getTime())) throw new BadRequestException('Invalid from date');
+    }
+    if (to) {
+      toD = new Date(to);
+      if (Number.isNaN(toD.getTime())) throw new BadRequestException('Invalid to date');
+    }
+    return this.analyticsService.getMetaCampaignDashboard({ from: fromD, to: toD });
+  }
 
   @Get('settings/contact')
   @AdminOnly()

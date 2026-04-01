@@ -199,6 +199,7 @@ export default function HomeContent({
                   fill
                   className="object-cover"
                   priority={i === 0}
+                  fetchPriority={i === 0 ? 'high' : 'low'}
                   sizes="(max-width: 1024px) 0, 600px"
                   quality={75}
                 />
@@ -264,7 +265,7 @@ export default function HomeContent({
               </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 lg:gap-8">
-              {bestsellerProducts.map((product) => {
+              {bestsellerProducts.map((product, bi) => {
                 const img = (product.images && product.images[0]) || product.image || '/assets/nature-secret-logo.svg';
                 const name = product.name ?? product.slug ?? 'Product';
                 const variants = Array.isArray(product.variants) ? product.variants : [];
@@ -286,6 +287,8 @@ export default function HomeContent({
                         className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                         quality={75}
+                        priority={bi === 0}
+                        fetchPriority={bi === 0 ? 'high' : 'low'}
                       />
                       {product.badge && (
                         <span className="absolute top-3 left-3 rounded-full bg-neutral-900 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white ring-1 ring-gold-500/60 shadow-gold-sm">

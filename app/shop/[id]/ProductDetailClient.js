@@ -336,7 +336,8 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
               className={`object-cover transition-transform duration-300 ${zoom ? 'scale-110' : ''}`}
               sizes="(max-width: 1024px) 100vw, 42vw"
               priority
-              quality={80}
+              fetchPriority="high"
+              quality={75}
             />
             <button
               type="button"
