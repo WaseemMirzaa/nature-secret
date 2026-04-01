@@ -3,6 +3,7 @@
 import Link from '@/components/Link';
 import { useMemo, useState, useEffect } from 'react';
 import { useAnalyticsStore, useProductsStore } from '@/lib/store';
+import { formatAttributionLine, getAttributionFromSessionEvents } from '@/lib/attribution';
 import { TableSkeleton, InlineLoader } from '@/components/ui/PageLoader';
 
 const PAGE_SIZE = 50;
@@ -48,7 +49,13 @@ export default function AdminAnalyticsPage() {
       if (e.customerEmail) s.customerEmail = e.customerEmail;
       if (e.customerName) s.customerName = e.customerName;
     });
-    return Array.from(bySession.values()).sort((a, b) => b.lastSeen.localeCompare(a.lastSeen));
+    return Array.from(bySession.values())
+      .map((s) => {
+        const evs = filtered.filter((e) => e.sessionId === s.sessionId);
+        const attr = getAttributionFromSessionEvents(evs);
+        return { ...s, attributionLine: attr ? formatAttributionLine(attr) : '' };
+      })
+      .sort((a, b) => b.lastSeen.localeCompare(a.lastSeen));
   }, [filtered]);
 
   const sessionTotalPages = Math.max(1, Math.ceil(sessionsList.length / PAGE_SIZE));
@@ -81,7 +88,11 @@ export default function AdminAnalyticsPage() {
       if (e.type === 'purchase') v.purchased = true;
     });
     return Array.from(byEmail.values())
-      .map((v) => ({ ...v, sessionCount: v.sessionIds.size }))
+      .map((v) => {
+        const evs = filtered.filter((e) => e.customerEmail === v.email);
+        const attr = getAttributionFromSessionEvents(evs);
+        return { ...v, sessionCount: v.sessionIds.size, attributionLine: attr ? formatAttributionLine(attr) : '' };
+      })
       .sort((a, b) => b.lastSeen.localeCompare(a.lastSeen));
   }, [filtered]);
 
@@ -181,7 +192,7 @@ export default function AdminAnalyticsPage() {
         <div className="mt-8 rounded-2xl border border-neutral-200 bg-white overflow-hidden">
           <table className="w-full text-left text-sm">
             <thead className="bg-neutral-50 border-b border-neutral-200"><tr><th className="p-4">Sessions</th></tr></thead>
-            <tbody><TableSkeleton rows={5} cols={4} /></tbody>
+            <tbody><TableSkeleton rows={5} cols={6} /></tbody>
           </table>
         </div>
       </div>
@@ -293,6 +304,7 @@ export default function AdminAnalyticsPage() {
             <thead className="sticky top-0 bg-white border-b border-neutral-200">
               <tr className="text-neutral-500">
                 <th className="pb-2 pr-4">Visit</th>
+                <th className="pb-2 pr-4">Campaign / ad</th>
                 <th className="pb-2 pr-4">First / Last seen</th>
                 <th className="pb-2 pr-4">Actions</th>
                 <th className="pb-2 pr-4">Visitor (if logged in)</th>
@@ -303,6 +315,9 @@ export default function AdminAnalyticsPage() {
               {paginatedSessions.map((s) => (
                 <tr key={s.sessionId} className="border-b border-neutral-100">
                   <td className="py-3 pr-4 font-mono text-xs text-neutral-600 truncate max-w-[120px]" title={s.sessionId}>{s.sessionId}</td>
+                  <td className="py-3 pr-4 text-xs text-neutral-600 max-w-[200px] truncate" title={s.attributionLine || undefined}>
+                    {s.attributionLine || <span className="text-neutral-400">—</span>}
+                  </td>
                   <td className="py-3 pr-4 text-neutral-600">
                     {new Date(s.firstSeen).toLocaleString()} — {new Date(s.lastSeen).toLocaleString()}
                   </td>
@@ -380,6 +395,7 @@ export default function AdminAnalyticsPage() {
               <tr className="text-neutral-500 border-b border-neutral-200">
                 <th className="pb-2 pr-4">Name</th>
                 <th className="pb-2 pr-4">Email</th>
+                <th className="pb-2 pr-4">Campaign / ad</th>
                 <th className="pb-2 pr-4">Last seen</th>
                 <th className="pb-2 pr-4">Sessions</th>
                 <th className="pb-2 pr-4">Purchased</th>
@@ -391,6 +407,9 @@ export default function AdminAnalyticsPage() {
                 <tr key={v.email} className="border-b border-neutral-100">
                   <td className="py-3 pr-4 font-medium text-neutral-900">{v.name}</td>
                   <td className="py-3 pr-4 text-neutral-600">{v.email}</td>
+                  <td className="py-3 pr-4 text-xs text-neutral-600 max-w-[180px] truncate" title={v.attributionLine || undefined}>
+                    {v.attributionLine || <span className="text-neutral-400">—</span>}
+                  </td>
                   <td className="py-3 pr-4 text-neutral-600">{new Date(v.lastSeen).toLocaleString()}</td>
                   <td className="py-3 pr-4">{v.sessionCount}</td>
                   <td className="py-3 pr-4">{v.purchased ? <span className="text-green-600 font-medium">Yes</span> : <span className="text-neutral-400">No</span>}</td>

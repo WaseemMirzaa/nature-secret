@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
 import { useAnalyticsStore, useProductsStore, useOrdersStore } from '@/lib/store';
 import { getEventLabel } from '@/lib/analytics-labels';
+import { formatAttributionLine, getAttributionFromSessionEvents } from '@/lib/attribution';
 import { InlineLoader } from '@/components/ui/PageLoader';
 
 export default function AnalyticsVisitorDetailPage() {
@@ -32,6 +33,7 @@ export default function AnalyticsVisitorDetailPage() {
     const name = visitorEvents.find((e) => e.customerName)?.customerName || '—';
     const purchased = visitorEvents.some((e) => e.type === 'purchase');
     const orderForEmail = orders.find((o) => o.email && o.email.toLowerCase() === email.toLowerCase());
+    const attribution = getAttributionFromSessionEvents(visitorEvents);
     return {
       name,
       email,
@@ -44,6 +46,7 @@ export default function AnalyticsVisitorDetailPage() {
       purchased,
       phone: orderForEmail?.phone,
       address: orderForEmail?.address,
+      attributionLine: attribution ? formatAttributionLine(attribution) : '',
     };
   }, [events, email, orders]);
 
@@ -116,7 +119,8 @@ export default function AnalyticsVisitorDetailPage() {
     );
   }
 
-  const { name, firstSeen, lastSeen, eventCount, sessionCount, sessionIds, purchased, phone, address } = visitorData;
+  const { name, firstSeen, lastSeen, eventCount, sessionCount, sessionIds, purchased, phone, address, attributionLine } =
+    visitorData;
 
   return (
     <div className="max-w-3xl">
@@ -181,6 +185,12 @@ export default function AnalyticsVisitorDetailPage() {
             <dt className="text-neutral-500">Total events</dt>
             <dd className="text-neutral-700 mt-0.5">{eventCount}</dd>
           </div>
+          {attributionLine ? (
+            <div className="sm:col-span-2">
+              <dt className="text-neutral-500">Campaign / ad (first-touch)</dt>
+              <dd className="text-neutral-800 mt-0.5 font-mono text-xs break-all">{attributionLine}</dd>
+            </div>
+          ) : null}
         </dl>
       </div>
 

@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
 import { useAnalyticsStore, useProductsStore } from '@/lib/store';
 import { getEventLabel } from '@/lib/analytics-labels';
+import { formatAttributionLine, getAttributionFromSessionEvents } from '@/lib/attribution';
 import { InlineLoader } from '@/components/ui/PageLoader';
 
 export default function AnalyticsSessionDetailPage() {
@@ -26,11 +27,13 @@ export default function AnalyticsSessionDetailPage() {
     const customer = customerEvent
       ? { email: customerEvent.customerEmail, name: customerEvent.customerName }
       : null;
+    const attribution = getAttributionFromSessionEvents(sessionEvents);
     return {
       events: sessionEvents,
       firstSeen: first.timestamp,
       lastSeen: last.timestamp,
       customer,
+      attributionLine: attribution ? formatAttributionLine(attribution) : '',
     };
   }, [events, sessionId]);
 
@@ -96,7 +99,7 @@ export default function AnalyticsSessionDetailPage() {
     );
   }
 
-  const { events: sessionEvents, firstSeen, lastSeen, customer } = sessionData;
+  const { events: sessionEvents, firstSeen, lastSeen, customer, attributionLine } = sessionData;
 
   return (
     <div className="max-w-3xl">
@@ -138,6 +141,12 @@ export default function AnalyticsSessionDetailPage() {
       <div className="mt-8 rounded-2xl border border-neutral-200 bg-white p-6">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-neutral-500 mb-3">Visit summary</h2>
         <ul className="space-y-1 text-sm text-neutral-600">
+          {attributionLine ? (
+            <li>
+              <span className="text-neutral-500">Campaign / ad:</span>{' '}
+              <span className="font-mono text-xs text-neutral-800">{attributionLine}</span>
+            </li>
+          ) : null}
           <li>First seen: {new Date(firstSeen).toLocaleString()}</li>
           <li>Last seen: {new Date(lastSeen).toLocaleString()}</li>
           <li>Actions in this visit: {sessionEvents.length}</li>

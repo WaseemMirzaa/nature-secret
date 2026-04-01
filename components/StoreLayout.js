@@ -9,6 +9,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { BreadcrumbProvider } from '@/lib/BreadcrumbContext';
 import { trackPageView } from '@/lib/analytics';
+import { captureAttributionFromUrl } from '@/lib/attribution';
 import { useCustomerStore } from '@/lib/store';
 
 const CartDrawer = dynamic(() => import('@/components/cart/CartDrawer').then((m) => m.CartDrawer), { ssr: false });
@@ -21,6 +22,8 @@ export function StoreLayout({ children }) {
   const isAdmin = pathname?.startsWith('/admin');
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    captureAttributionFromUrl();
     if (!isAdmin && pathname) trackPageView(pathname);
   }, [pathname, isAdmin]);
 
