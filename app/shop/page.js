@@ -29,39 +29,45 @@ function ShopContent() {
   const storeProducts = useProductsStore((s) => s.products);
   const { products, categories, loading: apiLoading, error: apiError } = useProductsAndCategories(storeProducts);
 
-  const activeCategory = useMemo(() => {
-    if (!categorySlug || !Array.isArray(categories)) return null;
+  /** Resolved only after categories load — avoids treating URL category as missing while API is in flight. */
+  const resolvedCategory = useMemo(() => {
+    if (!categorySlug || !Array.isArray(categories) || categories.length === 0) return null;
     return categories.find((c) => c.slug === categorySlug) ?? null;
   }, [categorySlug, categories]);
 
+  /** Move selected category to top of sidebar as soon as slug matches (do not wait on extra flags). */
   const sidebarCategories = useMemo(() => {
     const list = [...(categories || [])];
-    if (!categorySlug || !activeCategory) return list;
+    if (!categorySlug || !list.length) return list;
     const i = list.findIndex((c) => c.slug === categorySlug);
     if (i <= 0) return list;
     const next = [...list];
     const [sel] = next.splice(i, 1);
     return [sel, ...next];
-  }, [categories, categorySlug, activeCategory]);
+  }, [categories, categorySlug]);
 
   const filtered = useMemo(() => {
     let list = [...(products || [])];
-    if (categorySlug && Array.isArray(categories)) {
-      const cat = categories.find((c) => c.slug === categorySlug);
-      if (cat) list = list.filter((p) => p.categoryId === cat.id);
+    if (categorySlug) {
+      if (!resolvedCategory) {
+        return [];
+      }
+      list = list.filter((p) => p.categoryId === resolvedCategory.id);
     }
     if (sort === 'price-asc') list.sort((a, b) => a.price - b.price);
     else if (sort === 'price-desc') list.sort((a, b) => b.price - a.price);
     else if (sort === 'newest') list.reverse();
     return list;
-  }, [categorySlug, sort, products, categories]);
+  }, [categorySlug, resolvedCategory, sort, products]);
+
+  const categoryFilterPending = Boolean(categorySlug && !resolvedCategory && apiLoading);
 
   useEffect(() => {
-    if (apiLoading || !activeCategory) return;
+    if (apiLoading || !resolvedCategory) return;
     if (filtered.length !== 1) return;
     const p = filtered[0];
     router.replace(`/shop/${productPath(p)}`);
-  }, [apiLoading, activeCategory, filtered, router]);
+  }, [apiLoading, resolvedCategory, filtered, router]);
 
   const addToCart = useCartStore((s) => s.addItem);
   const openCart = useCartOpenStore((s) => s.open);
@@ -113,7 +119,7 @@ function ShopContent() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-3 sm:mb-6 lg:mb-8">
             <div>
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-neutral-900">
-                {categorySlug ? (categories || []).find((c) => c.slug === categorySlug)?.name || 'Shop' : 'Shop'}
+                {categorySlug ? (resolvedCategory?.name ?? 'Shop') : 'Shop'}
               </h1>
               <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-neutral-500">
                 {filtered.length} {filtered.length === 1 ? 'product' : 'products'}
@@ -135,7 +141,7 @@ function ShopContent() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 lg:gap-8">
-            {apiLoading && (!products || products.length === 0) ? (
+            {(apiLoading && (!products || products.length === 0)) || categoryFilterPending ? (
               Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="rounded-2xl overflow-hidden bg-neutral-100 border border-neutral-200/80">
                   <div className="aspect-[3/4] bg-neutral-200 animate-pulse" />

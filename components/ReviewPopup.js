@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import Link from '@/components/Link';
 
 const LAST_ORDER_KEY = 'nature_secret_last_order_date';
@@ -10,10 +11,16 @@ const DAYS_BEFORE_POPUP = 3;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export function ReviewPopup() {
+  const pathname = usePathname() || '';
+  const isHome = pathname === '/' || pathname === '';
   const [show, setShow] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (isHome) {
+      setShow(false);
+      return;
+    }
     try {
       const raw = localStorage.getItem(LAST_ORDER_KEY);
       const orderId = localStorage.getItem(LAST_ORDER_ID_KEY) || '';
@@ -24,7 +31,7 @@ export function ReviewPopup() {
       const elapsed = Date.now() - orderTime;
       if (elapsed >= DAYS_BEFORE_POPUP * MS_PER_DAY) setShow(true);
     } catch (_) {}
-  }, []);
+  }, [isHome]);
 
   function dismiss() {
     try {
@@ -34,7 +41,7 @@ export function ReviewPopup() {
     setShow(false);
   }
 
-  if (!show) return null;
+  if (!show || isHome) return null;
 
   return (
     <>
