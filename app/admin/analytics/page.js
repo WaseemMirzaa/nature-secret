@@ -8,6 +8,25 @@ import { TableSkeleton, InlineLoader } from '@/components/ui/PageLoader';
 
 const PAGE_SIZE = 50;
 
+/** `datetime-local` is `yyyy-mm-ddThh:mm` (local). Do not append `T23:59:59` to that — it becomes invalid. */
+function parseRangeStart(raw) {
+  const v = String(raw || '').trim();
+  if (!v) return null;
+  const d = new Date(v.length === 10 ? `${v}T00:00:00` : v);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function parseRangeEnd(raw) {
+  const v = String(raw || '').trim();
+  if (!v) return null;
+  if (v.length === 10) {
+    const d = new Date(`${v}T23:59:59.999`);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 export default function AdminAnalyticsPage() {
   const rawEvents = useAnalyticsStore((s) => s.events);
   const events = Array.isArray(rawEvents) ? rawEvents : [];
@@ -22,9 +41,23 @@ export default function AdminAnalyticsPage() {
   useEffect(() => setMounted(true), []);
 
   const filtered = useMemo(() => {
+    const from = parseRangeStart(dateFrom);
+    const to = parseRangeEnd(dateTo);
     let list = events;
-    if (dateFrom) list = list.filter((e) => new Date(e.timestamp) >= new Date(dateFrom));
-    if (dateTo) list = list.filter((e) => new Date(e.timestamp) <= new Date(dateTo + 'T23:59:59'));
+    if (from) {
+      const fromMs = from.getTime();
+      list = list.filter((e) => {
+        const t = e.timestamp ? new Date(e.timestamp).getTime() : NaN;
+        return !Number.isNaN(t) && t >= fromMs;
+      });
+    }
+    if (to) {
+      const toMs = to.getTime();
+      list = list.filter((e) => {
+        const t = e.timestamp ? new Date(e.timestamp).getTime() : NaN;
+        return !Number.isNaN(t) && t <= toMs;
+      });
+    }
     return list;
   }, [events, dateFrom, dateTo]);
 
