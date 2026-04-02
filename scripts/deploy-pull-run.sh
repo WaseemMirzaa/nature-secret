@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Run ON THE SERVER after cd /var/www/nature-secret (or pass repo path as $1).
+# Run ON THE SERVER (default repo: /var/www/nature-secret; override path as $1).
 #
-#   chmod +x scripts/deploy-pull-run.sh
-#   ./scripts/deploy-pull-run.sh
+#   chmod +x /var/www/nature-secret/scripts/deploy-pull-run.sh
+#   /var/www/nature-secret/scripts/deploy-pull-run.sh
+#   # or with DB migrations:
+#   RUN_MIGRATIONS=1 /var/www/nature-secret/scripts/deploy-pull-run.sh
 #
 # Order: pull → API build → (optional migrations) → web install/clean/build → PM2.
 set -euo pipefail

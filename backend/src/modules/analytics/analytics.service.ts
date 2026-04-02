@@ -204,8 +204,19 @@ export class AnalyticsService {
     if (d) qb.andWhere('TRIM(e.adId) = :metaFilterAdId', { metaFilterAdId: d });
   }
 
+  /** Use after .select() of group dimensions (GROUP BY queries). */
   private addMetaEventCountSelects(qb: SelectQueryBuilder<AnalyticsEvent>) {
     qb.addSelect('COUNT(DISTINCT e.sessionId)', 'uniqueSessions');
+    for (const t of META_EVENT_TYPES) {
+      const p = typeParamKey(t);
+      qb.addSelect(`SUM(CASE WHEN e.type = :${p} THEN 1 ELSE 0 END)`, `cnt_${p}`);
+      qb.setParameter(p, t);
+    }
+  }
+
+  /** Whole-table totals: must use .select() first so MySQL ONLY_FULL_GROUP_BY is not violated (no stray e.id). */
+  private selectMetaAggregateTotals(qb: SelectQueryBuilder<AnalyticsEvent>) {
+    qb.select('COUNT(DISTINCT e.sessionId)', 'uniqueSessions');
     for (const t of META_EVENT_TYPES) {
       const p = typeParamKey(t);
       qb.addSelect(`SUM(CASE WHEN e.type = :${p} THEN 1 ELSE 0 END)`, `cnt_${p}`);
@@ -283,7 +294,7 @@ export class AnalyticsService {
     const qbSummary = this.repo.createQueryBuilder('e');
     this.applyMetaFilters(qbSummary, from, to);
     this.applyMetaAttributionIdFilters(qbSummary, idFilters);
-    this.addMetaEventCountSelects(qbSummary);
+    this.selectMetaAggregateTotals(qbSummary);
 
     const [rawCampaigns, rawAdsets, rawAds, rawSummary] = await Promise.all([
       qbCampaign.getRawMany(),
