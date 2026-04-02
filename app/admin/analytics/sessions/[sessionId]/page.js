@@ -1,20 +1,23 @@
 'use client';
 
 import Link from '@/components/Link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
 import { useProductsStore } from '@/lib/store';
 import { getEventLabel, formatSessionEventBreakdown } from '@/lib/analytics-labels';
 import { formatAttributionLine, getAttributionFromSessionEvents } from '@/lib/attribution';
 import { InlineLoader } from '@/components/ui/PageLoader';
 import { useAdminAnalyticsEvents } from '@/lib/useAdminAnalyticsEvents';
+import { deleteAdminAnalyticsSession } from '@/lib/api';
 
 export default function AnalyticsSessionDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const rawSessionId = params?.sessionId;
   const sessionId = typeof rawSessionId === 'string' ? decodeURIComponent(rawSessionId) : '';
   const products = useProductsStore((s) => s.products);
   const [mounted, setMounted] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const { events, loading, error } = useAdminAnalyticsEvents({
     sessionId: sessionId || undefined,
@@ -100,11 +103,36 @@ export default function AnalyticsSessionDetailPage() {
   const { events: sessionEvents, firstSeen, lastSeen, customer, attribution, attributionLine, activitySummary, landingPath } =
     sessionData;
 
+  async function handleDeleteSession() {
+    if (!window.confirm('Delete all analytics for this session? Cannot be undone.')) return;
+    setDeleting(true);
+    try {
+      await deleteAdminAnalyticsSession(sessionId);
+      router.push('/admin/analytics');
+    } catch (e) {
+      alert(e?.message || 'Delete failed');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <div className="max-w-3xl">
       <Link href="/admin/analytics" className="text-sm text-neutral-500 hover:text-neutral-900 mb-6 inline-block">← Analytics</Link>
-      <h1 className="text-2xl font-semibold text-neutral-900">Visitor session</h1>
-      <p className="mt-1 text-sm text-neutral-500 font-mono truncate max-w-full">{sessionId}</p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold text-neutral-900">Visitor session</h1>
+          <p className="mt-1 text-sm text-neutral-500 font-mono truncate max-w-full">{sessionId}</p>
+        </div>
+        <button
+          type="button"
+          disabled={deleting}
+          onClick={handleDeleteSession}
+          className="shrink-0 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-100 disabled:opacity-50"
+        >
+          {deleting ? 'Deleting…' : 'Delete session'}
+        </button>
+      </div>
 
       {customer && (
         <div className="mt-8 rounded-2xl border border-neutral-200 bg-white p-6">

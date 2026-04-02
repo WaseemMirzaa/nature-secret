@@ -24,7 +24,7 @@ export function FooterContact() {
       <span>Reach us at {c.emails}, phone {c.phone}.</span>
       <a
         href={waUrl}
-        onClick={(e) => handleWhatsAppClick(e, phoneDigits)}
+        onClick={(e) => handleWhatsAppClick(e, phoneDigits, 'footer')}
         rel="noopener noreferrer"
         className="inline-flex items-center text-[#25D366] hover:underline"
         aria-label="Chat on WhatsApp"

@@ -56,7 +56,13 @@ export class AdminController {
 
   @Get('analytics/meta-campaigns')
   @AdminOnly()
-  async analyticsMetaCampaigns(@Query('from') from?: string, @Query('to') to?: string) {
+  async analyticsMetaCampaigns(
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('campaignId') campaignId?: string,
+    @Query('adsetId') adsetId?: string,
+    @Query('adId') adId?: string,
+  ) {
     let fromD: Date | undefined;
     let toD: Date | undefined;
     if (from) {
@@ -67,7 +73,63 @@ export class AdminController {
       toD = new Date(to);
       if (Number.isNaN(toD.getTime())) throw new BadRequestException('Invalid to date');
     }
-    return this.analyticsService.getMetaCampaignDashboard({ from: fromD, to: toD });
+    const max = 128;
+    const clip = (s: string | undefined) => {
+      const t = s?.trim();
+      if (!t) return undefined;
+      if (t.length > max) throw new BadRequestException(`Filter id too long (max ${max})`);
+      return t;
+    };
+    return this.analyticsService.getMetaCampaignDashboard({
+      from: fromD,
+      to: toD,
+      campaignId: clip(campaignId),
+      adsetId: clip(adsetId),
+      adId: clip(adId),
+    });
+  }
+
+  @Get('analytics/meta-export/purchases')
+  @AdminOnly()
+  async analyticsMetaPurchasesExport(
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('campaignId') campaignId?: string,
+    @Query('adsetId') adsetId?: string,
+    @Query('adId') adId?: string,
+  ) {
+    let fromD: Date | undefined;
+    let toD: Date | undefined;
+    if (from) {
+      fromD = new Date(from);
+      if (Number.isNaN(fromD.getTime())) throw new BadRequestException('Invalid from date');
+    }
+    if (to) {
+      toD = new Date(to);
+      if (Number.isNaN(toD.getTime())) throw new BadRequestException('Invalid to date');
+    }
+    const max = 128;
+    const clip = (s: string | undefined) => {
+      const t = s?.trim();
+      if (!t) return undefined;
+      if (t.length > max) throw new BadRequestException(`Filter id too long (max ${max})`);
+      return t;
+    };
+    return this.analyticsService.getMetaPurchaseExportRows({
+      from: fromD,
+      to: toD,
+      campaignId: clip(campaignId),
+      adsetId: clip(adsetId),
+      adId: clip(adId),
+    });
+  }
+
+  @Delete('analytics/sessions/:sessionId')
+  @AdminOnly()
+  async analyticsDeleteSession(@Param('sessionId') sessionId: string) {
+    const sid = sessionId != null ? String(sessionId).trim() : '';
+    if (!sid || sid.length > 100) throw new BadRequestException('Invalid session id');
+    return this.analyticsService.deleteEventsBySessionId(sid);
   }
 
   @Get('settings/contact')

@@ -1,12 +1,13 @@
 'use client';
 
 import Link from '@/components/Link';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useProductsStore } from '@/lib/store';
 import { formatAttributionLine, getAttributionFromSessionEvents } from '@/lib/attribution';
 import { formatSessionEventBreakdown } from '@/lib/analytics-labels';
 import { TableSkeleton, InlineLoader } from '@/components/ui/PageLoader';
 import { useAdminAnalyticsEvents } from '@/lib/useAdminAnalyticsEvents';
+import { deleteAdminAnalyticsSession } from '@/lib/api';
 
 const PAGE_SIZE = 50;
 
@@ -18,10 +19,28 @@ export default function AdminAnalyticsPage() {
   const [sessionPage, setSessionPage] = useState(1);
   const [visitorPage, setVisitorPage] = useState(1);
 
-  const { events, loading: eventsLoading, error: eventsError } = useAdminAnalyticsEvents({
+  const { events, loading: eventsLoading, error: eventsError, refetch } = useAdminAnalyticsEvents({
     from: dateFrom || undefined,
     to: dateTo || undefined,
   });
+  const [deletingId, setDeletingId] = useState(null);
+
+  const handleDeleteSession = useCallback(
+    async (sid) => {
+      if (!sid || sid === 'unknown') return;
+      if (!window.confirm('Delete all analytics events for this session? This cannot be undone.')) return;
+      setDeletingId(sid);
+      try {
+        await deleteAdminAnalyticsSession(sid);
+        refetch();
+      } catch (e) {
+        alert(e?.message || 'Delete failed');
+      } finally {
+        setDeletingId(null);
+      }
+    },
+    [refetch],
+  );
 
   const sessionsList = useMemo(() => {
     const bySession = new Map();
@@ -319,7 +338,7 @@ export default function AdminAnalyticsPage() {
                 <th className="pb-2 pr-4">First / Last seen</th>
                 <th className="pb-2 pr-4">Actions</th>
                 <th className="pb-2 pr-4">Visitor (if logged in)</th>
-                <th className="pb-2">View</th>
+                <th className="pb-2">View / delete</th>
               </tr>
             </thead>
             <tbody>
@@ -361,7 +380,19 @@ export default function AdminAnalyticsPage() {
                     )}
                   </td>
                   <td className="py-3">
-                    <Link href={`/admin/analytics/sessions/${encodeURIComponent(s.sessionId)}`} className="font-medium text-gold-700 hover:text-gold-600">View</Link>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <Link href={`/admin/analytics/sessions/${encodeURIComponent(s.sessionId)}`} className="font-medium text-gold-700 hover:text-gold-600">View</Link>
+                      {s.sessionId !== 'unknown' && (
+                        <button
+                          type="button"
+                          disabled={deletingId === s.sessionId}
+                          onClick={() => handleDeleteSession(s.sessionId)}
+                          className="text-sm text-red-600 hover:text-red-700 disabled:opacity-50"
+                        >
+                          {deletingId === s.sessionId ? 'Deleting…' : 'Delete'}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

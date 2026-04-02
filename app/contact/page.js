@@ -77,7 +77,7 @@ export default function ContactPage() {
                 </p>
                 <a
                   href={waUrl}
-                  onClick={(e) => handleWhatsAppClick(e, phoneDigits)}
+                  onClick={(e) => handleWhatsAppClick(e, phoneDigits, 'contact')}
                   rel="noopener noreferrer"
                   className="mt-6 flex items-center justify-center gap-2 w-full rounded-xl bg-[#25D366] py-3.5 text-sm font-semibold text-white hover:bg-[#20bd5a] transition"
                 >
