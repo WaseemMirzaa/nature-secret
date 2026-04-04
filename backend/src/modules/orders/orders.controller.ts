@@ -21,15 +21,16 @@ export class OrdersController {
   @Post()
   @UseGuards(OptionalJwtAuthGuard)
   async create(@Req() req: { user?: { id: string } }, @Body() dto: CreateOrderDto) {
+    const { website: _honeypot, ...rest } = dto;
     const order = await this.service.create({
       customerId: req.user?.id ?? undefined,
-      customerName: dto.customerName,
-      email: dto.email,
-      phone: dto.phone,
-      address: dto.address,
-      total: dto.total,
-      paymentMethod: dto.paymentMethod,
-      items: dto.items,
+      customerName: rest.customerName,
+      email: rest.email,
+      phone: rest.phone,
+      address: rest.address,
+      total: rest.total,
+      paymentMethod: rest.paymentMethod,
+      items: rest.items,
     });
     return order;
   }

@@ -256,6 +256,11 @@ export default function CheckoutPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     const formEl = e.currentTarget;
+    const hpEl = formEl?.querySelector?.('input[name="website"]');
+    const hpVal = hpEl && 'value' in hpEl ? String(hpEl.value).trim() : '';
+    if (hpVal !== '') {
+      return;
+    }
     if (formEl && typeof formEl.checkValidity === 'function' && !formEl.checkValidity()) {
       const first = formEl.querySelector(':invalid');
       if (first instanceof HTMLElement) {
@@ -287,6 +292,7 @@ export default function CheckoutPage() {
       address: addressStr,
       total: grandTotal,
       paymentMethod: 'cash_on_delivery',
+      website: '',
       items: items.map((i) => ({ productId: i.productId, variantId: i.variantId, qty: i.qty, price: i.price })),
     };
     let orderId;
@@ -383,6 +389,18 @@ export default function CheckoutPage() {
         <div id="checkout-contact" className="order-2 lg:order-1 min-w-0 scroll-mt-20">
           <h2 className="text-xs sm:text-sm font-medium text-neutral-900 mb-2 lg:mb-4 tracking-tight">Contact & delivery</h2>
           <div className="space-y-2 sm:space-y-2.5 lg:space-y-4">
+            {/* Honeypot: hidden; if filled, submit is rejected client-side (no Meta/API). */}
+            <div className="hidden" aria-hidden="true">
+              <label htmlFor="checkout-hp-website">Company website</label>
+              <input
+                id="checkout-hp-website"
+                name="website"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                defaultValue=""
+              />
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 sm:gap-2.5 lg:gap-4">
               <input
                 type="email"

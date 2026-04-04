@@ -1,5 +1,5 @@
 import { IsString, IsNumber, IsOptional, IsArray, ValidateNested, Min, MaxLength } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export class CreateOrderItemDto {
   @IsString()
@@ -51,6 +51,13 @@ export class CreateOrderDto {
   @IsString()
   @MaxLength(50)
   paymentMethod?: string;
+
+  /** Honeypot: must stay empty (bots/scripts often fill “website”). */
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value == null ? '' : String(value)))
+  @IsString()
+  @MaxLength(0)
+  website?: string;
 
   @IsArray()
   @ValidateNested({ each: true })
