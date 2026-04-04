@@ -120,8 +120,7 @@ export class AnalyticsService {
   async getSessions(params: { from?: Date; to?: Date; page?: number; limit?: number }) {
     const page = Math.max(1, params.page || 1);
     const limit = Math.min(100, Math.max(1, params.limit || 50));
-    const qb = this.repo
-      .createQueryBuilder('e')
+    const qb = this.createAnalyticsFlatQb()
       .select('e.sessionId')
       .addSelect('MIN(e.timestamp)', 'first')
       .addSelect('MAX(e.timestamp)', 'last')
@@ -129,7 +128,10 @@ export class AnalyticsService {
       .groupBy('e.sessionId');
     if (params.from) qb.andWhere('e.timestamp >= :from', { from: params.from });
     if (params.to) qb.andWhere('e.timestamp <= :to', { to: params.to });
-    const total = await qb.getCount();
+    const countQb = this.createAnalyticsFlatQb().select('COUNT(DISTINCT e.sessionId)', 'cnt');
+    if (params.from) countQb.andWhere('e.timestamp >= :from', { from: params.from });
+    if (params.to) countQb.andWhere('e.timestamp <= :to', { to: params.to });
+    const total = Number((await countQb.getRawOne())?.cnt ?? 0);
     const raw = await qb
       .orderBy('last', 'DESC')
       .offset((page - 1) * limit)
@@ -151,8 +153,7 @@ export class AnalyticsService {
   async getLoggedInVisitors(params: { from?: Date; to?: Date; page?: number; limit?: number }) {
     const page = Math.max(1, params.page || 1);
     const limit = Math.min(100, Math.max(1, params.limit || 50));
-    const qb = this.repo
-      .createQueryBuilder('e')
+    const qb = this.createAnalyticsFlatQb()
       .where('e.customerEmail IS NOT NULL AND e.customerEmail != :empty', { empty: '' })
       .select('e.customerEmail')
       .addSelect('e.customerName')
@@ -163,13 +164,31 @@ export class AnalyticsService {
       .addGroupBy('e.customerName');
     if (params.from) qb.andWhere('e.timestamp >= :from', { from: params.from });
     if (params.to) qb.andWhere('e.timestamp <= :to', { to: params.to });
-    const total = await qb.getCount();
+    const totalRow = await this.repo.manager
+      .createQueryBuilder()
+      .select('COUNT(*)', 'cnt')
+      .from(`(${qb.clone().orderBy().offset(undefined).limit(undefined).skip(undefined).take(undefined).getQuery()})`, 'sub')
+      .setParameters(qb.getParameters())
+      .getRawOne();
+    const total = Number(totalRow?.cnt ?? 0);
     const raw = await qb
       .orderBy('lastSeen', 'DESC')
       .offset((page - 1) * limit)
       .limit(limit)
       .getRawMany();
     return { data: raw, total, page, limit };
+  }
+
+  /**
+   * Subquery FROM so the outer alias has no entity metadata. Otherwise TypeORM prepends every `e.*`
+   * column to SELECT, which breaks MySQL ONLY_FULL_GROUP_BY on rollups and breaks qb.getCount()
+   * (becomes SELECT e.id, …, COUNT(1) without GROUP BY).
+   */
+  private createAnalyticsFlatQb(): SelectQueryBuilder<AnalyticsEvent> {
+    const table = this.repo.metadata.tablePath;
+    return this.repo.manager
+      .createQueryBuilder()
+      .from(`(SELECT * FROM \`${table}\`)`, 'e') as SelectQueryBuilder<AnalyticsEvent>;
   }
 
   private coalesceTrim(col: string): string {
@@ -270,28 +289,28 @@ export class AnalyticsService {
     const a = this.coalesceTrim('e.adsetId');
     const d = this.coalesceTrim('e.adId');
 
-    const qbCampaign = this.repo.createQueryBuilder('e');
+    const qbCampaign = this.createAnalyticsFlatQb();
     this.applyMetaFilters(qbCampaign, from, to);
     this.applyMetaAttributionIdFilters(qbCampaign, idFilters);
     qbCampaign.select(c, 'campaignId').addSelect(`''`, 'adsetId').addSelect(`''`, 'adId');
     this.addMetaEventCountSelects(qbCampaign);
     qbCampaign.groupBy(c).orderBy(c, 'ASC');
 
-    const qbAdset = this.repo.createQueryBuilder('e');
+    const qbAdset = this.createAnalyticsFlatQb();
     this.applyMetaFilters(qbAdset, from, to);
     this.applyMetaAttributionIdFilters(qbAdset, idFilters);
     qbAdset.select(c, 'campaignId').addSelect(a, 'adsetId').addSelect(`''`, 'adId');
     this.addMetaEventCountSelects(qbAdset);
     qbAdset.groupBy(c).addGroupBy(a).orderBy(c, 'ASC').addOrderBy(a, 'ASC');
 
-    const qbAd = this.repo.createQueryBuilder('e');
+    const qbAd = this.createAnalyticsFlatQb();
     this.applyMetaFilters(qbAd, from, to);
     this.applyMetaAttributionIdFilters(qbAd, idFilters);
     qbAd.select(c, 'campaignId').addSelect(a, 'adsetId').addSelect(d, 'adId');
     this.addMetaEventCountSelects(qbAd);
     qbAd.groupBy(c).addGroupBy(a).addGroupBy(d).orderBy(c, 'ASC').addOrderBy(a, 'ASC').addOrderBy(d, 'ASC');
 
-    const qbSummary = this.repo.createQueryBuilder('e');
+    const qbSummary = this.createAnalyticsFlatQb();
     this.applyMetaFilters(qbSummary, from, to);
     this.applyMetaAttributionIdFilters(qbSummary, idFilters);
     this.selectMetaAggregateTotals(qbSummary);
