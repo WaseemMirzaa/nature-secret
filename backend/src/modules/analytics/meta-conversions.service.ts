@@ -63,9 +63,14 @@ export class MetaConversionsService {
     return this.sha256Hex(c);
   }
 
+  /**
+   * Non-production: always allow. Production: allow if server set `META_TEST_EVENT_CODE`, or explicit
+   * `META_ALLOW_TEST_EVENT_IN_PRODUCTION` (for client-relayed `testEventCode` without duplicating env).
+   */
   private attachTestEventCodeInThisEnvironment(): boolean {
+    if (process.env.NODE_ENV !== 'production') return true;
     if (process.env.META_ALLOW_TEST_EVENT_IN_PRODUCTION === 'true') return true;
-    return process.env.NODE_ENV !== 'production';
+    return Boolean(process.env.META_TEST_EVENT_CODE?.trim());
   }
 
   /** Server env wins; else browser may pass same code as Pixel (`NEXT_PUBLIC_META_TEST_EVENT_CODE`). */
@@ -202,10 +207,6 @@ export class MetaConversionsService {
     const testCode = this.resolveMetaTestEventCode(dto);
     if (testCode && this.attachTestEventCodeInThisEnvironment()) {
       body.test_event_code = testCode;
-    } else if (process.env.META_TEST_EVENT_CODE?.trim() && !this.attachTestEventCodeInThisEnvironment()) {
-      this.logger.warn(
-        'META_TEST_EVENT_CODE is set but ignored in production (unset it or set META_ALLOW_TEST_EVENT_IN_PRODUCTION=true).',
-      );
     }
 
     const url = `https://graph.facebook.com/v21.0/${encodeURIComponent(pixelId)}/events?access_token=${encodeURIComponent(token)}`;
