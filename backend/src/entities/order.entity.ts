@@ -46,6 +46,10 @@ export class Order {
   @Column({ type: 'varchar', length: 20, nullable: true })
   confirmationCode: string | null;
 
+  /** Set when admin sent NS_EV_ORDER_VOID to Meta CAPI (fake / invalid purchase signal). */
+  @Column({ type: 'datetime', nullable: true })
+  metaVoidSentAt: Date | null;
+
   @OneToMany(() => OrderItem, (i) => i.order, { cascade: true })
   items: OrderItem[];
 

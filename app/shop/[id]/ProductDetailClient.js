@@ -7,7 +7,13 @@ import Image from 'next/image';
 import { useProductsStore, useCartStore, useCartOpenStore, useWishlistStore, useCurrencyStore } from '@/lib/store';
 import { useBreadcrumbLabel } from '@/lib/BreadcrumbContext';
 import { SHIPPING_POLICY, RETURN_POLICY } from '@/lib/constants';
-import { trackViewContent, trackAddToCart, trackAddToWishlist, trackOutOfStockView } from '@/lib/analytics';
+import {
+  trackViewContent,
+  trackLandingPageViewForProduct,
+  trackAddToCart,
+  trackAddToWishlist,
+  trackOutOfStockView,
+} from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
 import { sanitizeHtml } from '@/lib/sanitizeHtml';
 import { getProductById, getProductBySlug, resolveImageUrl, getReviews, submitReview, productPath, getContentSettings } from '@/lib/api';
@@ -174,6 +180,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
       if (vals.length) cents = Math.min(...vals);
     }
     trackViewContent(product, cents / 100, currency);
+    trackLandingPageViewForProduct(product, cents / 100, currency);
     if ((product.inventory ?? 0) === 0) trackOutOfStockView(product);
   }, [product, currency]);
 

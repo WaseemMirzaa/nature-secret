@@ -8,9 +8,14 @@ import { Product } from '../../entities/product.entity';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { AnalyticsModule } from '../analytics/analytics.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Order, OrderItem, OrderStatusTimeline, Customer, Product]), NotificationsModule],
+  imports: [
+    TypeOrmModule.forFeature([Order, OrderItem, OrderStatusTimeline, Customer, Product]),
+    NotificationsModule,
+    AnalyticsModule,
+  ],
   controllers: [OrdersController],
   providers: [OrdersService],
   exports: [OrdersService],

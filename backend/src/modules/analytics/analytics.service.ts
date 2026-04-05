@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository, SelectQueryBuilder } from 'typeorm';
 import { AnalyticsEvent } from '../../entities/analytics-event.entity';
 import { Order } from '../../entities/order.entity';
+import { MetaAttributionClearDto } from './dto/meta-attribution-clear.dto';
 
 const META_EVENT_TYPES = [
   'pageView',
@@ -447,5 +448,98 @@ export class AnalyticsService {
         };
       }),
     };
+  }
+
+  /**
+   * Null out Meta attribution columns on matching analytics rows (events stay; they drop out of Meta campaign rollups).
+   * Targets are OR’d; each target ANDs the non-empty id fields. Requires campaignId when adsetId or adId is set.
+   */
+  /** Meta URL attribution stored on the `purchase` analytics row for this order (latest match). */
+  async getMetaAttributionForPurchaseOrder(orderId: string): Promise<{
+    campaignId: string;
+    adsetId: string;
+    adId: string;
+  } | null> {
+    const oid = String(orderId || '').trim();
+    if (!oid) return null;
+    const row = await this.repo.findOne({
+      where: { type: 'purchase', orderId: oid },
+      order: { timestamp: 'DESC' },
+    });
+    if (!row) return null;
+    let campaignId = (row.campaignId || '').trim();
+    let adsetId = (row.adsetId || '').trim();
+    let adId = (row.adId || '').trim();
+    if ((!campaignId || !adsetId || !adId) && row.payload && typeof row.payload === 'object' && !Array.isArray(row.payload)) {
+      const p = row.payload as Record<string, unknown>;
+      const g = (k: string) => (typeof p[k] === 'string' ? p[k].trim() : '');
+      if (!campaignId) campaignId = g('campaignId') || g('campaign_id');
+      if (!adsetId) adsetId = g('adsetId') || g('adset_id');
+      if (!adId) adId = g('adId') || g('ad_id');
+    }
+    if (!campaignId && !adsetId && !adId) return null;
+    return { campaignId, adsetId, adId };
+  }
+
+  async clearMetaAttributionTargets(dto: MetaAttributionClearDto): Promise<{ updated: number }> {
+    const from = new Date(dto.from);
+    const to = new Date(dto.to);
+    if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) {
+      throw new BadRequestException('Invalid from or to date');
+    }
+    if (from > to) throw new BadRequestException('from must be before or equal to to');
+    const maxRangeMs = 366 * 24 * 60 * 60 * 1000;
+    if (to.getTime() - from.getTime() > maxRangeMs) {
+      throw new BadRequestException('Date range must be at most 366 days');
+    }
+
+    const targets: { c?: string; a?: string; d?: string }[] = [];
+    for (const raw of dto.targets) {
+      const c = raw.campaignId?.trim() || undefined;
+      const a = raw.adsetId?.trim() || undefined;
+      const d = raw.adId?.trim() || undefined;
+      if (!c && !a && !d) continue;
+      if ((a || d) && !c) {
+        throw new BadRequestException('campaignId is required when adsetId or adId is set');
+      }
+      targets.push({ c, a, d });
+    }
+    if (!targets.length) {
+      throw new BadRequestException('At least one target with campaignId, adsetId, or adId');
+    }
+
+    const qb = this.repo.createQueryBuilder().update(AnalyticsEvent).set({
+      campaignId: null,
+      adsetId: null,
+      adId: null,
+    });
+    qb.where('timestamp >= :metaClrFrom', { metaClrFrom: from });
+    qb.andWhere('timestamp <= :metaClrTo', { metaClrTo: to });
+    qb.andWhere(
+      `((campaignId IS NOT NULL AND TRIM(campaignId) != '') OR (adsetId IS NOT NULL AND TRIM(adsetId) != '') OR (adId IS NOT NULL AND TRIM(adId) != ''))`,
+    );
+
+    const orParts: string[] = [];
+    targets.forEach((t, i) => {
+      const parts: string[] = [];
+      if (t.c) {
+        qb.setParameter(`mcc${i}`, t.c);
+        parts.push(`TRIM(campaignId) = :mcc${i}`);
+      }
+      if (t.a) {
+        qb.setParameter(`mca${i}`, t.a);
+        parts.push(`TRIM(adsetId) = :mca${i}`);
+      }
+      if (t.d) {
+        qb.setParameter(`mcd${i}`, t.d);
+        parts.push(`TRIM(adId) = :mcd${i}`);
+      }
+      orParts.push(`(${parts.join(' AND ')})`);
+    });
+    qb.andWhere(`(${orParts.join(' OR ')})`);
+
+    const result = await qb.execute();
+    const updated = typeof result.affected === 'number' ? result.affected : 0;
+    return { updated };
   }
 }

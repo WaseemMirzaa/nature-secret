@@ -6,6 +6,7 @@ import { WhatsAppLinkService } from '../notifications/whatsapp-link.service';
 import { SettingsService } from '../settings/settings.service';
 import { SupportService } from '../support/support.service';
 import { AnalyticsService } from '../analytics/analytics.service';
+import { MetaAttributionClearDto } from '../analytics/dto/meta-attribution-clear.dto';
 import { CreateProductDto, UpdateProductDto } from '../products/dto/product.dto';
 import { CreateBlogPostDto, UpdateBlogPostDto } from './dto/blog.dto';
 import { AdminJwtAuthGuard } from '../../common/guards/admin-jwt.guard';
@@ -124,6 +125,12 @@ export class AdminController {
     });
   }
 
+  @Post('analytics/meta-campaigns/clear-attribution')
+  @AdminOnly()
+  async analyticsClearMetaAttribution(@Body() dto: MetaAttributionClearDto) {
+    return this.analyticsService.clearMetaAttributionTargets(dto);
+  }
+
   @Delete('analytics/sessions/:sessionId')
   @AdminOnly()
   async analyticsDeleteSession(@Param('sessionId') sessionId: string) {
@@ -218,6 +225,14 @@ export class AdminController {
   ) {
     const changedBy = req.user.role === 'staff' ? 'staff' : 'admin';
     return this.service.updateOrderStatus(id, status, changedBy);
+  }
+
+  @Post('orders/:id/meta-notify-fake-purchase')
+  @AdminOnly()
+  async metaNotifyFakePurchase(@Param('id') id: string) {
+    const tid = id != null ? String(id).trim() : '';
+    if (!tid || tid.length > 16) throw new BadRequestException('Invalid order id');
+    return this.service.notifyMetaFakePurchaseOrder(tid);
   }
 
   @Get('products')

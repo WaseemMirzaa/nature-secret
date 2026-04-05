@@ -2,7 +2,12 @@
 
 import Link from '@/components/Link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getAdminMetaCampaignAnalytics, getAdminMetaPurchaseExport } from '@/lib/api';
+import {
+  getAdminMetaCampaignAnalytics,
+  getAdminMetaPurchaseExport,
+  postAdminMetaClearAttribution,
+  formatApiError,
+} from '@/lib/api';
 import { InlineLoader } from '@/components/ui/PageLoader';
 
 const TABS = [
@@ -18,6 +23,23 @@ function adsetKeyRow(r) {
 }
 function adKeyRow(r) {
   return `${String(r.campaignId || '')}${K}${String(r.adsetId || '')}${K}${String(r.adId || '')}`;
+}
+
+function targetFromAdsetPickKey(key) {
+  const parts = String(key).split(K);
+  const campaignId = (parts[0] || '').trim();
+  const adsetId = (parts[1] || '').trim();
+  if (!campaignId || !adsetId) return null;
+  return { campaignId, adsetId };
+}
+
+function targetFromAdPickKey(key) {
+  const parts = String(key).split(K);
+  const campaignId = (parts[0] || '').trim();
+  const adsetId = (parts[1] || '').trim();
+  const adId = (parts[2] || '').trim();
+  if (!campaignId || !adsetId || !adId) return null;
+  return { campaignId, adsetId, adId };
 }
 
 function campaignRowVisible(row, pickC, pickA, pickD) {
@@ -391,6 +413,8 @@ export default function AdminMetaCampaignsPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [exportBusy, setExportBusy] = useState(false);
+  const [clearBusy, setClearBusy] = useState(false);
+  const [clearMessage, setClearMessage] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -581,6 +605,105 @@ export default function AdminMetaCampaignsPage() {
     }
   }, [dateFrom, dateTo, appliedIds, pickCampaigns, pickAdsets, pickAds]);
 
+  const buildIsoRange = useCallback(() => {
+    if (!dateFrom || !dateTo) return null;
+    const from = new Date(dateFrom);
+    const to = new Date(dateTo);
+    if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return null;
+    return { from: from.toISOString(), to: to.toISOString() };
+  }, [dateFrom, dateTo]);
+
+  const handleClearMetaFromAppliedFilters = useCallback(async () => {
+    const range = buildIsoRange();
+    if (!range) {
+      alert('Set From and To dates first.');
+      return;
+    }
+    const campaignId = appliedIds.campaignId.trim();
+    const adsetId = appliedIds.adsetId.trim();
+    const adId = appliedIds.adId.trim();
+    if (!campaignId && !adsetId && !adId) {
+      alert('Apply at least one Campaign / Ad set / Ad ID filter, or use “Clear checked rows”.');
+      return;
+    }
+    if ((adsetId || adId) && !campaignId) {
+      alert('Campaign ID is required when Ad set or Ad ID is set.');
+      return;
+    }
+    if (
+      !window.confirm(
+        'Remove Meta campaign / ad set / ad IDs from matching analytics events in this date range? Rows stay; they drop off this Meta dashboard.',
+      )
+    ) {
+      return;
+    }
+    setClearBusy(true);
+    setClearMessage(null);
+    try {
+      const body = {
+        ...range,
+        targets: [
+          {
+            ...(campaignId ? { campaignId } : {}),
+            ...(adsetId ? { adsetId } : {}),
+            ...(adId ? { adId } : {}),
+          },
+        ],
+      };
+      const res = await postAdminMetaClearAttribution(body);
+      setClearMessage(`Cleared Meta IDs on ${Number(res?.updated) || 0} event row(s).`);
+      await load();
+    } catch (e) {
+      alert(formatApiError(e, 'Clear failed'));
+    } finally {
+      setClearBusy(false);
+    }
+  }, [buildIsoRange, appliedIds, load]);
+
+  const handleClearMetaFromCheckedRows = useCallback(async () => {
+    const range = buildIsoRange();
+    if (!range) {
+      alert('Set From and To dates first.');
+      return;
+    }
+    let targets = [];
+    if (tab === 'campaign') {
+      targets = [...pickCampaigns].map((id) => ({ campaignId: String(id).trim() })).filter((t) => t.campaignId);
+    } else if (tab === 'adset') {
+      for (const key of pickAdsets) {
+        const t = targetFromAdsetPickKey(key);
+        if (t) targets.push(t);
+      }
+    } else {
+      for (const key of pickAds) {
+        const t = targetFromAdPickKey(key);
+        if (t) targets.push(t);
+      }
+    }
+    if (!targets.length) {
+      alert('Check at least one row on the current tab.');
+      return;
+    }
+    if (
+      !window.confirm(
+        `Remove Meta IDs from events matching ${targets.length} checked row(s) in this date range? Rows stay in analytics.`,
+      )
+    ) {
+      return;
+    }
+    setClearBusy(true);
+    setClearMessage(null);
+    try {
+      const res = await postAdminMetaClearAttribution({ ...range, targets });
+      setClearMessage(`Cleared Meta IDs on ${Number(res?.updated) || 0} event row(s).`);
+      await load();
+    } catch (e) {
+      alert(formatApiError(e, 'Clear failed'));
+    } finally {
+      setClearBusy(false);
+    }
+  }, [buildIsoRange, tab, pickCampaigns, pickAdsets, pickAds, load]);
+
   const handleExportActivityTable = useCallback(() => {
     const metricsCols = ACTIVITY_METRICS.filter((m) => !m.fromRow).map((m) => ({ key: m.ev, header: m.label }));
     const idCols =
@@ -691,6 +814,34 @@ export default function AdminMetaCampaignsPage() {
       <p className="mt-2 text-xs text-neutral-500">
         Purchase CSV: email/phone from the order when <code className="text-[11px] bg-neutral-100 px-1 rounded">orderId</code> matches; respects date, ID, and checkbox filters. Table CSV = current tab rows.
       </p>
+
+      <div className="mt-4 rounded-2xl border border-red-200/70 bg-red-50/40 p-4">
+        <p className="text-xs font-semibold text-red-900">Remove Meta attribution from stored events</p>
+        <p className="mt-1 text-[11px] text-red-900/80 max-w-3xl">
+          Clears <code className="text-[10px] bg-white/80 px-1 rounded">campaignId</code>,{' '}
+          <code className="text-[10px] bg-white/80 px-1 rounded">adsetId</code>,{' '}
+          <code className="text-[10px] bg-white/80 px-1 rounded">adId</code> on matching rows (date range max 366 days). Event types and sessions stay; rows disappear from this report only.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={clearBusy || loading}
+            onClick={handleClearMetaFromAppliedFilters}
+            className="rounded-xl border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-50 min-h-[44px] disabled:opacity-50"
+          >
+            {clearBusy ? 'Working…' : 'Clear using applied ID filters'}
+          </button>
+          <button
+            type="button"
+            disabled={clearBusy || loading || !hasCheckboxFilter}
+            onClick={handleClearMetaFromCheckedRows}
+            className="rounded-xl border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-50 min-h-[44px] disabled:opacity-50"
+          >
+            {clearBusy ? 'Working…' : 'Clear using checked table rows'}
+          </button>
+        </div>
+        {clearMessage ? <p className="mt-2 text-xs font-medium text-neutral-800">{clearMessage}</p> : null}
+      </div>
 
       <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50/80 p-4 space-y-4">
         <div>

@@ -6,7 +6,14 @@ import { useParams } from 'next/navigation';
 import { useOrdersStore, useProductsStore, useCurrencyStore } from '@/lib/store';
 import { generateInvoicePDF } from '@/lib/invoice';
 import { formatPrice } from '@/lib/currency';
-import { getAdminOrder, getAdminOrdersSameDay, updateOrderStatus as apiUpdateOrderStatus, getAdminProducts } from '@/lib/api';
+import {
+  getAdminOrder,
+  getAdminOrdersSameDay,
+  updateOrderStatus as apiUpdateOrderStatus,
+  getAdminProducts,
+  postAdminOrderMetaNotifyFakePurchase,
+  formatApiError,
+} from '@/lib/api';
 import { useAdminRealtime } from '@/context/AdminRealtimeContext';
 import { InlineLoader } from '@/components/ui/PageLoader';
 
@@ -46,6 +53,7 @@ export default function AdminOrderDetailPage() {
   const localUpdateStatus = useOrdersStore((s) => s.updateOrderStatus);
   const storeProducts = useProductsStore((s) => s.products);
   const [apiProducts, setApiProducts] = useState([]);
+  const [metaVoidBusy, setMetaVoidBusy] = useState(false);
   const currency = useCurrencyStore((s) => s.currency);
   const orderId = params?.id ? (Array.isArray(params.id) ? params.id[0] : params.id) : null;
   const isStaff = (() => { try { return JSON.parse(localStorage.getItem('nature_secret_admin') || '{}').role === 'staff'; } catch { return false; } })();
@@ -72,6 +80,32 @@ export default function AdminOrderDetailPage() {
       setLoading(false);
     }
   }, [mounted, orderId, localOrders, realtimeKey]);
+
+  const notifyMetaFakePurchase = async () => {
+    if (!orderId || isStaff || !getAdminToken()) return;
+    if (
+      !window.confirm(
+        'Send NS_EV_ORDER_VOID to Meta (CAPI) for this order? Uses hashed email/phone + order id. One-time per order; does not remove the original Purchase in Meta.',
+      )
+    ) {
+      return;
+    }
+    setMetaVoidBusy(true);
+    try {
+      const res = await postAdminOrderMetaNotifyFakePurchase(orderId);
+      if (res?.alreadySent) {
+        alert('Meta was already notified for this order.');
+      } else {
+        alert('Meta CAPI event sent.');
+      }
+      const o = await getAdminOrder(orderId).catch(() => null);
+      if (o) setOrder(o);
+    } catch (e) {
+      alert(formatApiError(e, 'Request failed'));
+    } finally {
+      setMetaVoidBusy(false);
+    }
+  };
 
   const updateOrderStatus = async (id, status, changedBy) => {
     if (getAdminToken()) {
@@ -149,6 +183,25 @@ export default function AdminOrderDetailPage() {
               {(isStaff ? STAFF_STATUSES : STATUSES).map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
+          {!isStaff && getAdminToken() ? (
+            <div className="mt-4 pt-4 border-t border-neutral-100">
+              <p className="text-xs text-neutral-500 mb-2">Meta Ads: fake / test purchase signal (CAPI custom event NS_EV_ORDER_VOID).</p>
+              {order.metaVoidSentAt ? (
+                <p className="text-xs text-green-800 font-medium">
+                  Sent {new Date(order.metaVoidSentAt).toLocaleString()}
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  disabled={metaVoidBusy}
+                  onClick={notifyMetaFakePurchase}
+                  className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-950 hover:bg-amber-100 disabled:opacity-50"
+                >
+                  {metaVoidBusy ? 'Sending…' : 'Notify Meta (void / fake purchase)'}
+                </button>
+              )}
+            </div>
+          ) : null}
         </section>
         {statusTimeline && statusTimeline.length > 0 && (
           <section className="p-6">

@@ -136,6 +136,10 @@ export class AdminService {
     return this.ordersService.updateStatus(orderId, status, changedBy);
   }
 
+  async notifyMetaFakePurchaseOrder(orderId: string) {
+    return this.ordersService.notifyMetaFakePurchaseOrder(orderId);
+  }
+
   async getProducts(params: { page?: number; limit?: number; search?: string }) {
     const page = Math.max(1, params.page || 1);
     const limit = Math.min(100, Math.max(1, params.limit || 50));

@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from '../../entities/order.entity';
@@ -10,6 +16,8 @@ import { EmailService } from '../notifications/email.service';
 import { WhatsAppService } from '../notifications/whatsapp.service';
 import { PushService } from '../notifications/push.service';
 import { EventsGateway } from '../events/events.gateway';
+import { MetaConversionsService } from '../analytics/meta-conversions.service';
+import { AnalyticsService } from '../analytics/analytics.service';
 
 function randomCode(len = 6) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -35,6 +43,8 @@ export class OrdersService {
     private whatsappService: WhatsAppService,
     private pushService: PushService,
     private eventsGateway: EventsGateway,
+    private metaConversions: MetaConversionsService,
+    private analyticsService: AnalyticsService,
   ) {}
 
   async create(dto: {
@@ -140,5 +150,47 @@ export class OrdersService {
     const updated = await this.findOne(orderId);
     this.eventsGateway.emitOrderUpdated({ id: orderId, status: updated.status });
     return updated;
+  }
+
+  /**
+   * Admin: send Meta CAPI custom event NS_EV_ORDER_VOID (hashed email/phone + order_id) once per order.
+   * Does not remove the original Purchase in Meta; use for signals / custom conversions / audiences.
+   */
+  async notifyMetaFakePurchaseOrder(orderId: string): Promise<{
+    ok: boolean;
+    alreadySent?: boolean;
+    metaVoidSentAt?: Date | null;
+  }> {
+    const order = await this.findOne(orderId);
+    if (order.metaVoidSentAt) {
+      return { ok: true, alreadySent: true, metaVoidSentAt: order.metaVoidSentAt };
+    }
+    const eventId = `ns_void_${order.id}`.slice(0, 128);
+    const ads = await this.analyticsService.getMetaAttributionForPurchaseOrder(order.id);
+    const result = await this.metaConversions.send({
+      eventName: 'NS_EV_ORDER_VOID',
+      eventId,
+      orderId: order.id,
+      value: Math.max(0, Number(order.total) || 0) / 100,
+      currency: 'PKR',
+      numItems: 0,
+      contentIds: [],
+      email: order.email || undefined,
+      phone: order.phone || undefined,
+      adsCampaignId: ads?.campaignId || undefined,
+      adsAdsetId: ads?.adsetId || undefined,
+      adsAdId: ads?.adId || undefined,
+    });
+    if (result.skipped) {
+      throw new ServiceUnavailableException(
+        'Meta CAPI is not configured (set META_PIXEL_ID and META_CONVERSIONS_ACCESS_TOKEN on the server).',
+      );
+    }
+    if (!result.ok) {
+      throw new BadRequestException('Meta CAPI request failed. Check server logs for details.');
+    }
+    order.metaVoidSentAt = new Date();
+    await this.orderRepo.save(order);
+    return { ok: true, metaVoidSentAt: order.metaVoidSentAt };
   }
 }

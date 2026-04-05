@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AnalyticsEvent } from '../../entities/analytics-event.entity';
 import { Order } from '../../entities/order.entity';
@@ -7,7 +8,7 @@ import { AnalyticsService } from './analytics.service';
 import { MetaConversionsService } from './meta-conversions.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([AnalyticsEvent, Order])],
+  imports: [TypeOrmModule.forFeature([AnalyticsEvent, Order]), ThrottlerModule],
   controllers: [AnalyticsController],
   providers: [AnalyticsService, MetaConversionsService],
   exports: [AnalyticsService, MetaConversionsService],

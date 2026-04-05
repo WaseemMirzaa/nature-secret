@@ -4,7 +4,7 @@ import Link from '@/components/Link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { InlineLoader } from '@/components/ui/PageLoader';
-import { syncMetaPixelUserData, trackOrderConfirmationView } from '@/lib/analytics';
+import { trackOrderConfirmationView } from '@/lib/analytics';
 
 const LAST_ORDER_KEY = 'nature_secret_last_order_date';
 const LAST_ORDER_ID_KEY = 'nature_secret_last_order_id';
@@ -27,7 +27,6 @@ function ConfirmationContent() {
       const e = metaCustomer?.email && String(metaCustomer.email).trim();
       setShowEmailConfirmationNote(!!e);
     } catch (_) {}
-    syncMetaPixelUserData(metaCustomer);
     trackOrderConfirmationView(orderId || '');
   }, [orderId]);
 

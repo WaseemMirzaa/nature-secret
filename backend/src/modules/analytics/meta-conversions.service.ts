@@ -7,6 +7,11 @@ import { MetaCapiDto } from './dto/meta-capi.dto';
 export class MetaConversionsService {
   private readonly logger = new Logger(MetaConversionsService.name);
 
+  /** Graph `events` POST: enough headroom for slow paths; avoids hanging workers. */
+  private static readonly CAPI_GRAPH_TIMEOUT_MS = 15_000;
+  /** One try plus retries on 429 / 5xx / timeout (backoff in `send`). */
+  private static readonly CAPI_MAX_ATTEMPTS = 3;
+
   private sha256Hex(s: string): string {
     return crypto.createHash('sha256').update(s).digest('hex');
   }
@@ -26,7 +31,51 @@ export class MetaConversionsService {
     return this.sha256Hex(d);
   }
 
-  async send(dto: MetaCapiDto, req?: Request): Promise<{ ok: boolean; skipped?: boolean }> {
+  /** Meta normalization: lowercase, strip to a-z0-9, then SHA256. */
+  private hashNormalizedPII(raw: string, maxLen: number): string | null {
+    const t = String(raw || '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]/g, '')
+      .slice(0, maxLen);
+    return t.length ? this.sha256Hex(t) : null;
+  }
+
+  private splitFullName(full: string): { fn: string; ln: string } {
+    const parts = String(full || '')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+    return {
+      fn: parts[0] || '',
+      ln: parts.length > 1 ? parts.slice(1).join(' ') : '',
+    };
+  }
+
+  private hashCountryCode(code: string): string | null {
+    const c = String(code || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z]/g, '');
+    if (c.length !== 2) return null;
+    return this.sha256Hex(c);
+  }
+
+  private attachTestEventCodeInThisEnvironment(): boolean {
+    if (process.env.META_ALLOW_TEST_EVENT_IN_PRODUCTION === 'true') return true;
+    return process.env.NODE_ENV !== 'production';
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise((r) => setTimeout(r, ms));
+  }
+
+  async send(
+    dto: MetaCapiDto,
+    req?: Request,
+  ): Promise<{ ok: boolean; skipped?: boolean; eventsReceived?: number }> {
     const pixelId = process.env.META_PIXEL_ID?.trim();
     const token = process.env.META_CONVERSIONS_ACCESS_TOKEN?.trim();
     if (!pixelId || !token) {
@@ -34,10 +83,38 @@ export class MetaConversionsService {
     }
 
     const user_data: Record<string, string | string[]> = {};
-    const em = dto.email ? this.hashEmail(dto.email) : null;
-    if (em) user_data.em = [em];
-    const ph = dto.phone ? this.hashPhone(dto.phone) : null;
-    if (ph) user_data.ph = [ph];
+    const isPurchaseEvent = dto.eventName === 'Purchase' || dto.eventName === 'NS_EV_PRCHS_SUCCESS';
+    const isOrderVoidEvent = dto.eventName === 'NS_EV_ORDER_VOID';
+
+    if (isOrderVoidEvent) {
+      const em = dto.email ? this.hashEmail(dto.email) : null;
+      if (em) user_data.em = [em];
+      const ph = dto.phone ? this.hashPhone(dto.phone) : null;
+      if (ph) user_data.ph = [ph];
+    }
+
+    if (isPurchaseEvent) {
+      const em = dto.email ? this.hashEmail(dto.email) : null;
+      if (em) user_data.em = [em];
+      const ph = dto.phone ? this.hashPhone(dto.phone) : null;
+      if (ph) user_data.ph = [ph];
+      const { fn, ln } = this.splitFullName(dto.customerName || '');
+      const hFn = fn ? this.hashNormalizedPII(fn, 50) : null;
+      const hLn = ln ? this.hashNormalizedPII(ln, 50) : null;
+      if (hFn) user_data.fn = [hFn];
+      if (hLn) user_data.ln = [hLn];
+      const hCt = dto.city ? this.hashNormalizedPII(dto.city, 80) : null;
+      if (hCt) user_data.ct = [hCt];
+      const hSt = dto.state ? this.hashNormalizedPII(dto.state, 50) : null;
+      if (hSt) user_data.st = [hSt];
+      const hZp = dto.zip ? this.hashNormalizedPII(dto.zip, 20) : null;
+      if (hZp) user_data.zp = [hZp];
+      const hStreet = dto.street ? this.hashNormalizedPII(dto.street, 120) : null;
+      if (hStreet) user_data.street = [hStreet];
+      const hCountry = dto.country ? this.hashCountryCode(dto.country) : null;
+      if (hCountry) user_data.country = [hCountry];
+    }
+
     if (dto.fbp) user_data.fbp = dto.fbp;
     if (dto.fbc) user_data.fbc = dto.fbc;
 
@@ -53,8 +130,10 @@ export class MetaConversionsService {
     if (ip && /^[\d.:a-fA-F]+$/.test(ip)) user_data.client_ip_address = ip.slice(0, 45);
 
     const ids = (dto.contentIds ?? []).map((id) => String(id));
+    const contentTypeRaw = (dto.contentType || 'product').toString().trim().slice(0, 50);
+    // custom_data: commerce fields + id arrays only — never product name, category name, description, or `contents`.
     const custom_data: Record<string, string | number | string[]> = {
-      content_type: 'product',
+      content_type: contentTypeRaw || 'product',
       currency: (dto.currency || 'PKR').toUpperCase().slice(0, 3),
       value: Number(dto.value) || 0,
     };
@@ -66,6 +145,12 @@ export class MetaConversionsService {
       custom_data.content_category_ids = dto.categoryIds.map((id) => String(id));
     }
     if (dto.orderId) custom_data.order_id = String(dto.orderId);
+    const ac = dto.adsCampaignId?.trim();
+    const aa = dto.adsAdsetId?.trim();
+    const aid = dto.adsAdId?.trim();
+    if (ac) custom_data.campaign_id = ac.slice(0, 128);
+    if (aa) custom_data.adset_id = aa.slice(0, 128);
+    if (aid) custom_data.ad_id = aid.slice(0, 128);
 
     const event = {
       event_name: dto.eventName,
@@ -79,24 +164,64 @@ export class MetaConversionsService {
 
     const body: Record<string, unknown> = { data: [event] };
     const testCode = process.env.META_TEST_EVENT_CODE?.trim();
-    if (testCode) body.test_event_code = testCode;
+    if (testCode && this.attachTestEventCodeInThisEnvironment()) {
+      body.test_event_code = testCode;
+    } else if (testCode && process.env.NODE_ENV === 'production') {
+      this.logger.warn(
+        'META_TEST_EVENT_CODE is set but ignored in production (unset it or set META_ALLOW_TEST_EVENT_IN_PRODUCTION=true).',
+      );
+    }
 
     const url = `https://graph.facebook.com/v21.0/${encodeURIComponent(pixelId)}/events?access_token=${encodeURIComponent(token)}`;
-    try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        this.logger.warn(`Meta CAPI error: ${res.status} ${JSON.stringify(json)}`);
+    const { CAPI_GRAPH_TIMEOUT_MS: timeoutMs, CAPI_MAX_ATTEMPTS: maxAttempts } = MetaConversionsService;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(timeoutMs),
+        });
+        const json = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+        const retryable = res.status === 429 || (res.status >= 500 && res.status <= 599);
+        if (retryable && attempt < maxAttempts) {
+          const delay = Math.min(2500, 400 * attempt);
+          this.logger.warn(`Meta CAPI ${res.status}, retry ${attempt}/${maxAttempts} in ${delay}ms`);
+          await this.sleep(delay);
+          continue;
+        }
+        if (!res.ok) {
+          this.logger.warn(`Meta CAPI error: ${res.status} ${JSON.stringify(json)}`);
+          return { ok: false };
+        }
+        const received = json['events_received'];
+        const fbErr = json['error'];
+        if (fbErr && typeof fbErr === 'object') {
+          this.logger.warn(`Meta CAPI response error: ${JSON.stringify(fbErr)}`);
+          return { ok: false };
+        }
+        if (typeof received === 'number') {
+          if (received < 1) {
+            this.logger.warn(`Meta CAPI events_received=${received} ${JSON.stringify(json)}`);
+            return { ok: false };
+          }
+          return { ok: true, eventsReceived: received };
+        }
+        return { ok: true };
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        const isAbort = e instanceof Error && (e.name === 'AbortError' || e.name === 'TimeoutError');
+        if ((isAbort || msg.includes('fetch')) && attempt < maxAttempts) {
+          const delay = Math.min(2500, 400 * attempt);
+          this.logger.warn(`Meta CAPI fetch failed (${msg}), retry ${attempt}/${maxAttempts} in ${delay}ms`);
+          await this.sleep(delay);
+          continue;
+        }
+        this.logger.warn(`Meta CAPI fetch failed: ${msg}`);
         return { ok: false };
       }
-      return { ok: true };
-    } catch (e) {
-      this.logger.warn(`Meta CAPI fetch failed: ${e instanceof Error ? e.message : String(e)}`);
-      return { ok: false };
     }
+    return { ok: false };
   }
 }

@@ -7,7 +7,6 @@ import Image from 'next/image';
 import { useCartStore, useOrdersStore, useProductsStore, useCurrencyStore, useCustomerStore } from '@/lib/store';
 import { getDiscountCodes } from '@/lib/store';
 import {
-  syncMetaPixelUserData,
   metaPurchaseFiredStorageKey,
   metaContentId,
   metaPixelAdvertisingId,
@@ -173,6 +172,7 @@ export default function CheckoutPage() {
     email: form.email,
     name: form.name,
     phone: form.phone,
+    address: form.address,
     city: form.city,
     pincode: form.pincode,
     country: 'pk',
@@ -199,23 +199,22 @@ export default function CheckoutPage() {
     return p?.variants?.find((v) => v.id === variantId);
   };
 
-  useEffect(() => {
-    if (!mounted) return;
-    syncMetaPixelUserData(metaCustomer);
-  }, [mounted, form.email, form.name, form.phone, form.city, form.pincode]);
-
   const lastInitiateCheckoutKeyRef = useRef(null);
   const lastCheckoutViewKeyRef = useRef(null);
   /** Meta InitiateCheckout: cart / totals only — not on every form keystroke. */
   useEffect(() => {
     if (!mounted || items.length === 0) return;
     const contentIds = items.map((i) => pixelStdIdForProduct(i.productId)).filter(Boolean);
+    const customContentIds = items.map((i) => metaIdForProduct(i.productId));
+    const categoryIds = Array.from(
+      new Set(items.map((i) => metaCategoryIdForProduct(i.productId)).filter(Boolean)),
+    );
     const cartSig = items.map((i) => `${i.productId}:${i.variantId ?? ''}:${i.qty}`).join(';');
     const key = `${currency}|${grandTotal}|${cartSig}|${contentIds.join(',')}`;
     if (lastInitiateCheckoutKeyRef.current === key) return;
     lastInitiateCheckoutKeyRef.current = key;
     const numItems = items.reduce((n, i) => n + (i.qty || 1), 0);
-    trackInitiateCheckout(grandTotal / 100, currency, contentIds, numItems);
+    trackInitiateCheckout(grandTotal / 100, currency, contentIds, numItems, customContentIds, categoryIds);
   }, [mounted, items, grandTotal, currency]);
 
   useEffect(() => {
@@ -297,7 +296,6 @@ export default function CheckoutPage() {
     };
     let orderId;
     try {
-      syncMetaPixelUserData(metaCustomer);
       trackPlaceOrderClick(
         grandTotal / 100,
         currency,
@@ -312,7 +310,6 @@ export default function CheckoutPage() {
       setOrderError(err?.body?.message || err?.message || 'Failed to place order. Please try again.');
       return;
     }
-    syncMetaPixelUserData({ ...metaCustomer, externalId: orderId });
     const purchaseContentIds = items.map((i) => metaIdForProduct(i.productId));
     const purchasePixelStdIds = items.map((i) => pixelStdIdForProduct(i.productId)).filter(Boolean);
     const purchaseCategoryIds = Array.from(
@@ -329,7 +326,7 @@ export default function CheckoutPage() {
           purchaseContentIds,
           purchaseCategoryIds,
           purchaseNumItems,
-          metaCustomer,
+          { ...metaCustomer, externalId: orderId, orderId },
           purchasePixelStdIds,
         );
         sessionStorage.setItem(dedupeKey, '1');
@@ -342,14 +339,14 @@ export default function CheckoutPage() {
         purchaseContentIds,
         purchaseCategoryIds,
         purchaseNumItems,
-        metaCustomer,
+        { ...metaCustomer, externalId: orderId, orderId },
         purchasePixelStdIds,
       );
     }
     try {
       localStorage.setItem(
         'nature_secret_last_order_meta_customer',
-        JSON.stringify({ ...metaCustomer, externalId: orderId }),
+        JSON.stringify({ ...metaCustomer, externalId: orderId, orderId }),
       );
     } catch (_) {}
     /** Let Meta Pixel send Purchase before Next.js navigates away (immediate push often drops the event). */

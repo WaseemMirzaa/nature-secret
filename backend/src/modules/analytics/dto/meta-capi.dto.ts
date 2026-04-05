@@ -8,7 +8,11 @@ import {
   MaxLength,
 } from 'class-validator';
 
-/** Public CAPI relay — browser sends event after Pixel fires (same event_id for deduplication). */
+/**
+ * Public CAPI relay — browser sends event after Pixel fires (same event_id for deduplication).
+ * Whitelist only: extra JSON keys are rejected by ValidationPipe (`forbidNonWhitelisted`).
+ * No product/category title, description, or Meta `contents[]` line items — only `content_ids` / `content_category_ids` as string ids.
+ */
 export class MetaCapiDto {
   @IsString()
   @MaxLength(80)
@@ -48,6 +52,12 @@ export class MetaCapiDto {
   @Min(0)
   numItems?: number;
 
+  /** Override default Meta custom_data.content_type (e.g. home for landing page view). */
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  contentType?: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(64)
@@ -62,6 +72,38 @@ export class MetaCapiDto {
   @IsString()
   @MaxLength(40)
   phone?: string;
+
+  /** Purchase-only (hashed server-side). Full name; split into fn/ln for Meta. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  customerName?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  street?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  state?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(32)
+  zip?: string;
+
+  /** Two-letter ISO; hashed for CAPI when purchase. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(2)
+  country?: string;
 
   @IsOptional()
   @IsString()
@@ -82,4 +124,20 @@ export class MetaCapiDto {
   @IsString()
   @MaxLength(45)
   clientIpAddress?: string;
+
+  /** Meta ads IDs → CAPI `custom_data` as `campaign_id`, `adset_id`, `ad_id` (optional). */
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  adsCampaignId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  adsAdsetId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  adsAdId?: string;
 }
