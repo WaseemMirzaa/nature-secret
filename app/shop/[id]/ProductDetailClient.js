@@ -69,6 +69,9 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
     [storeProducts, slugOrId]
   );
   const product = apiProduct ?? productFromStore;
+  const formFieldSuffix = String(product?.id || slugOrId || 'p')
+    .replace(/[^a-zA-Z0-9_-]/g, '')
+    .slice(0, 64) || 'p';
   const products = apiProduct ? [apiProduct, ...storeProducts.filter((p) => p.id !== apiProduct.id)] : storeProducts;
   const variantsForProduct = Array.isArray(product?.variants) ? product.variants : [];
   const defaultVariant = useMemo(
@@ -480,6 +483,8 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                 </button>
                 <div className="flex min-w-[3rem] items-center justify-center border-y border-neutral-100 bg-transparent px-1">
                   <input
+                    id={`product-qty-${formFieldSuffix}`}
+                    name="quantity"
                     type="number"
                     min={1}
                     max={99}
@@ -696,9 +701,17 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
             <form onSubmit={handleSubmitReview} className="space-y-2 sm:space-y-3 lg:space-y-4">
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 lg:gap-4">
                 <div className="flex-1">
-                  <label className="block text-[10px] sm:text-xs lg:text-sm font-medium text-neutral-700 mb-0.5 sm:mb-1 lg:mb-1.5">Your name</label>
+                  <label
+                    htmlFor={`product-review-name-${formFieldSuffix}`}
+                    className="block text-[10px] sm:text-xs lg:text-sm font-medium text-neutral-700 mb-0.5 sm:mb-1 lg:mb-1.5"
+                  >
+                    Your name
+                  </label>
                   <input
+                    id={`product-review-name-${formFieldSuffix}`}
+                    name="authorName"
                     type="text"
+                    autoComplete="name"
                     value={reviewName}
                     onChange={(e) => setReviewName(e.target.value)}
                     placeholder="Optional"
@@ -706,8 +719,15 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                   />
                 </div>
                 <div className="w-full sm:w-40 lg:w-44">
-                  <label className="block text-[10px] sm:text-xs lg:text-sm font-medium text-neutral-700 mb-0.5 sm:mb-1 lg:mb-1.5">Rating</label>
+                  <label
+                    htmlFor={`product-review-rating-${formFieldSuffix}`}
+                    className="block text-[10px] sm:text-xs lg:text-sm font-medium text-neutral-700 mb-0.5 sm:mb-1 lg:mb-1.5"
+                  >
+                    Rating
+                  </label>
                   <select
+                    id={`product-review-rating-${formFieldSuffix}`}
+                    name="rating"
                     value={reviewRating}
                     onChange={(e) => setReviewRating(Number(e.target.value) || 5)}
                     className="w-full rounded-lg sm:rounded-xl border border-neutral-200 px-2.5 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 text-xs sm:text-sm lg:text-base text-neutral-900"
@@ -720,8 +740,16 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
               </div>
             </form>
             <div className="mt-2 sm:mt-3 lg:mt-4">
-              <label className="block text-[10px] sm:text-xs lg:text-sm font-medium text-neutral-700 mb-0.5 sm:mb-1 lg:mb-1.5">Your review</label>
+              <label
+                htmlFor={`product-review-body-${formFieldSuffix}`}
+                className="block text-[10px] sm:text-xs lg:text-sm font-medium text-neutral-700 mb-0.5 sm:mb-1 lg:mb-1.5"
+              >
+                Your review
+              </label>
               <textarea
+                id={`product-review-body-${formFieldSuffix}`}
+                name="review"
+                autoComplete="off"
                 value={reviewBody}
                 onChange={(e) => setReviewBody(e.target.value)}
                 rows={4}
@@ -849,6 +877,8 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                   </button>
                   <div className="flex min-w-[2rem] items-center justify-center border-x border-neutral-100 bg-transparent px-0.5">
                     <input
+                    id={`product-qty-sticky-${formFieldSuffix}`}
+                    name="quantitySticky"
                       type="number"
                       min={1}
                       max={99}

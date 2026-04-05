@@ -172,13 +172,18 @@ export class MetaConversionsService {
 
     const ids = (dto.contentIds ?? []).map((id) => String(id));
     const contentTypeRaw = (dto.contentType || 'product').toString().trim().slice(0, 50);
-    // custom_data: commerce fields + id arrays only — never product name, category name, description, or `contents`.
-    const custom_data: Record<string, string | number | string[]> = {
+    const custom_data: Record<string, string | number | string[] | Array<{ id: string; quantity: number }>> = {
       content_type: contentTypeRaw || 'product',
       currency: (dto.currency || 'PKR').toUpperCase().slice(0, 3),
       value: this.metaCustomDataValue(dto.value),
     };
     if (ids.length) custom_data.content_ids = ids;
+    if (dto.contents?.length) {
+      custom_data.contents = dto.contents.map((c) => ({
+        id: String(c.id).trim().slice(0, 128),
+        quantity: Math.max(1, Math.round(Number(c.quantity) || 1)),
+      }));
+    }
     if (dto.numItems != null && dto.numItems >= 0) {
       custom_data.num_items = this.metaCustomDataNumItems(dto.numItems);
     }

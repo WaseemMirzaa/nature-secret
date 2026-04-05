@@ -6,13 +6,30 @@ import {
   IsInt,
   Min,
   MaxLength,
+  ValidateNested,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+/** Meta `custom_data.contents[]`: catalog `id` + `quantity` only (no titles/prices in relay). */
+export class MetaCapiContentLineDto {
+  @IsString()
+  @MaxLength(128)
+  id: string;
+
+  @Transform(({ value }) => {
+    const x = Number(value);
+    if (!Number.isFinite(x)) return 1;
+    return Math.max(1, Math.round(x));
+  })
+  @IsInt()
+  @Min(1)
+  quantity: number;
+}
 
 /**
  * Public CAPI relay — browser sends event after Pixel fires (same event_id for deduplication).
  * Whitelist only: extra JSON keys are rejected by ValidationPipe (`forbidNonWhitelisted`).
- * No product/category title, description, or Meta `contents[]` line items — only `content_ids` / `content_category_ids` as string ids.
+ * No product/category title or description in relay; optional `contents` is id+qty lines only.
  */
 export class MetaCapiDto {
   @IsString()
@@ -57,6 +74,13 @@ export class MetaCapiDto {
   @IsArray()
   @IsString({ each: true })
   categoryIds?: string[];
+
+  /** Standard commerce: line items for catalog matching (`id` + `quantity` only). */
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MetaCapiContentLineDto)
+  contents?: MetaCapiContentLineDto[];
 
   /** Integer; coerce strings/floats so CAPI `num_items` matches Meta schema. */
   @IsOptional()

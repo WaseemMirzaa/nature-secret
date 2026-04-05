@@ -147,7 +147,10 @@ export function CartDrawer() {
           <div className="border-t border-neutral-200 p-3 sm:p-4 space-y-2.5 sm:space-y-3">
             <div className="flex gap-2">
               <input
+                id="cart-drawer-discount-code"
+                name="discountCode"
                 type="text"
+                autoComplete="off"
                 placeholder="Discount code"
                 value={discountCode}
                 onChange={(e) => setDiscountCode(e.target.value)}

@@ -92,7 +92,10 @@ export default function ContactPage() {
               <p className="mt-1 text-xs text-neutral-500">We&apos;ll get back to you via email.</p>
               <form onSubmit={handleSubmit} className="mt-4 space-y-3">
                 <input
+                  id="contact-ticket-name"
+                  name="name"
                   type="text"
+                  autoComplete="name"
                   placeholder="Your name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -100,7 +103,10 @@ export default function ContactPage() {
                   className="w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-sm text-neutral-900"
                 />
                 <input
+                  id="contact-ticket-email"
+                  name="email"
                   type="email"
+                  autoComplete="email"
                   placeholder="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -108,7 +114,10 @@ export default function ContactPage() {
                   className="w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-sm text-neutral-900"
                 />
                 <input
+                  id="contact-ticket-subject"
+                  name="subject"
                   type="text"
+                  autoComplete="off"
                   placeholder="Subject"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
@@ -116,6 +125,9 @@ export default function ContactPage() {
                   className="w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-sm text-neutral-900"
                 />
                 <textarea
+                  id="contact-ticket-message"
+                  name="message"
+                  autoComplete="off"
                   placeholder="Message"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}

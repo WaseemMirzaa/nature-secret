@@ -67,7 +67,9 @@ function LoginForm() {
           <label htmlFor="email" className="block text-sm font-medium text-neutral-700">Email</label>
           <input
             id="email"
+            name="email"
             type="email"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -78,7 +80,9 @@ function LoginForm() {
           <label htmlFor="password" className="block text-sm font-medium text-neutral-700">Password</label>
           <input
             id="password"
+            name="password"
             type="password"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required

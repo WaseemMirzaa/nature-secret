@@ -114,7 +114,9 @@ export function AuthModal() {
                   <label htmlFor="auth-forgot-email" className="block text-sm font-medium text-neutral-700">Email</label>
                   <input
                     id="auth-forgot-email"
+                    name="email"
                     type="email"
+                    autoComplete="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -142,7 +144,9 @@ export function AuthModal() {
                   <label htmlFor="auth-name" className="block text-sm font-medium text-neutral-700">Name</label>
                   <input
                     id="auth-name"
+                    name="name"
                     type="text"
+                    autoComplete="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required={mode === 'signup'}
@@ -155,7 +159,9 @@ export function AuthModal() {
                 <label htmlFor="auth-email" className="block text-sm font-medium text-neutral-700">Email</label>
                 <input
                   id="auth-email"
+                  name="email"
                   type="email"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -166,7 +172,9 @@ export function AuthModal() {
                 <label htmlFor="auth-password" className="block text-sm font-medium text-neutral-700">Password</label>
                 <input
                   id="auth-password"
+                  name="password"
                   type="password"
+                  autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-neutral-900"

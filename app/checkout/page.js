@@ -214,7 +214,22 @@ export default function CheckoutPage() {
     if (lastInitiateCheckoutKeyRef.current === key) return;
     lastInitiateCheckoutKeyRef.current = key;
     const numItems = items.reduce((n, i) => n + (i.qty || 1), 0);
-    trackInitiateCheckout(grandTotal / 100, currency, contentIds, numItems, customContentIds, categoryIds);
+    const standardContents =
+      items.length > 0 && items.every((i) => Boolean(pixelStdIdForProduct(i.productId)))
+        ? items.map((i) => ({
+            id: pixelStdIdForProduct(i.productId),
+            quantity: Math.max(1, Number(i.qty) || 1),
+          }))
+        : null;
+    trackInitiateCheckout(
+      grandTotal / 100,
+      currency,
+      contentIds,
+      numItems,
+      customContentIds,
+      categoryIds,
+      standardContents,
+    );
   }, [mounted, items, grandTotal, currency]);
 
   useEffect(() => {
@@ -316,6 +331,13 @@ export default function CheckoutPage() {
       new Set(items.map((i) => metaCategoryIdForProduct(i.productId)).filter(Boolean)),
     );
     const purchaseNumItems = items.reduce((n, i) => n + (i.qty || 1), 0);
+    const purchaseStandardContents =
+      items.length > 0 && items.every((i) => Boolean(pixelStdIdForProduct(i.productId)))
+        ? items.map((i) => ({
+            id: pixelStdIdForProduct(i.productId),
+            quantity: Math.max(1, Number(i.qty) || 1),
+          }))
+        : null;
     try {
       const dedupeKey = metaPurchaseFiredStorageKey(orderId);
       if (!sessionStorage.getItem(dedupeKey)) {
@@ -328,6 +350,7 @@ export default function CheckoutPage() {
           purchaseNumItems,
           { ...metaCustomer, externalId: orderId, orderId },
           purchasePixelStdIds,
+          purchaseStandardContents,
         );
         sessionStorage.setItem(dedupeKey, '1');
       }
@@ -341,6 +364,7 @@ export default function CheckoutPage() {
         purchaseNumItems,
         { ...metaCustomer, externalId: orderId, orderId },
         purchasePixelStdIds,
+        purchaseStandardContents,
       );
     }
     try {
@@ -400,6 +424,7 @@ export default function CheckoutPage() {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 sm:gap-2.5 lg:gap-4">
               <input
+                id="checkout-email"
                 type="email"
                 name="email"
                 autoComplete="email"
@@ -409,6 +434,7 @@ export default function CheckoutPage() {
                 className="min-w-0 w-full rounded-lg lg:rounded-xl border border-neutral-200 px-2.5 sm:px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
               />
               <input
+                id="checkout-phone"
                 type="tel"
                 name="phone"
                 inputMode="tel"
@@ -427,6 +453,7 @@ export default function CheckoutPage() {
             </div>
             {phoneError && <p className="text-xs sm:text-sm text-red-600 -mt-1 lg:-mt-2">{phoneError}</p>}
             <input
+              id="checkout-full-name"
               type="text"
               name="name"
               autoComplete="name"
@@ -437,6 +464,7 @@ export default function CheckoutPage() {
               className="w-full rounded-lg lg:rounded-xl border border-neutral-200 px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
             />
             <textarea
+              id="checkout-address"
               name="address"
               autoComplete="street-address"
               required
@@ -448,6 +476,7 @@ export default function CheckoutPage() {
             />
             <div className="grid grid-cols-2 gap-2 sm:gap-2.5 lg:gap-4">
               <input
+                id="checkout-city"
                 type="text"
                 name="city"
                 autoComplete="address-level2"
@@ -458,6 +487,7 @@ export default function CheckoutPage() {
                 className="min-w-0 rounded-lg lg:rounded-xl border border-neutral-200 px-2.5 sm:px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
               />
               <input
+                id="checkout-pincode"
                 type="text"
                 name="pincode"
                 autoComplete="postal-code"
@@ -525,8 +555,10 @@ export default function CheckoutPage() {
             </ul>
             <div className="flex gap-1.5 sm:gap-2 mb-2 sm:mb-3 lg:mb-4">
               <input
+                id="checkout-discount-code"
                 type="text"
                 name="discountCode"
+                autoComplete="off"
                 placeholder="Discount code"
                 value={discountCode}
                 onChange={(e) => setDiscountCode(e.target.value)}
