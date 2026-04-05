@@ -72,6 +72,24 @@ export class MetaConversionsService {
     return new Promise((r) => setTimeout(r, ms));
   }
 
+  /** CAPI `custom_data.value` must be a JSON number (Meta Custom Conversions / filters). */
+  private metaCustomDataValue(raw: unknown): number {
+    if (raw === null || raw === undefined || raw === '') return 0;
+    const n =
+      typeof raw === 'number' && Number.isFinite(raw)
+        ? raw
+        : Number(String(raw).trim().replace(/,/g, ''));
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  /** CAPI `custom_data.num_items` must be a non-negative integer. */
+  private metaCustomDataNumItems(raw: unknown): number {
+    if (raw === null || raw === undefined || raw === '') return 0;
+    const x = Number(raw);
+    if (!Number.isFinite(x)) return 0;
+    return Math.max(0, Math.round(x));
+  }
+
   async send(
     dto: MetaCapiDto,
     req?: Request,
@@ -141,11 +159,11 @@ export class MetaConversionsService {
     const custom_data: Record<string, string | number | string[]> = {
       content_type: contentTypeRaw || 'product',
       currency: (dto.currency || 'PKR').toUpperCase().slice(0, 3),
-      value: Number(dto.value) || 0,
+      value: this.metaCustomDataValue(dto.value),
     };
     if (ids.length) custom_data.content_ids = ids;
     if (dto.numItems != null && dto.numItems >= 0) {
-      custom_data.num_items = dto.numItems;
+      custom_data.num_items = this.metaCustomDataNumItems(dto.numItems);
     }
     if (dto.categoryIds != null) {
       custom_data.content_category_ids = dto.categoryIds.map((id) => String(id));

@@ -7,6 +7,7 @@ import {
   Min,
   MaxLength,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 /**
  * Public CAPI relay — browser sends event after Pixel fires (same event_id for deduplication).
@@ -32,7 +33,16 @@ export class MetaCapiDto {
   @MaxLength(3)
   currency?: string;
 
+  /** Coerce to number so Graph `custom_data.value` is never a string (Custom Conversions reporting). */
   @IsOptional()
+  @Transform(({ value }) => {
+    if (value === null || value === undefined || value === '') return undefined;
+    const n =
+      typeof value === 'number' && Number.isFinite(value)
+        ? value
+        : Number(String(value).trim().replace(/,/g, ''));
+    return Number.isFinite(n) ? n : 0;
+  })
   @IsNumber()
   value?: number;
 
@@ -47,7 +57,14 @@ export class MetaCapiDto {
   @IsString({ each: true })
   categoryIds?: string[];
 
+  /** Integer; coerce strings/floats so CAPI `num_items` matches Meta schema. */
   @IsOptional()
+  @Transform(({ value }) => {
+    if (value === null || value === undefined || value === '') return undefined;
+    const x = Number(value);
+    if (!Number.isFinite(x)) return 0;
+    return Math.max(0, Math.round(x));
+  })
   @IsInt()
   @Min(0)
   numItems?: number;
