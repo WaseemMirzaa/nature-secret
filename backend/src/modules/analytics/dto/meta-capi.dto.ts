@@ -158,4 +158,13 @@ export class MetaCapiDto {
   @IsString()
   @MaxLength(128)
   adsAdId?: string;
+
+  /**
+   * Routes this event to Events Manager → Test events when server has no `META_TEST_EVENT_CODE`
+   * (non-production, or production with `META_ALLOW_TEST_EVENT_IN_PRODUCTION=true`). Must match the code in Meta UI.
+   */
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  testEventCode?: string;
 }

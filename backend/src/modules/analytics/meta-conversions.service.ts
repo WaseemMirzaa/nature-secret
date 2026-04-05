@@ -68,6 +68,17 @@ export class MetaConversionsService {
     return process.env.NODE_ENV !== 'production';
   }
 
+  /** Server env wins; else browser may pass same code as Pixel (`NEXT_PUBLIC_META_TEST_EVENT_CODE`). */
+  private resolveMetaTestEventCode(dto: MetaCapiDto): string | undefined {
+    const fromEnv = process.env.META_TEST_EVENT_CODE?.trim();
+    if (fromEnv) return fromEnv;
+    const fromClient = dto.testEventCode?.trim();
+    if (!fromClient) return undefined;
+    if (process.env.NODE_ENV !== 'production') return fromClient;
+    if (process.env.META_ALLOW_TEST_EVENT_IN_PRODUCTION === 'true') return fromClient;
+    return undefined;
+  }
+
   private sleep(ms: number): Promise<void> {
     return new Promise((r) => setTimeout(r, ms));
   }
@@ -188,10 +199,10 @@ export class MetaConversionsService {
     };
 
     const body: Record<string, unknown> = { data: [event] };
-    const testCode = process.env.META_TEST_EVENT_CODE?.trim();
+    const testCode = this.resolveMetaTestEventCode(dto);
     if (testCode && this.attachTestEventCodeInThisEnvironment()) {
       body.test_event_code = testCode;
-    } else if (testCode && process.env.NODE_ENV === 'production') {
+    } else if (process.env.META_TEST_EVENT_CODE?.trim() && !this.attachTestEventCodeInThisEnvironment()) {
       this.logger.warn(
         'META_TEST_EVENT_CODE is set but ignored in production (unset it or set META_ALLOW_TEST_EVENT_IN_PRODUCTION=true).',
       );
