@@ -25,7 +25,7 @@ const chunkReloadScript = `
       if(raw){try{data=JSON.parse(raw);if(now-data.first>win)data={count:0,first:now};}catch(e){}}
       if(data.count<max){data.count++;sessionStorage.setItem(key,JSON.stringify(data));location.reload();return;}
       sessionStorage.setItem(keyDone,'1');
-      document.body.innerHTML='<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;font-family:system-ui;background:#fafafa;color:#171717"><p style="font-size:1.125rem;font-weight:500;margin-bottom:8px">Update required</p><p style="color:#525252;font-size:0.875rem;margin-bottom:24px">Please refresh to load the latest version.</p><button onclick="sessionStorage.removeItem(\\''+key+'\\');sessionStorage.removeItem(\\''+keyDone+'\\');location.reload()" style="background:#171717;color:#fff;border:none;padding:10px 24px;border-radius:12px;font-size:0.875rem;cursor:pointer">Refresh page</button></div>';
+      document.body.innerHTML='<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;font-family:system-ui;background:#fafafa;color:#171717"><p style="font-size:1.125rem;font-weight:500;margin-bottom:8px">Update required</p><p style="color:#525252;font-size:0.875rem;margin-bottom:24px;max-width:24rem;text-align:center">A new version of the site is available. Please refresh the page to load it.</p><button onclick="sessionStorage.removeItem(\\''+key+'\\');sessionStorage.removeItem(\\''+keyDone+'\\');location.reload()" style="background:#171717;color:#fff;border:none;padding:10px 24px;border-radius:12px;font-size:0.875rem;cursor:pointer">Refresh page</button></div>';
     }catch(e){location.reload();}
   }
   window.addEventListener('error',function(e){if(isChunkErr(e.message))reload();});
@@ -39,22 +39,22 @@ function versionRefreshScript(appVersion) {
   var version=${JSON.stringify(appVersion || '')};
   if(!version) return;
   var key='ns_app_version';
-  var reloadedKey='ns_app_version_reloaded';
   try{
     var prev=localStorage.getItem(key);
     if(!prev){localStorage.setItem(key,version);return;}
     if(prev===version) return;
-    localStorage.setItem(key,version);
-    if(sessionStorage.getItem(reloadedKey)===version) return;
-    sessionStorage.setItem(reloadedKey,version);
-    if(window.caches&&caches.keys){
-      caches.keys().then(function(names){
-        return Promise.all(names.map(function(n){return caches.delete(n);}));
-      }).catch(function(){});
-    }
-    var url=new URL(window.location.href);
-    url.searchParams.set('v',version);
-    window.location.replace(url.toString());
+    window._nsApplyAppVersion=function(){
+      try{
+        localStorage.setItem(key,version);
+        if(window.caches&&caches.keys){
+          caches.keys().then(function(names){
+            return Promise.all(names.map(function(n){return caches.delete(n);}));
+          }).catch(function(){});
+        }
+      }catch(e){}
+      location.reload();
+    };
+    document.body.innerHTML='<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;font-family:system-ui;background:#fafafa;color:#171717"><p style="font-size:1.125rem;font-weight:500;margin-bottom:8px">Update required</p><p style="color:#525252;font-size:0.875rem;margin-bottom:24px;max-width:24rem;text-align:center">A new version of the site is available. Please refresh the page to load it.</p><button type="button" onclick="window._nsApplyAppVersion&&window._nsApplyAppVersion()" style="background:#171717;color:#fff;border:none;padding:10px 24px;border-radius:12px;font-size:0.875rem;cursor:pointer">Refresh page</button></div>';
   }catch(e){}
 })();
 `;

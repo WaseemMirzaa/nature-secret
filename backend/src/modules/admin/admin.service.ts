@@ -296,7 +296,10 @@ export class AdminService {
         const q = this.orderRepo.createQueryBuilder('o').where('o.status = :status', { status });
         if (from) q.andWhere('o.createdAt >= :from', { from });
         if (to) q.andWhere('o.createdAt <= :to', { to: `${to}T23:59:59` });
-        const [count, sumRaw] = await Promise.all([q.getCount(), q.select('COALESCE(SUM(o.total), 0)', 'sum').getRawOne()]);
+        const [count, sumRaw] = await Promise.all([
+          q.clone().getCount(),
+          q.clone().select('COALESCE(SUM(o.total), 0)', 'sum').getRawOne(),
+        ]);
         byStatus.push({ status, count, total: Number(sumRaw?.sum || 0) });
       }
       return { orderCount, totalRevenue, todayOrders, revenueToday, byStatus };
