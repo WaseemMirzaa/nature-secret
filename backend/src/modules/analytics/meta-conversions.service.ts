@@ -113,6 +113,12 @@ export class MetaConversionsService {
       if (hStreet) user_data.street = [hStreet];
       const hCountry = dto.country ? this.hashCountryCode(dto.country) : null;
       if (hCountry) user_data.country = [hCountry];
+      const oid = dto.orderId?.trim();
+      if (oid) {
+        const extNorm = oid.replace(/[^\w-]/g, '').slice(0, 64);
+        const extHash = extNorm ? this.hashNormalizedPII(extNorm, 64) : null;
+        if (extHash) user_data.external_id = [extHash];
+      }
     }
 
     if (dto.fbp) user_data.fbp = dto.fbp;
@@ -195,20 +201,29 @@ export class MetaConversionsService {
           this.logger.warn(`Meta CAPI error: ${res.status} ${JSON.stringify(json)}`);
           return { ok: false };
         }
-        const received = json['events_received'];
         const fbErr = json['error'];
-        if (fbErr && typeof fbErr === 'object') {
-          this.logger.warn(`Meta CAPI response error: ${JSON.stringify(fbErr)}`);
-          return { ok: false };
-        }
-        if (typeof received === 'number') {
-          if (received < 1) {
-            this.logger.warn(`Meta CAPI events_received=${received} ${JSON.stringify(json)}`);
+        if (fbErr != null) {
+          if (typeof fbErr === 'object') {
+            this.logger.warn(`Meta CAPI response error: ${JSON.stringify(fbErr)}`);
             return { ok: false };
           }
-          return { ok: true, eventsReceived: received };
+          if (typeof fbErr === 'string' && fbErr.trim()) {
+            this.logger.warn(`Meta CAPI response error: ${fbErr}`);
+            return { ok: false };
+          }
         }
-        return { ok: true };
+        // Graph often returns events_received; dedupe / edge cases may yield 0 while HTTP is still 200 — do not fail the relay.
+        const rawRecv = json['events_received'];
+        let eventsReceived: number | undefined;
+        if (typeof rawRecv === 'number' && !Number.isNaN(rawRecv)) eventsReceived = rawRecv;
+        else if (typeof rawRecv === 'string' && rawRecv.trim() !== '') {
+          const p = parseInt(rawRecv.trim(), 10);
+          if (!Number.isNaN(p)) eventsReceived = p;
+        }
+        if (eventsReceived !== undefined && eventsReceived < 1) {
+          this.logger.warn(`Meta CAPI events_received=${eventsReceived} (HTTP 200, check Events Manager / dedupe) ${JSON.stringify(json)}`);
+        }
+        return { ok: true, eventsReceived };
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         const isAbort = e instanceof Error && (e.name === 'AbortError' || e.name === 'TimeoutError');
