@@ -33,17 +33,18 @@ export class MetaCapiDto {
   @MaxLength(3)
   currency?: string;
 
-  /** Coerce to number so Graph `custom_data.value` is never a string (Custom Conversions reporting). */
+  /** Float monetary amount for Graph `custom_data.value` (not string; 2 d.p.). */
   @IsOptional()
   @Transform(({ value }) => {
     if (value === null || value === undefined || value === '') return undefined;
-    const n =
+    const raw =
       typeof value === 'number' && Number.isFinite(value)
         ? value
-        : Number(String(value).trim().replace(/,/g, ''));
-    return Number.isFinite(n) ? n : 0;
+        : parseFloat(String(value).trim().replace(/,/g, ''));
+    if (!Number.isFinite(raw)) return 0;
+    return Math.round(raw * 100) / 100;
   })
-  @IsNumber()
+  @IsNumber({ maxDecimalPlaces: 2 })
   value?: number;
 
   /** Mirrors Pixel custom_data content_ids (omit or [] when Pixel omits). */

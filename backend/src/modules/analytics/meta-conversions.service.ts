@@ -72,14 +72,15 @@ export class MetaConversionsService {
     return new Promise((r) => setTimeout(r, ms));
   }
 
-  /** CAPI `custom_data.value` must be a JSON number (Meta Custom Conversions / filters). */
+  /** CAPI `custom_data.value`: JSON float, monetary (2 d.p.). */
   private metaCustomDataValue(raw: unknown): number {
     if (raw === null || raw === undefined || raw === '') return 0;
     const n =
       typeof raw === 'number' && Number.isFinite(raw)
         ? raw
-        : Number(String(raw).trim().replace(/,/g, ''));
-    return Number.isFinite(n) ? n : 0;
+        : parseFloat(String(raw).trim().replace(/,/g, ''));
+    if (!Number.isFinite(n)) return 0;
+    return Math.round(n * 100) / 100;
   }
 
   /** CAPI `custom_data.num_items` must be a non-negative integer. */

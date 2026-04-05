@@ -171,7 +171,7 @@ export class OrdersService {
       eventName: 'NS_EV_ORDER_VOID',
       eventId,
       orderId: order.id,
-      value: Math.max(0, Number(order.total) || 0) / 100,
+      value: Math.round((Math.max(0, Number(order.total) || 0) / 100) * 100) / 100,
       currency: 'PKR',
       numItems: 0,
       contentIds: [],
