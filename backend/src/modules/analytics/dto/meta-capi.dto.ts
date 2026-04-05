@@ -125,17 +125,19 @@ export class MetaCapiDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
+  @MaxLength(256)
   fbp?: string;
 
+  /** Meta allows longer `_fbc` (fbclid payload); relay was failing at 100 chars. */
   @IsOptional()
   @IsString()
-  @MaxLength(100)
+  @MaxLength(512)
   fbc?: string;
 
+  /** Matches Graph `client_user_agent` cap used in MetaConversionsService (512). */
   @IsOptional()
   @IsString()
-  @MaxLength(100)
+  @MaxLength(512)
   clientUserAgent?: string;
 
   @IsOptional()
