@@ -97,11 +97,18 @@ body {
       transparent 62%
     );
     transform: translateX(-130%);
-    animation: checkoutCtaShimmer 3.4s ease-in-out infinite;
+    /* Explicit longhand so the sweep loops forever (no single-play / ease “stall”). */
+    animation-name: checkoutCtaShimmer;
+    animation-duration: 2.8s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-fill-mode: none;
+    will-change: transform;
   }
   @media (prefers-reduced-motion: reduce) {
     .checkout-cta-animated::before {
-      animation: none;
+      animation-name: none;
+      will-change: auto;
     }
   }
   .checkout-cta-animated:disabled::before {
