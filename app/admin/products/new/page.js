@@ -5,6 +5,7 @@ import Link from '@/components/Link';
 import { useRouter } from 'next/navigation';
 import { useProductsStore } from '@/lib/store';
 import { getCategories, uploadProductImage, createProduct, formatApiError, formatApiErrorFull } from '@/lib/api';
+import { compressReviewMediaFile } from '@/lib/compressReviewMedia';
 
 const emptyVariant = () => ({ id: `v-${Date.now()}`, name: '', volume: '', price: 0, compareAtPrice: null, images: [] });
 const emptyFaq = () => ({ q: '', a: '' });
@@ -55,6 +56,7 @@ export default function NewProductPage() {
   const [rating, setRating] = useState(4.5);
   const [reviewCount, setReviewCount] = useState(0);
   const [uploadingIndex, setUploadingIndex] = useState(null);
+  const [badgeUploadIndex, setBadgeUploadIndex] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState('');
 
@@ -78,6 +80,24 @@ export default function NewProductPage() {
       e.target.value = '';
     }
   }
+  async function handleProductBadgeImageUpload(e, index) {
+    const file = e?.target?.files?.[0];
+    if (!file) return;
+    setBadgeUploadIndex(index);
+    setUploadError('');
+    try {
+      const ready = await compressReviewMediaFile(file);
+      const res = await uploadProductImage(ready, { slug: uploadSlug || slug });
+      const url = res.url?.startsWith('http') ? res.url : apiBase + (res.url || '');
+      updateProductBadge(index, 'imageUrl', url);
+    } catch (err) {
+      setUploadError(formatApiError(err));
+    } finally {
+      setBadgeUploadIndex(null);
+      e.target.value = '';
+    }
+  }
+
   async function handleVariantImageUpload(e, variantIndex, imageIndex) {
     const file = e?.target?.files?.[0];
     if (!file) return;
@@ -405,7 +425,7 @@ export default function NewProductPage() {
           </div>
           <div className="mt-3 space-y-2">
             {productBadges.map((b, i) => (
-              <div key={i} className="grid gap-2 sm:grid-cols-12">
+              <div key={i} className="grid gap-2 sm:grid-cols-12 items-start">
                 <input
                   type="text"
                   value={b.label}
@@ -413,13 +433,30 @@ export default function NewProductPage() {
                   placeholder="Label"
                   className="sm:col-span-3 rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-900"
                 />
-                <input
-                  type="text"
-                  value={b.imageUrl}
-                  onChange={(e) => updateProductBadge(i, 'imageUrl', e.target.value)}
-                  placeholder="Badge image URL"
-                  className="sm:col-span-6 rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-900"
-                />
+                <div className="sm:col-span-6 flex flex-col gap-1.5">
+                  <input
+                    type="text"
+                    value={b.imageUrl}
+                    onChange={(e) => updateProductBadge(i, 'imageUrl', e.target.value)}
+                    placeholder="Badge image URL"
+                    className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-900"
+                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      id={`new-badge-upload-${i}`}
+                      className="hidden"
+                      onChange={(e) => handleProductBadgeImageUpload(e, i)}
+                    />
+                    <label
+                      htmlFor={`new-badge-upload-${i}`}
+                      className="cursor-pointer rounded-lg border border-neutral-300 bg-white px-2.5 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
+                    >
+                      {badgeUploadIndex === i ? 'Uploading…' : 'Upload image'}
+                    </label>
+                  </div>
+                </div>
                 <input
                   type="text"
                   value={b.href || ''}
@@ -427,7 +464,7 @@ export default function NewProductPage() {
                   placeholder="Optional click URL"
                   className="sm:col-span-2 rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-900"
                 />
-                <button type="button" onClick={() => removeProductBadge(i)} className="sm:col-span-1 text-neutral-500 hover:text-red-600">×</button>
+                <button type="button" onClick={() => removeProductBadge(i)} className="sm:col-span-1 text-neutral-500 hover:text-red-600 self-center">×</button>
               </div>
             ))}
             <button type="button" onClick={addProductBadge} className="text-sm text-neutral-600 hover:text-neutral-900">+ Add badge</button>

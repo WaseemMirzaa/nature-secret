@@ -1,10 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from '@/components/Link';
 import { useRouter, useParams } from 'next/navigation';
 import { useProductsStore } from '@/lib/store';
-import { getCategories, uploadProductImage, updateProduct as updateProductApi, formatApiError, getAdminReviews, unassignReview, setProductRating, approveReview } from '@/lib/api';
+import {
+  getCategories,
+  uploadProductImage,
+  updateProduct as updateProductApi,
+  formatApiError,
+  getAdminReviews,
+  setProductRating,
+  approveReview,
+  createAdminReview,
+  updateAdminReview,
+  deleteAdminReview,
+} from '@/lib/api';
+import { compressReviewMediaFile } from '@/lib/compressReviewMedia';
 import { Spinner } from '@/components/ui/PageLoader';
 
 const emptyVariant = () => ({ id: `v-${Date.now()}`, name: '', volume: '', price: 0, compareAtPrice: null, images: [] });
@@ -47,13 +59,19 @@ export default function EditProductPage() {
   const [rating, setRating] = useState(4.5);
   const [reviewCount, setReviewCount] = useState(0);
   const [uploadingIndex, setUploadingIndex] = useState(null);
+  const [badgeUploadIndex, setBadgeUploadIndex] = useState(null);
   const [uploadError, setUploadError] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [assignedReviews, setAssignedReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [customerReviews, setCustomerReviews] = useState([]);
-  const [customerReviewsLoading, setCustomerReviewsLoading] = useState(false);
+  const [liveReviews, setLiveReviews] = useState([]);
+  const [liveAuthor, setLiveAuthor] = useState('');
+  const [liveRating, setLiveRating] = useState(5);
+  const [liveBody, setLiveBody] = useState('');
+  const [liveSort, setLiveSort] = useState(0);
+  const [liveMedia, setLiveMedia] = useState([]);
+  const [liveSaving, setLiveSaving] = useState(false);
 
   const apiBase = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') : '';
   async function handleImageUpload(e, index) {
@@ -73,6 +91,24 @@ export default function EditProductPage() {
       e.target.value = '';
     }
   }
+  async function handleProductBadgeImageUpload(e, index) {
+    const file = e?.target?.files?.[0];
+    if (!file) return;
+    setBadgeUploadIndex(index);
+    setUploadError('');
+    try {
+      const ready = await compressReviewMediaFile(file);
+      const res = await uploadProductImage(ready, { slug: uploadSlug || slug });
+      const url = res.url?.startsWith('http') ? res.url : apiBase + (res.url || '');
+      updateProductBadge(index, 'imageUrl', url);
+    } catch (err) {
+      setUploadError(formatApiError(err));
+    } finally {
+      setBadgeUploadIndex(null);
+      e.target.value = '';
+    }
+  }
+
   async function handleVariantImageUpload(e, variantIndex, imageIndex) {
     const file = e?.target?.files?.[0];
     if (!file) return;
@@ -133,23 +169,80 @@ export default function EditProductPage() {
     setReviewCount(product.reviewCount ?? 0);
   }, [product]);
 
-  useEffect(() => {
+  const refreshProductReviews = useCallback(() => {
     if (!product?.id) return;
     setReviewsLoading(true);
     getAdminReviews({ productId: product.id })
-      .then((list) => setAssignedReviews(Array.isArray(list) ? list : []))
-      .catch(() => setAssignedReviews([]))
+      .then((list) => {
+        const arr = Array.isArray(list) ? list : [];
+        setCustomerReviews(arr.filter((r) => r.collection === 'user'));
+        setLiveReviews(arr.filter((r) => r.collection === 'live'));
+      })
+      .catch(() => {
+        setCustomerReviews([]);
+        setLiveReviews([]);
+      })
       .finally(() => setReviewsLoading(false));
   }, [product?.id]);
 
   useEffect(() => {
-    if (!product?.id) return;
-    setCustomerReviewsLoading(true);
-    getAdminReviews({ productId: product.id })
-      .then((list) => setCustomerReviews(Array.isArray(list) ? list : []))
-      .catch(() => setCustomerReviews([]))
-      .finally(() => setCustomerReviewsLoading(false));
-  }, [product?.id]);
+    refreshProductReviews();
+  }, [refreshProductReviews]);
+
+  async function handleLiveImageUpload(e, index) {
+    const file = e?.target?.files?.[0];
+    if (!file) return;
+    setLiveSaving(true);
+    setUploadError('');
+    try {
+      const ready = await compressReviewMediaFile(file);
+      const res = await uploadProductImage(ready, { slug: uploadSlug || slug });
+      const url = res.url?.startsWith('http') ? res.url : apiBase + (res.url || '');
+      setLiveMedia((prev) => {
+        const next = [...prev];
+        next[index] = { type: 'image', url };
+        return next;
+      });
+    } catch (err) {
+      setUploadError(formatApiError(err));
+    } finally {
+      setLiveSaving(false);
+      e.target.value = '';
+    }
+  }
+
+  async function handleAddLiveReview(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!product?.id || !liveBody.trim()) return;
+    setLiveSaving(true);
+    setUploadError('');
+    try {
+      const media = liveMedia
+        .map((x) => ({ type: x.type === 'video' ? 'video' : 'image', url: String(x.url || '').trim() }))
+        .filter((x) => x.url);
+      await createAdminReview({
+        authorName: liveAuthor.trim() || 'Customer',
+        rating: Number(liveRating) || 5,
+        body: liveBody.trim(),
+        collection: 'live',
+        productId: product.id,
+        approved: true,
+        media: media.length ? media : undefined,
+        sortOrder: Number(liveSort) || 0,
+      });
+      setLiveAuthor('');
+      setLiveRating(5);
+      setLiveBody('');
+      setLiveSort(0);
+      setLiveMedia([]);
+      refreshProductReviews();
+    } catch (err) {
+      setUploadError(formatApiError(err));
+    } finally {
+      setLiveSaving(false);
+    }
+  }
 
   function addBenefit() { setBenefits((b) => [...b, '']); }
   function updateBenefit(i, v) { setBenefits((b) => { const n = [...b]; n[i] = v; return n; }); }
@@ -440,7 +533,7 @@ export default function EditProductPage() {
           </div>
           <div className="mt-3 space-y-2">
             {productBadges.map((b, i) => (
-              <div key={i} className="grid gap-2 sm:grid-cols-12">
+              <div key={i} className="grid gap-2 sm:grid-cols-12 items-start">
                 <input
                   type="text"
                   value={b.label}
@@ -448,13 +541,33 @@ export default function EditProductPage() {
                   placeholder="Label"
                   className="sm:col-span-3 rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-900"
                 />
-                <input
-                  type="text"
-                  value={b.imageUrl}
-                  onChange={(e) => updateProductBadge(i, 'imageUrl', e.target.value)}
-                  placeholder="Badge image URL"
-                  className="sm:col-span-6 rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-900"
-                />
+                <div className="sm:col-span-6 flex flex-col gap-1.5">
+                  <input
+                    type="text"
+                    value={b.imageUrl}
+                    onChange={(e) => updateProductBadge(i, 'imageUrl', e.target.value)}
+                    placeholder="Badge image URL"
+                    className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-900"
+                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      id={`badge-upload-${i}`}
+                      className="hidden"
+                      onChange={(e) => handleProductBadgeImageUpload(e, i)}
+                    />
+                    <label
+                      htmlFor={`badge-upload-${i}`}
+                      className="cursor-pointer rounded-lg border border-neutral-300 bg-white px-2.5 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
+                    >
+                      {badgeUploadIndex === i ? 'Uploading…' : 'Upload image'}
+                    </label>
+                    {b.imageUrl ? (
+                      <span className="text-[10px] text-neutral-400 truncate max-w-[120px]">Saved</span>
+                    ) : null}
+                  </div>
+                </div>
                 <input
                   type="text"
                   value={b.href || ''}
@@ -462,7 +575,7 @@ export default function EditProductPage() {
                   placeholder="Optional click URL"
                   className="sm:col-span-2 rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-900"
                 />
-                <button type="button" onClick={() => removeProductBadge(i)} className="sm:col-span-1 text-neutral-500 hover:text-red-600">×</button>
+                <button type="button" onClick={() => removeProductBadge(i)} className="sm:col-span-1 text-neutral-500 hover:text-red-600 self-center">×</button>
               </div>
             ))}
             <button type="button" onClick={addProductBadge} className="text-sm text-neutral-600 hover:text-neutral-900">+ Add badge</button>
@@ -470,7 +583,7 @@ export default function EditProductPage() {
         </div>
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-2">Reviews</label>
-          <p className="text-xs text-neutral-500 mb-2">Manage approved product reviews and overall rating.</p>
+          <p className="text-xs text-neutral-500 mb-2">Overall rating, live stories (photos/video), and customer submissions.</p>
           <div className="flex flex-wrap gap-2 mb-2">
             <span className="text-sm text-neutral-600">Overall rating:</span>
             <input type="number" min="0" max="5" step="0.1" value={rating} onChange={(e) => setRating(e.target.value)} className="w-16 rounded-lg border border-neutral-200 px-2 py-1 text-sm" />
@@ -480,9 +593,10 @@ export default function EditProductPage() {
               onClick={async () => {
                 if (!product) return;
                 try {
-                  await setProductRating(product.id, 5, assignedReviews.length);
+                  const approvedN = customerReviews.filter((r) => r.approved).length;
+                  await setProductRating(product.id, 5, approvedN);
                   setRating(5);
-                  setReviewCount(assignedReviews.length);
+                  setReviewCount(approvedN);
                 } catch (_) {}
               }}
               className="rounded-lg bg-gold-500 text-white px-3 py-1 text-sm font-medium"
@@ -490,22 +604,154 @@ export default function EditProductPage() {
               Set 5 star
             </button>
           </div>
-          <p className="text-sm text-neutral-600 mb-1">Assigned ({assignedReviews.length}):</p>
-          <ul className="mb-3 max-h-32 overflow-y-auto rounded-lg border border-neutral-200 p-2 space-y-1">
-            {reviewsLoading && !assignedReviews.length ? <li className="flex items-center gap-2 text-sm text-neutral-500"><Spinner className="h-4 w-4" /> Loading</li> : null}
-            {assignedReviews.map((r) => (
-              <li key={r.id} className="flex justify-between items-start gap-2 text-sm">
-                <span className="truncate flex-1">{r.body?.slice(0, 50)}… — {r.authorName}</span>
-                <button type="button" onClick={async () => { try { await unassignReview(r.id); setAssignedReviews((prev) => prev.filter((x) => x.id !== r.id)); setReviewCount((c) => Math.max(0, c - 1)); } catch (_) {} }} className="text-red-600 hover:underline shrink-0">Remove</button>
+        </div>
+
+        <div className="mt-6 rounded-xl border border-neutral-200 p-4 bg-neutral-50/50">
+          <h3 className="text-sm font-medium text-neutral-800 mb-1">Live reviews (photos &amp; video)</h3>
+          <p className="text-xs text-neutral-500 mb-3">Shown first on the product page. Add image uploads or paste a video URL (YouTube, Vimeo, or direct .mp4).</p>
+          {reviewsLoading && !liveReviews.length ? (
+            <p className="text-sm text-neutral-500 flex items-center gap-2"><Spinner className="h-4 w-4" /> Loading…</p>
+          ) : null}
+          <ul className="space-y-3 mb-4 max-h-64 overflow-y-auto">
+            {liveReviews.map((r) => (
+              <li key={r.id} className="rounded-lg border border-neutral-200 bg-white p-3 text-sm">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <span className="font-medium text-neutral-800">{r.authorName}</span>
+                    <span className="text-neutral-400 ml-2">★{r.rating}</span>
+                    <p className="text-neutral-600 mt-1 break-words">{r.body}</p>
+                    {Array.isArray(r.media) && r.media.length > 0 ? (
+                      <p className="text-xs text-neutral-400 mt-1">{r.media.length} media file(s)</p>
+                    ) : null}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <label className="text-xs text-neutral-500">
+                      Order
+                      <input
+                        type="number"
+                        min={0}
+                        max={999}
+                        defaultValue={r.sortOrder ?? 0}
+                        className="ml-1 w-14 rounded border border-neutral-200 px-1 py-0.5 text-xs"
+                        onBlur={async (ev) => {
+                          const v = Number(ev.target.value);
+                          if (Number.isNaN(v)) return;
+                          try {
+                            await updateAdminReview(r.id, { sortOrder: v });
+                            refreshProductReviews();
+                          } catch (_) {}
+                        }}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className="text-red-600 hover:underline text-xs"
+                      onClick={async () => {
+                        if (!window.confirm('Delete this live review?')) return;
+                        try {
+                          await deleteAdminReview(r.id);
+                          refreshProductReviews();
+                        } catch (_) {}
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
               </li>
             ))}
           </ul>
-          <p className="text-xs text-neutral-500">New reviews can be submitted from product pages and approved below.</p>
+          <form onSubmit={handleAddLiveReview} className="space-y-3 border-t border-neutral-200 pt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <input
+                type="text"
+                value={liveAuthor}
+                onChange={(e) => setLiveAuthor(e.target.value)}
+                placeholder="Name"
+                className="rounded-lg border border-neutral-200 px-3 py-2 text-sm"
+              />
+              <div className="flex gap-2 items-center">
+                <label className="text-xs text-neutral-600 shrink-0">Rating</label>
+                <select value={liveRating} onChange={(e) => setLiveRating(Number(e.target.value))} className="rounded-lg border border-neutral-200 px-2 py-2 text-sm flex-1">
+                  {[5, 4, 3, 2, 1].map((v) => (
+                    <option key={v} value={v}>{v} stars</option>
+                  ))}
+                </select>
+                <label className="text-xs text-neutral-600 shrink-0">Order</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={999}
+                  value={liveSort}
+                  onChange={(e) => setLiveSort(Number(e.target.value))}
+                  className="w-16 rounded-lg border border-neutral-200 px-2 py-2 text-sm"
+                />
+              </div>
+            </div>
+            <textarea
+              value={liveBody}
+              onChange={(e) => setLiveBody(e.target.value)}
+              placeholder="Review text"
+              rows={3}
+              required
+              className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm"
+            />
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-neutral-600">Media</p>
+              {liveMedia.map((row, idx) => (
+                <div key={`live-m-${idx}`} className="flex flex-wrap items-center gap-2">
+                  <select
+                    value={row.type}
+                    onChange={(e) => setLiveMedia((prev) => prev.map((x, i) => (i === idx ? { ...x, type: e.target.value } : x)))}
+                    className="rounded border border-neutral-200 px-2 py-1 text-xs"
+                  >
+                    <option value="image">Image</option>
+                    <option value="video">Video URL</option>
+                  </select>
+                  {row.type === 'image' ? (
+                    <>
+                      <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="text-xs max-w-[200px]" onChange={(e) => handleLiveImageUpload(e, idx)} />
+                      <input
+                        type="text"
+                        value={row.url}
+                        onChange={(e) => setLiveMedia((prev) => prev.map((x, i) => (i === idx ? { ...x, url: e.target.value } : x)))}
+                        placeholder="Or paste image URL"
+                        className="flex-1 min-w-[120px] rounded border border-neutral-200 px-2 py-1 text-xs"
+                      />
+                    </>
+                  ) : (
+                    <input
+                      type="text"
+                      value={row.url}
+                      onChange={(e) => setLiveMedia((prev) => prev.map((x, i) => (i === idx ? { ...x, url: e.target.value } : x)))}
+                      placeholder="YouTube, Vimeo, or .mp4 URL"
+                      className="flex-1 min-w-[160px] rounded border border-neutral-200 px-2 py-1 text-xs"
+                    />
+                  )}
+                  <button type="button" className="text-neutral-500 hover:text-red-600 text-xs" onClick={() => setLiveMedia((prev) => prev.filter((_, i) => i !== idx))}>×</button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setLiveMedia((prev) => [...prev, { type: 'image', url: '' }])}
+                className="text-xs text-gold-700 hover:underline"
+              >
+                + Add media
+              </button>
+            </div>
+            <button
+              type="submit"
+              disabled={liveSaving || !liveBody.trim()}
+              className="rounded-lg bg-neutral-900 text-white px-4 py-2 text-sm font-medium disabled:opacity-50"
+            >
+              {liveSaving ? 'Saving…' : 'Add live review'}
+            </button>
+          </form>
         </div>
 
         <div className="mt-8">
           <h3 className="text-sm font-medium text-neutral-800 mb-2">Customer reviews (submitted on site)</h3>
-          {customerReviewsLoading ? (
+          {reviewsLoading ? (
             <p className="text-sm text-neutral-500">Loading reviews…</p>
           ) : customerReviews.length === 0 ? (
             <p className="text-sm text-neutral-500">No customer reviews yet.</p>

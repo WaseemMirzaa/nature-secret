@@ -58,8 +58,10 @@ module.exports = {
         'vibrate': 'vibrate 0.35s ease-out',
         'stagger-in': 'staggerIn 0.5s ease-out forwards',
         'gold-pulse': 'goldPulse 1.8s ease-in-out infinite',
+        'trust-marquee': 'trustMarquee 50s linear infinite',
       },
       keyframes: {
+        trustMarquee: { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-50%)' } },
         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
         slideUp: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
         /** Prefer transform-only (composited) — avoid animating box-shadow on mobile (PSI / jank). */

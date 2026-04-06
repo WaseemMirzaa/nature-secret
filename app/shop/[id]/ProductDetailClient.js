@@ -16,10 +16,79 @@ import {
 } from '@/lib/analytics';
 import { formatPrice } from '@/lib/currency';
 import { sanitizeHtml } from '@/lib/sanitizeHtml';
-import { getProductById, getProductBySlug, resolveImageUrl, getReviews, submitReview, productPath, getContentSettings } from '@/lib/api';
+import {
+  getProductById,
+  getProductBySlug,
+  resolveImageUrl,
+  getReviews,
+  submitReview,
+  uploadReviewMedia,
+  productPath,
+  getContentSettings,
+} from '@/lib/api';
+import { compressReviewMediaFile } from '@/lib/compressReviewMedia';
 import { InlineLoader } from '@/components/ui/PageLoader';
 
 const isUuid = (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+
+function getVideoPresentation(url) {
+  if (!url || typeof url !== 'string') return null;
+  const u = url.trim();
+  try {
+    const parsed = new URL(u);
+    if (parsed.hostname.includes('youtu.be')) {
+      const id = parsed.pathname.replace(/^\//, '').split('/')[0];
+      if (id) return { kind: 'embed', src: `https://www.youtube-nocookie.com/embed/${id}` };
+    }
+    if (parsed.hostname.includes('youtube.com')) {
+      const id = parsed.searchParams.get('v');
+      if (id) return { kind: 'embed', src: `https://www.youtube-nocookie.com/embed/${id}` };
+      const short = parsed.pathname.match(/\/embed\/([^/?]+)/);
+      if (short) return { kind: 'embed', src: `https://www.youtube-nocookie.com/embed/${short[1]}` };
+    }
+    if (parsed.hostname.includes('vimeo.com')) {
+      const m = parsed.pathname.match(/\/(\d+)/);
+      if (m) return { kind: 'embed', src: `https://player.vimeo.com/video/${m[1]}` };
+    }
+  } catch {
+    if (/\.(mp4|webm|ogg)(\?|$)/i.test(u)) return { kind: 'native', src: u };
+    return null;
+  }
+  if (/\.(mp4|webm|ogg)(\?|$)/i.test(u)) return { kind: 'native', src: u };
+  return { kind: 'native', src: u };
+}
+
+function ReviewMediaBlock({ item, resolveImageUrl }) {
+  const rawUrl = item?.url;
+  if (!rawUrl) return null;
+  const isVideo = item.type === 'video';
+  if (!isVideo) {
+    const imgSrc = resolveImageUrl(rawUrl) || rawUrl;
+    return (
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-neutral-100">
+        <Image src={imgSrc} alt="" fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
+      </div>
+    );
+  }
+  const pres = getVideoPresentation(rawUrl);
+  if (!pres) return null;
+  if (pres.kind === 'embed') {
+    return (
+      <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
+        <iframe
+          title="Review video"
+          src={pres.src}
+          className="absolute inset-0 h-full w-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
+      </div>
+    );
+  }
+  return (
+    <video src={pres.src} controls playsInline className="w-full rounded-lg bg-black max-h-[280px]" />
+  );
+}
 
 function scrubMedicalTerms(input = '') {
   const text = String(input || '');
@@ -98,6 +167,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
   const [reviewBody, setReviewBody] = useState('');
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewMessage, setReviewMessage] = useState('');
+  const [reviewFiles, setReviewFiles] = useState([]);
   const purchasePanelRef = useRef(null);
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [isLg, setIsLg] = useState(false);
@@ -234,11 +304,21 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
     return products.filter((p) => p.categoryId === product.categoryId && p.id !== product.id).slice(0, 4);
   }, [product, products]);
 
+  const userReviewsList = useMemo(() => {
+    if (!Array.isArray(reviews)) return [];
+    return reviews.filter((r) => !r.collection || r.collection === 'user');
+  }, [reviews]);
+
+  const liveReviewsList = useMemo(() => {
+    if (!Array.isArray(reviews)) return [];
+    return reviews.filter((r) => r.collection === 'live');
+  }, [reviews]);
+
   const fiveStarReviews = useMemo(
-    () => (Array.isArray(reviews) ? reviews.filter((r) => (r.rating || 0) >= 5) : []),
-    [reviews]
+    () => userReviewsList.filter((r) => (r.rating || 0) >= 5),
+    [userReviewsList]
   );
-  const primaryReviews = fiveStarReviews.length > 0 ? fiveStarReviews : reviews;
+  const primaryReviews = fiveStarReviews.length > 0 ? fiveStarReviews : userReviewsList;
   const reviewPreviewCount = isLg ? 2 : 3;
   const visibleReviews = primaryReviews
     ? (reviewsExpanded ? primaryReviews : primaryReviews.slice(0, reviewPreviewCount))
@@ -303,20 +383,39 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
     router.push('/checkout');
   }
 
+  function onPickReviewMedia(e) {
+    const picked = Array.from(e.target.files || []);
+    if (!picked.length) return;
+    setReviewFiles((prev) => [...prev, ...picked].slice(0, 4));
+    e.target.value = '';
+  }
+
+  function removeReviewFile(index) {
+    setReviewFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+
   async function handleSubmitReview(e) {
     e.preventDefault();
     if (!product?.id || !reviewBody.trim()) return;
     setReviewSubmitting(true);
     setReviewMessage('');
     try {
+      const media = [];
+      for (const file of reviewFiles) {
+        const ready = await compressReviewMediaFile(file);
+        const res = await uploadReviewMedia(ready, { productId: product.id });
+        media.push({ type: res.type === 'video' ? 'video' : 'image', url: res.url });
+      }
       await submitReview(product.id, {
         name: reviewName.trim(),
         rating: reviewRating,
         body: reviewBody.trim(),
+        media: media.length ? media : undefined,
       });
       setReviewName('');
       setReviewRating(5);
       setReviewBody('');
+      setReviewFiles([]);
       setReviewMessage('Thank you. Your review is submitted and will appear after approval.');
     } catch (err) {
       setReviewMessage('Could not submit review. Please try again.');
@@ -701,6 +800,37 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
       {/* Write review + recent reviews */}
       <section className="mt-6 sm:mt-10 lg:mt-16 xl:mt-20 pt-6 sm:pt-10 lg:pt-14 xl:pt-16 border-t border-neutral-200">
         <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-neutral-900 mb-3 sm:mb-4 lg:mb-6 tracking-tight">Reviews</h3>
+        {liveReviewsList.length > 0 ? (
+          <div className="mb-6 sm:mb-8 lg:mb-10">
+            <h4 className="text-sm sm:text-base font-semibold text-neutral-900 mb-3 sm:mb-4">Customer stories</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+              {liveReviewsList.map((r) => (
+                <article
+                  key={r.id}
+                  className="rounded-xl sm:rounded-2xl border border-neutral-200 bg-white p-3 sm:p-4 shadow-sm"
+                >
+                  {Array.isArray(r.media) && r.media.length > 0 ? (
+                    <div className="space-y-2 mb-3">
+                      {r.media.map((m, i) => (
+                        <ReviewMediaBlock
+                          key={`${r.id}-m-${i}-${m.url?.slice?.(0, 24) || i}`}
+                          item={m}
+                          resolveImageUrl={resolveImageUrl}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2">
+                    <span className="text-gold-600 text-sm">{'★'.repeat(Math.min(5, r.rating || 0))}</span>
+                    <span className="text-neutral-400 text-sm">{'★'.repeat(5 - Math.min(5, r.rating || 0))}</span>
+                    <span className="text-xs sm:text-sm font-medium text-neutral-800">{r.authorName}</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">{scrubMedicalTerms(r.body)}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        ) : null}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-10 xl:gap-14">
           <div>
             <p className="text-xs sm:text-sm lg:text-base text-neutral-600 mb-2 sm:mb-3 lg:mb-4 leading-snug lg:leading-relaxed">Share your experience with this product.</p>
@@ -744,7 +874,6 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                   </select>
                 </div>
               </div>
-            </form>
             <div className="mt-2 sm:mt-3 lg:mt-4">
               <label
                 htmlFor={`product-review-body-${formFieldSuffix}`}
@@ -764,17 +893,48 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                 className="w-full rounded-lg sm:rounded-xl border border-neutral-200 px-2.5 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-3 text-xs sm:text-sm lg:text-base text-neutral-900 min-h-[5.5rem] sm:min-h-0 lg:min-h-[7rem]"
               />
             </div>
+            <div className="mt-2 sm:mt-3">
+              <label
+                htmlFor={`product-review-media-${formFieldSuffix}`}
+                className="block text-[10px] sm:text-xs lg:text-sm font-medium text-neutral-700 mb-1"
+              >
+                Photos or video (optional, max 4)
+              </label>
+              <input
+                id={`product-review-media-${formFieldSuffix}`}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
+                multiple
+                onChange={onPickReviewMedia}
+                className="block w-full text-[11px] sm:text-xs text-neutral-600 file:mr-2 file:rounded-lg file:border-0 file:bg-neutral-100 file:px-2 file:py-1 file:text-neutral-800"
+              />
+              {reviewFiles.length > 0 ? (
+                <ul className="mt-2 flex flex-wrap gap-2">
+                  {reviewFiles.map((file, i) => (
+                    <li
+                      key={`${file.name}-${i}`}
+                      className="flex items-center gap-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1 text-[10px] sm:text-xs text-neutral-700 max-w-full"
+                    >
+                      <span className="truncate">{file.name}</span>
+                      <button type="button" className="shrink-0 text-red-600 hover:underline" onClick={() => removeReviewFile(i)}>
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
             {reviewMessage && (
               <p className="mt-1.5 sm:mt-2 lg:mt-2.5 text-[11px] sm:text-xs lg:text-sm text-neutral-500">{reviewMessage}</p>
             )}
             <button
               type="submit"
-              onClick={handleSubmitReview}
               disabled={reviewSubmitting || !reviewBody.trim()}
               className="mt-2 sm:mt-3 lg:mt-4 inline-flex items-center justify-center rounded-xl sm:rounded-2xl bg-neutral-900 px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 text-xs sm:text-sm lg:text-base font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
             >
               {reviewSubmitting ? 'Submitting…' : 'Submit review'}
             </button>
+            </form>
           </div>
           <div>
             {primaryReviews && primaryReviews.length > 0 ? (
@@ -784,6 +944,17 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                 </p>
                 {visibleReviews.map((r) => (
                   <div key={r.id} className="rounded-lg sm:rounded-xl border border-neutral-100 bg-neutral-50/50 p-3 sm:p-4 lg:p-5">
+                    {Array.isArray(r.media) && r.media.length > 0 ? (
+                      <div className="space-y-2 mb-2 sm:mb-3">
+                        {r.media.map((m, mi) => (
+                          <ReviewMediaBlock
+                            key={`${r.id}-um-${mi}`}
+                            item={m}
+                            resolveImageUrl={resolveImageUrl}
+                          />
+                        ))}
+                      </div>
+                    ) : null}
                     <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 lg:gap-2.5 mb-1.5 sm:mb-2 lg:mb-2.5">
                       <span className="text-gold-600 text-sm sm:text-base lg:text-lg">{'★'.repeat(Math.min(5, r.rating || 0))}</span>
                       <span className="text-neutral-400 text-sm sm:text-base lg:text-lg">{'★'.repeat(5 - Math.min(5, r.rating || 0))}</span>
@@ -807,7 +978,11 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                 )}
               </div>
             ) : (
-              <p className="text-xs sm:text-sm lg:text-base text-neutral-500 leading-snug lg:leading-relaxed">No reviews yet. Be the first to review this product.</p>
+              <p className="text-xs sm:text-sm lg:text-base text-neutral-500 leading-snug lg:leading-relaxed">
+                {liveReviewsList.length > 0
+                  ? 'No community reviews yet. Be the first to leave one.'
+                  : 'No reviews yet. Be the first to review this product.'}
+              </p>
             )}
           </div>
         </div>

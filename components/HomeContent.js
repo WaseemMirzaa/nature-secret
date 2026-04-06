@@ -12,7 +12,7 @@ import {
   getCategories,
   getContentSettings,
 } from '@/lib/api';
-import { TRUST_BADGES } from '@/lib/constants';
+import { TRUST_BADGES, TRUST_BADGE_TICKER } from '@/lib/constants';
 
 const HomeBelowFold = dynamic(() => import('@/components/HomeBelowFold'), {
   loading: () => <div className="min-h-[40vh] w-full bg-neutral-50/40" aria-hidden />,
@@ -231,13 +231,32 @@ export default function HomeContent({
         )}
       </section>
 
-      {/* Trust badges */}
-      <section className="border-y border-neutral-200 bg-white">
-        <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-3 sm:py-5 lg:py-7">
-          <ul className="flex flex-wrap justify-center gap-3 sm:gap-6 lg:gap-14 text-xs sm:text-sm text-neutral-500">
+      {/* Trust: scrolling badge strip + text */}
+      <section className="border-y border-neutral-200 bg-neutral-50/80 overflow-hidden" aria-label="Trust and certifications">
+        <div className="relative py-3 sm:py-4 lg:py-5">
+          <p className="text-center text-[10px] sm:text-xs font-medium uppercase tracking-wider text-neutral-500 mb-2 sm:mb-3">
+            Trusted shopping
+          </p>
+          <div className="overflow-hidden">
+            <div className="flex min-w-max shrink-0 animate-trust-marquee items-center gap-4 sm:gap-6 lg:gap-8 pr-4 sm:pr-6 will-change-transform">
+              {[...TRUST_BADGE_TICKER, ...TRUST_BADGE_TICKER].map((b, i) => (
+                <img
+                  key={`${b.id}-${i}`}
+                  src={b.src}
+                  alt={b.alt}
+                  width={200}
+                  height={28}
+                  className="h-6 sm:h-7 w-auto max-w-[200px] object-contain opacity-90 hover:opacity-100 transition-opacity select-none"
+                  loading="lazy"
+                  decoding="async"
+                />
+              ))}
+            </div>
+          </div>
+          <ul className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 mt-3 sm:mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1.5 sm:gap-x-8 text-[11px] sm:text-xs text-neutral-600">
             {TRUST_BADGES.map((b) => (
-              <li key={b.id} className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-gold-400/70 shrink-0" aria-hidden />
+              <li key={b.id} className="flex items-center gap-1.5">
+                <span className="w-1 h-1 rounded-full bg-gold-500/80 shrink-0" aria-hidden />
                 {b.text}
               </li>
             ))}

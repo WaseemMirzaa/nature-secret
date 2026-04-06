@@ -25,4 +25,5 @@ export const UPLOAD_PATHS = {
   products: () => join(getUploadRoot(), 'products'),
   blog: () => join(getUploadRoot(), 'blog'),
   slider: () => join(getUploadRoot(), 'slider'),
+  reviews: () => join(getUploadRoot(), 'reviews'),
 };

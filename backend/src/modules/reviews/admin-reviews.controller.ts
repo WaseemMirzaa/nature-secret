@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { AdminJwtAuthGuard } from '../../common/guards/admin-jwt.guard';
 import { AdminRoleGuard } from '../../common/guards/admin-role.guard';
@@ -18,7 +18,17 @@ export class AdminReviewsController {
   @Post()
   @StaffOrAdmin()
   async create(
-    @Body() body: { authorName: string; rating?: number; body: string; collection?: string; productId?: string },
+    @Body()
+    body: {
+      authorName: string;
+      rating?: number;
+      body: string;
+      collection?: string;
+      productId?: string;
+      approved?: boolean;
+      media?: unknown;
+      sortOrder?: number;
+    },
   ) {
     return this.service.create({
       authorName: body.authorName || 'Customer',
@@ -26,7 +36,17 @@ export class AdminReviewsController {
       body: body.body,
       collection: body.collection || 'quality',
       productId: body.productId,
+      approved: body.approved,
+      media: body.media,
+      sortOrder: body.sortOrder,
     });
+  }
+
+  @Patch('product/:productId/rating')
+  @StaffOrAdmin()
+  async setProductRating(@Param('productId') productId: string, @Body() body: { rating: number; reviewCount?: number }) {
+    await this.service.setProductRating(productId, body.rating ?? 5, body.reviewCount);
+    return { ok: true };
   }
 
   @Patch(':id/assign')
@@ -41,17 +61,29 @@ export class AdminReviewsController {
     return this.service.removeFromProduct(id);
   }
 
-  @Patch('product/:productId/rating')
-  @StaffOrAdmin()
-  async setProductRating(@Param('productId') productId: string, @Body() body: { rating: number; reviewCount?: number }) {
-    await this.service.setProductRating(productId, body.rating ?? 5, body.reviewCount);
-    return { ok: true };
-  }
-
   @Patch(':id/approve')
   @StaffOrAdmin()
   async approve(@Param('id') id: string, @Body() body: { approved: boolean }) {
     const updated = await this.service.setApproval(id, body.approved ?? true);
     return updated;
+  }
+
+  @Patch(':id')
+  @StaffOrAdmin()
+  async update(
+    @Param('id') id: string,
+    @Body()
+    body: { authorName?: string; rating?: number; body?: string; media?: unknown; sortOrder?: number; approved?: boolean },
+  ) {
+    const updated = await this.service.updateById(id, body);
+    if (!updated) return { ok: false };
+    return updated;
+  }
+
+  @Delete(':id')
+  @StaffOrAdmin()
+  async remove(@Param('id') id: string) {
+    const ok = await this.service.deleteById(id);
+    return { ok };
   }
 }

@@ -20,6 +20,7 @@ function getImagesConfig() {
           ...(u.port ? { port: u.port } : {}),
           pathname: '/**',
         },
+        { protocol: 'https', hostname: 'img.shields.io', pathname: '/**' },
       ],
     };
   } catch {
