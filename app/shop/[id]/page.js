@@ -1,5 +1,6 @@
 import { getImageProps } from 'next/image';
 import ProductDetailClient from './ProductDetailClient';
+import ProductHeroServer from './ProductHeroServer';
 import {
   getCachedProductPageData,
   fetchContentSettingsServer,
@@ -76,7 +77,11 @@ export default async function ProductPage({ params }) {
         initialProduct={product}
         initialReviews={reviews}
         initialContentSettings={contentSettings}
-      />
+      >
+        {product && lcpSrc && !lcpSrc.includes('/assets/nature-secret-logo') ? (
+          <ProductHeroServer src={lcpSrc} alt={product.name || 'Product'} />
+        ) : null}
+      </ProductDetailClient>
     </>
   );
 }

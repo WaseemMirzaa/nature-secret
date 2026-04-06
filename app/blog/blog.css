@@ -1,0 +1,64 @@
+/* Blog routes only — keeps main CSS chunk smaller for shop/home LCP. */
+
+.blog-prose {
+  font-size: clamp(1rem, 2.5vw + 0.9rem, 1.125rem);
+  line-height: 1.75;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+.blog-prose p {
+  margin-top: 1.25em;
+  margin-bottom: 0;
+  color: #57534e;
+}
+.blog-prose p:first-child {
+  margin-top: 0;
+}
+.blog-prose h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #1c1917;
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+}
+.blog-prose h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1c1917;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+.blog-prose ul,
+.blog-prose ol {
+  margin-top: 1em;
+  padding-left: 1.5em;
+  color: #57534e;
+}
+.blog-prose li {
+  margin-top: 0.35em;
+}
+.blog-prose a {
+  color: #967d25;
+  text-decoration: none;
+}
+.blog-prose a:hover {
+  text-decoration: underline;
+}
+.blog-prose strong {
+  color: #1c1917;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .blog-prose {
+    font-size: 1.125rem;
+    line-height: 1.75;
+  }
+  .blog-prose h2 {
+    font-size: 1.625rem;
+  }
+  .blog-prose h3 {
+    font-size: 1.375rem;
+  }
+}

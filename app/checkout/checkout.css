@@ -1,0 +1,34 @@
+/* Checkout + confirmation only — not needed for PDP / shop LCP. */
+
+@keyframes checkoutEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-checkout-enter {
+  animation: checkoutEnter 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.checkout-enter-delay-1 {
+  animation-delay: 0.06s;
+}
+.checkout-enter-delay-2 {
+  animation-delay: 0.12s;
+}
+.checkout-enter-delay-3 {
+  animation-delay: 0.18s;
+}
+.checkout-enter-delay-4 {
+  animation-delay: 0.24s;
+}
+.checkout-enter-delay-5 {
+  animation-delay: 0.3s;
+}
+.checkout-enter-delay-6 {
+  animation-delay: 0.36s;
+}

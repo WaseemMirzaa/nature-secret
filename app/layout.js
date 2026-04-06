@@ -76,12 +76,11 @@ export default function RootLayout({ children }) {
         {appVersion ? <meta name="ns-app-version" content={appVersion} /> : null}
         {apiOrigin ? (
           <>
-            <link rel="preconnect" href={apiOrigin} crossOrigin="" />
+            {/* Match lib/api.js fetch(..., { credentials: 'include' }) so the warm socket can be reused. */}
+            <link rel="preconnect" href={apiOrigin} crossOrigin="use-credentials" />
             <link rel="dns-prefetch" href={apiOrigin} />
           </>
         ) : null}
-        <link rel="dns-prefetch" href="https://img.shields.io" />
-        <link rel="preconnect" href="https://img.shields.io" crossOrigin="" />
         <link rel="icon" href="/assets/nature-secret-logo.svg" type="image/svg+xml" />
         <link rel="manifest" href="/manifest.json" />
       </head>

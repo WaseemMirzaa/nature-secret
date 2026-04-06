@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "critters": "^0.0.23",
+    "cssnano": "^7.1.4",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0"
   },

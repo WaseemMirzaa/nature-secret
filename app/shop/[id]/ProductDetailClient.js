@@ -27,6 +27,7 @@ import {
   getContentSettings,
 } from '@/lib/api';
 import { compressReviewMediaFile } from '@/lib/compressReviewMedia';
+import { getDefaultHeroImageSrcForProduct } from '@/lib/productImageResolve';
 import { InlineLoader } from '@/components/ui/PageLoader';
 
 const isUuid = (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
@@ -100,6 +101,7 @@ export default function ProductDetailClient({
   initialProduct: initialFromServer,
   initialReviews = [],
   initialContentSettings = null,
+  children: serverHeroImage,
 }) {
   const storeProducts = useProductsStore((s) => s.products);
   const [apiProduct, setApiProduct] = useState(initialFromServer ?? null);
@@ -250,6 +252,17 @@ export default function ProductDetailClient({
   useEffect(() => { setQty(1); }, [variant?.id]);
   const rawMain = variantImageList[selectedImageIndex] || variantImageList[0] || product?.images?.[0] || '';
   const mainImage = resolveImageUrl(rawMain) || '/assets/nature-secret-logo.svg';
+  const defaultHeroAbs = product ? getDefaultHeroImageSrcForProduct(product) : '';
+  const serverHeroValid =
+    !!serverHeroImage &&
+    !!defaultHeroAbs &&
+    !defaultHeroAbs.includes('/assets/nature-secret-logo') &&
+    mainImage === defaultHeroAbs;
+  const clientHeroNeedsPriority =
+    !serverHeroValid &&
+    !!defaultHeroAbs &&
+    mainImage === defaultHeroAbs &&
+    !defaultHeroAbs.includes('/assets/nature-secret-logo');
   const price = variant?.price ?? product?.price;
   const productDisplayName = product?.name ?? product?.slug ?? 'Product';
   const currency = useCurrencyStore((s) => s.currency);
@@ -463,17 +476,28 @@ export default function ProductDetailClient({
             onMouseEnter={() => setZoom(true)}
             onMouseLeave={() => setZoom(false)}
           >
-            <Image
-              src={mainImage}
-              alt={productDisplayName}
-              fill
-              className={`object-contain transition-transform duration-300 ${zoom ? 'scale-110' : ''}`}
-              sizes={PRODUCT_HERO_IMAGE_SIZES}
-              priority
-              fetchPriority="high"
-              quality={PRODUCT_HERO_IMAGE_QUALITY}
-              decoding="async"
-            />
+            <div
+              className={`absolute inset-0 transition-transform duration-300 [transform-origin:center] ${
+                zoom ? 'scale-110' : ''
+              }`}
+            >
+              {serverHeroValid ? (
+                serverHeroImage
+              ) : (
+                <Image
+                  src={mainImage}
+                  alt={productDisplayName}
+                  fill
+                  className="object-contain"
+                  sizes={PRODUCT_HERO_IMAGE_SIZES}
+                  priority={clientHeroNeedsPriority}
+                  fetchPriority={clientHeroNeedsPriority ? 'high' : 'low'}
+                  quality={PRODUCT_HERO_IMAGE_QUALITY}
+                  decoding={clientHeroNeedsPriority ? 'sync' : 'async'}
+                  loading={clientHeroNeedsPriority ? 'eager' : 'lazy'}
+                />
+              )}
+            </div>
             <button
               type="button"
               onClick={handleWishlistToggle}
