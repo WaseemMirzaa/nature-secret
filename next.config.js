@@ -12,7 +12,8 @@ function getImagesConfig() {
       formats: ['image/avif', 'image/webp'],
       minimumCacheTTL: 86400,
       deviceSizes: [640, 750, 828, 1080, 1200, 1920],
-      imageSizes: [32, 48, 64, 96, 128, 256],
+      /** Thumbnails + small UI; include 384 for ~128px logical @3x */
+      imageSizes: [32, 48, 64, 96, 128, 256, 384],
       remotePatterns: [
         {
           protocol: u.protocol.replace(':', ''),

@@ -434,7 +434,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
         {/* Left: gallery (desktop = large column; mobile unchanged) */}
         <div className="relative w-full lg:max-w-xl xl:max-w-md lg:mx-0 mx-auto">
           <div
-            className="aspect-[15/14] lg:aspect-[4/5] rounded-lg sm:rounded-xl lg:rounded-2xl overflow-hidden bg-neutral-100 relative shadow-sm lg:shadow-premium ring-1 ring-neutral-200/60"
+            className="aspect-square w-full rounded-lg sm:rounded-xl lg:rounded-2xl overflow-hidden bg-neutral-100 relative shadow-sm lg:shadow-premium ring-1 ring-neutral-200/60"
             onMouseEnter={() => setZoom(true)}
             onMouseLeave={() => setZoom(false)}
           >
@@ -442,11 +442,11 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
               src={mainImage}
               alt={productDisplayName}
               fill
-              className={`object-cover transition-transform duration-300 ${zoom ? 'scale-110' : ''}`}
-              sizes="(max-width: 1024px) 100vw, 42vw"
+              className={`object-contain transition-transform duration-300 ${zoom ? 'scale-110' : ''}`}
+              sizes="(max-width: 1023px) 100vw, (max-width: 1279px) min(576px, 50vw), 448px"
               priority
               fetchPriority="high"
-              quality={70}
+              quality={75}
               decoding="sync"
             />
             <button
@@ -466,15 +466,16 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                   key={i}
                   type="button"
                   onClick={() => setSelectedImageIndex(i)}
-                  className={`relative h-14 w-14 sm:h-20 sm:w-20 lg:h-[4.75rem] lg:w-[4.75rem] flex-shrink-0 rounded-lg sm:rounded-xl overflow-hidden border-2 ${selectedImageIndex === i ? 'border-neutral-900 ring-2 ring-neutral-400' : 'border-neutral-300'}`}
+                  className={`relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 sm:h-20 sm:w-20 lg:h-[4.75rem] lg:w-[4.75rem] sm:rounded-xl ${selectedImageIndex === i ? 'border-neutral-900 ring-2 ring-neutral-400' : 'border-neutral-300'}`}
                 >
                   <Image
                     src={resolved}
                     alt={`${productDisplayName} ${i + 1}`}
-                    fill
-                    className="object-cover"
-                    sizes="80px"
-                    quality={70}
+                    width={80}
+                    height={80}
+                    className="h-full w-full object-contain"
+                    sizes="(max-width: 639px) 56px, (max-width: 1023px) 80px, 76px"
+                    quality={75}
                     loading={i === 0 ? 'eager' : 'lazy'}
                   />
                 </button>
@@ -1017,14 +1018,14 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
               const name = p.name ?? p.slug ?? 'Product';
               return (
                 <Link key={p.id} href={`/shop/${productPath(p)}`} className="group animate-stagger-in opacity-0" style={{ animationDelay: `${i * 100}ms` }}>
-                  <div className="aspect-[3/4] rounded-xl sm:rounded-2xl lg:rounded-2xl overflow-hidden bg-neutral-100">
+                  <div className="aspect-square rounded-xl sm:rounded-2xl lg:rounded-2xl overflow-hidden bg-neutral-100">
                     <Image
                       src={img}
                       alt={name}
                       width={300}
-                      height={400}
-                      className="h-full w-full object-cover group-hover:scale-105 transition duration-300"
-                      sizes="(max-width: 1024px) 45vw, 300px"
+                      height={300}
+                      className="h-full w-full object-contain group-hover:scale-105 transition duration-300"
+                      sizes="(max-width: 767px) 50vw, (max-width: 1023px) 25vw, 300px"
                       quality={75}
                     />
                   </div>
