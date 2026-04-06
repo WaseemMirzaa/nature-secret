@@ -30,7 +30,22 @@
     "zustand": "^4.5.0"
   },
   "devDependencies": {
+    "critters": "^0.0.23",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0"
+  },
+  "browserslist": {
+    "production": [
+      "chrome >= 93",
+      "edge >= 93",
+      "firefox >= 92",
+      "safari >= 15.4",
+      "ios_saf >= 15.4"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

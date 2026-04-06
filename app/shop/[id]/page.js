@@ -1,5 +1,11 @@
+import { getImageProps } from 'next/image';
 import ProductDetailClient from './ProductDetailClient';
-import { fetchProductPageData, fetchProductBySlugOrId, resolveAbsoluteImageUrl } from '@/lib/fetchProductServer';
+import {
+  fetchProductPageData,
+  fetchProductBySlugOrId,
+  resolveAbsoluteImageUrl,
+  getDefaultHeroImageSrcForProduct,
+} from '@/lib/fetchProductServer';
 
 function slugFromParams(params) {
   const raw = params?.id;
@@ -29,8 +35,37 @@ export default async function ProductPage({ params }) {
   const slugOrId = slugFromParams(params);
   const { product, reviews } = await fetchProductPageData(slugOrId);
 
+  const lcpSrc = product ? getDefaultHeroImageSrcForProduct(product) : '';
+  let lcpPreload = null;
+  if (lcpSrc && !lcpSrc.includes('/assets/nature-secret-logo')) {
+    try {
+      const { props: lcpImg } = getImageProps({
+        src: lcpSrc,
+        alt: '',
+        fill: true,
+        sizes: '(max-width: 1024px) 100vw, 42vw',
+        priority: true,
+        quality: 70,
+      });
+      lcpPreload = (
+        <link
+          rel="preload"
+          as="image"
+          href={lcpImg.src}
+          {...(lcpImg.srcSet
+            ? { imagesrcset: lcpImg.srcSet, imagesizes: lcpImg.sizes || '(max-width: 1024px) 100vw, 42vw' }
+            : {})}
+          fetchPriority="high"
+        />
+      );
+    } catch {
+      lcpPreload = null;
+    }
+  }
+
   return (
     <>
+      {lcpPreload}
       <ProductDetailClient
         key={slugOrId}
         slugOrId={slugOrId}

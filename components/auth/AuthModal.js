@@ -29,7 +29,7 @@ export function AuthModal() {
     if (mode === 'forgot') {
       setLoading(true);
       try {
-        const auth = getFirebaseAuth();
+        const auth = await getFirebaseAuth();
         if (auth) {
           const { sendPasswordResetEmail } = await import('firebase/auth');
           const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
@@ -62,7 +62,7 @@ export function AuthModal() {
       setError('Please enter your name.');
       return;
     }
-    const auth = getFirebaseAuth();
+    const auth = await getFirebaseAuth();
     if (!auth) {
       setError('Sign-in is not configured. Please try again later.');
       return;

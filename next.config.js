@@ -1,3 +1,6 @@
+const path = require('path');
+const webpack = require('webpack');
+
 /** @type {import('next').NextConfig} */
 function getImagesConfig() {
   const raw = process.env.NEXT_PUBLIC_API_URL || '';
@@ -26,8 +29,24 @@ function getImagesConfig() {
 }
 
 const nextConfig = {
+  /** Inlines critical CSS + defers full stylesheet (Critters). Prod only; improves LCP. Not related to analytics. */
+  experimental: {
+    optimizeCss: true,
+  },
   images: getImagesConfig(),
   compress: true,
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      const stub = path.join(__dirname, 'lib/next-modern-browser-polyfill.js');
+      config.plugins.push(
+        new webpack.NormalModuleReplacementPlugin(
+          /[\\/]next[\\/]dist[\\/]build[\\/]polyfills[\\/]polyfill-module\.js$/,
+          stub,
+        ),
+      );
+    }
+    return config;
+  },
   async rewrites() {
     // FCM expects /firebase-messaging-sw.js at origin; serve dynamic SW with env-injected config.
     return [

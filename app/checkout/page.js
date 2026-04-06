@@ -57,6 +57,7 @@ export default function CheckoutPage() {
   /** Mobile: virtual keyboard shrinks visual viewport — undock fixed bar to end of page */
   const [keyboardOverlap, setKeyboardOverlap] = useState(false);
   const formRef = useRef(null);
+  const phoneFieldRef = useRef(null);
 
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
   const mobileBarDocked = !keyboardOverlap;
@@ -99,6 +100,14 @@ export default function CheckoutPage() {
       if (!mq.matches || !e.target?.matches?.('input, textarea, select')) return;
       clearTimeout(t);
       t = setTimeout(syncFromVv, 120);
+      /** Scroll phone row near top so contact fields stay visible above keyboard */
+      const phoneEl = phoneFieldRef.current;
+      const contactEl = document.getElementById('checkout-contact');
+      if (phoneEl && contactEl?.contains(e.target)) {
+        requestAnimationFrame(() => {
+          phoneEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
     };
     const onFocusOut = () => {
       clearTimeout(t);
@@ -403,7 +412,7 @@ export default function CheckoutPage() {
     >
       <div className="mb-2 sm:mb-5 lg:mb-8">
         <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-neutral-900">Checkout</h1>
-        <p className="mt-0.5 lg:mt-1 text-[11px] sm:text-xs lg:text-sm text-neutral-500 leading-snug">Complete your order. Add email if you want order updates by email; we&apos;ll also reach you on your phone.</p>
+        <p className="mt-0.5 lg:mt-1 text-[11px] sm:text-xs lg:text-sm text-neutral-500 leading-snug">Complete your order. Email is required for order updates; we&apos;ll also reach you on your phone.</p>
       </div>
       <form
         ref={formRef}
@@ -426,18 +435,9 @@ export default function CheckoutPage() {
                 defaultValue=""
               />
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 sm:gap-2.5 lg:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-1 gap-2 sm:gap-2.5 lg:gap-4 lg:grid-cols-2">
               <input
-                id="checkout-email"
-                type="email"
-                name="email"
-                autoComplete="email"
-                placeholder="Email (optional)"
-                value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                className="min-w-0 w-full rounded-lg lg:rounded-xl border border-neutral-200 px-2.5 sm:px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
-              />
-              <input
+                ref={phoneFieldRef}
                 id="checkout-phone"
                 type="tel"
                 name="phone"
@@ -452,7 +452,18 @@ export default function CheckoutPage() {
                   setForm((f) => ({ ...f, phone: next }));
                   if (String(next || '').replace(/\D/g, '').length > 9) setPhoneError('');
                 }}
-                className="min-w-0 w-full rounded-lg lg:rounded-xl border border-neutral-200 px-2.5 sm:px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900"
+                className="min-w-0 w-full rounded-lg lg:rounded-xl border border-neutral-200 px-2.5 sm:px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900 lg:order-2"
+              />
+              <input
+                id="checkout-email"
+                type="email"
+                name="email"
+                autoComplete="email"
+                required
+                placeholder="Email"
+                value={form.email}
+                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                className="min-w-0 w-full rounded-lg lg:rounded-xl border border-neutral-200 px-2.5 sm:px-3 py-2 sm:py-2.5 lg:px-4 lg:py-3 text-sm lg:text-base text-neutral-900 lg:order-1"
               />
             </div>
             {phoneError && <p className="text-xs sm:text-sm text-red-600 -mt-1 lg:-mt-2">{phoneError}</p>}
@@ -504,6 +515,16 @@ export default function CheckoutPage() {
             </div>
           </div>
           <p className="mt-2 sm:mt-3 lg:mt-4 text-[11px] sm:text-xs lg:text-sm text-neutral-500">Payment: Cash on delivery.</p>
+          {keyboardOverlap && (
+            <button
+              type="submit"
+              form="checkout-form"
+              disabled={placing}
+              className="lg:hidden mt-4 flex w-full min-h-[3.25rem] items-center justify-center rounded-2xl bg-neutral-900 px-6 py-3.5 text-[0.9375rem] font-semibold leading-snug tracking-tight text-white shadow-[0_6px_20px_-4px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/[0.06] transition-all duration-200 hover:bg-neutral-800 active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/55 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none"
+            >
+              {placing ? 'Placing order…' : 'Place order · Cash on delivery'}
+            </button>
+          )}
         </div>
 
         <div className="order-1 lg:order-2 min-w-0">
@@ -629,16 +650,18 @@ export default function CheckoutPage() {
             </div>
           </div>
         </div>
-        <div className="px-4 sm:px-5 pb-3 sm:pb-4">
-          <button
-            type="submit"
-            form="checkout-form"
-            disabled={placing}
-            className="flex w-full min-h-[3.5rem] sm:min-h-[3.625rem] items-center justify-center rounded-2xl bg-neutral-900 px-6 py-3.5 text-[0.9375rem] sm:text-base font-semibold leading-snug tracking-tight text-white shadow-[0_6px_20px_-4px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/[0.06] transition-all duration-200 hover:bg-neutral-800 hover:shadow-[0_10px_28px_-6px_rgba(0,0,0,0.42)] active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/55 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none animate-cta-attract hover:animate-none disabled:animate-none"
-          >
-            {placing ? 'Placing order…' : 'Place order · Cash on delivery'}
-          </button>
-        </div>
+        {!keyboardOverlap && (
+          <div className="px-4 sm:px-5 pb-3 sm:pb-4">
+            <button
+              type="submit"
+              form="checkout-form"
+              disabled={placing}
+              className="flex w-full min-h-[3.5rem] sm:min-h-[3.625rem] items-center justify-center rounded-2xl bg-neutral-900 px-6 py-3.5 text-[0.9375rem] sm:text-base font-semibold leading-snug tracking-tight text-white shadow-[0_6px_20px_-4px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/[0.06] transition-all duration-200 hover:bg-neutral-800 hover:shadow-[0_10px_28px_-6px_rgba(0,0,0,0.42)] active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/55 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none animate-cta-attract hover:animate-none disabled:animate-none"
+            >
+              {placing ? 'Placing order…' : 'Place order · Cash on delivery'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

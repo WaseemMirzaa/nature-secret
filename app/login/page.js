@@ -32,7 +32,7 @@ function LoginForm() {
       setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
       return;
     }
-    const auth = getFirebaseAuth();
+    const auth = await getFirebaseAuth();
     if (!auth) {
       setError('Sign-in is not configured. Please try again later.');
       return;

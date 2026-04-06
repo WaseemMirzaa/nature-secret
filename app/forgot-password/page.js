@@ -22,7 +22,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     try {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-      const auth = getFirebaseAuth();
+      const auth = await getFirebaseAuth();
       if (auth) {
         const { sendPasswordResetEmail } = await import('firebase/auth');
         await sendPasswordResetEmail(auth, email.trim(), {

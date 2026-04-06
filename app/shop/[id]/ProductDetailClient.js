@@ -347,7 +347,8 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
               sizes="(max-width: 1024px) 100vw, 42vw"
               priority
               fetchPriority="high"
-              quality={75}
+              quality={70}
+              decoding="sync"
             />
             <button
               type="button"
@@ -471,7 +472,12 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
               </div>
             )}
             <div className="pt-0.5 lg:pt-1">
-              <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Quantity</p>
+              <label
+                htmlFor={`product-qty-${formFieldSuffix}`}
+                className="block text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2"
+              >
+                Quantity
+              </label>
               <div className="inline-flex items-stretch rounded-xl border-2 border-neutral-200 bg-white">
                 <button
                   type="button"
@@ -865,7 +871,12 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
             )}
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 min-w-0">
-                <span className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider shrink-0">Qty</span>
+                <label
+                  htmlFor={`product-qty-sticky-${formFieldSuffix}`}
+                  className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider shrink-0"
+                >
+                  Qty
+                </label>
                 <div className="inline-flex items-stretch rounded-lg border border-neutral-200 bg-white">
                   <button
                     type="button"

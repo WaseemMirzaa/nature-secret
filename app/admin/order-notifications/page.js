@@ -52,7 +52,7 @@ export default function OrderNotificationsPage() {
       }
 
       const { getMessaging, getToken } = await import('firebase/messaging');
-      const app = getApp();
+      const app = await getApp();
       if (!app) {
         setError('Firebase is not configured. Add Firebase config and reload.');
         setLoading(false);

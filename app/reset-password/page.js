@@ -40,7 +40,7 @@ function ResetPasswordForm() {
     setLoading(true);
     try {
       if (isFirebase) {
-        const auth = getFirebaseAuth();
+        const auth = await getFirebaseAuth();
         if (!auth) throw new Error('Sign-in not configured.');
         const { confirmPasswordReset } = await import('firebase/auth');
         await confirmPasswordReset(auth, oobCode, password);
