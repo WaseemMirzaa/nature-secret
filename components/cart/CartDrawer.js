@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from '@/components/Link';
 import Image from 'next/image';
 import { useCartStore, useCartOpenStore, useProductsStore, useCurrencyStore } from '@/lib/store';
@@ -18,10 +18,31 @@ import {
 import { formatPrice } from '@/lib/currency';
 import { Logo } from '@/components/Logo';
 import { useProductsAndCategories } from '@/lib/useApiData';
+import { overlayHistoryDismissIfTop, overlayHistoryOpen } from '@/lib/overlayHistory';
+
+const OVERLAY_ID = 'nsCart';
 
 export function CartDrawer() {
   const isOpen = useCartOpenStore((s) => s.isOpen);
   const close = useCartOpenStore((s) => s.close);
+  const drawerWasOpenRef = useRef(false);
+
+  const closeCart = useCallback(() => {
+    overlayHistoryDismissIfTop(OVERLAY_ID, close);
+  }, [close]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!isOpen) {
+      drawerWasOpenRef.current = false;
+      return;
+    }
+    if (!drawerWasOpenRef.current) {
+      overlayHistoryOpen(OVERLAY_ID, () => useCartOpenStore.getState().close());
+    }
+    drawerWasOpenRef.current = true;
+  }, [isOpen]);
+
   const { items, updateQty, removeItem } = useCartStore();
   const storeProducts = useProductsStore((s) => s.products);
   const { products } = useProductsAndCategories(storeProducts);
@@ -99,14 +120,14 @@ export function CartDrawer() {
 
   return (
     <>
-      <div className="fixed inset-0 z-50 bg-black/20" aria-hidden onClick={close} />
+      <div className="fixed inset-0 z-50 bg-black/20" aria-hidden onClick={closeCart} />
       <div className="fixed top-0 right-0 z-50 h-full w-full max-w-md bg-white shadow-premium flex flex-col animate-slide-up">
         <div className="flex items-center justify-between p-3 sm:p-4 border-b border-neutral-200">
           <div className="flex items-center gap-2 sm:gap-3">
             <Logo className="h-6 sm:h-7" />
             <span className="text-xs sm:text-sm font-medium text-neutral-500">Your cart</span>
           </div>
-          <button type="button" onClick={close} className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-neutral-500 hover:text-neutral-900 rounded-full sm:rounded-2xl" aria-label="Close">×</button>
+          <button type="button" onClick={closeCart} className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-neutral-500 hover:text-neutral-900 rounded-full sm:rounded-2xl" aria-label="Close">×</button>
         </div>
         <div className="flex-1 overflow-y-auto p-3 sm:p-4">
           {items.length === 0 ? (
@@ -170,7 +191,7 @@ export function CartDrawer() {
             {discountAmount > 0 && <div className="text-xs sm:text-sm text-green-600">Discount: −{formatPrice(discountAmount, currency)}</div>}
             <div className="text-xs sm:text-sm text-neutral-500">Shipping: {shipping === 0 ? 'Free' : formatPrice(shipping, currency)}</div>
             <div className="text-sm sm:text-base font-semibold text-neutral-900">Total: {formatPrice(totalWithShipping, currency)}</div>
-            <Link href="/checkout" onClick={close} className="block w-full rounded-full sm:rounded-2xl bg-neutral-900 text-white text-center py-2.5 sm:py-3 text-sm font-medium animate-cta-attract hover:animate-none transition">Checkout</Link>
+            <Link href="/checkout" onClick={closeCart} className="block w-full rounded-full sm:rounded-2xl bg-neutral-900 text-white text-center py-2.5 sm:py-3 text-sm font-medium animate-cta-attract hover:animate-none transition">Checkout</Link>
           </div>
         )}
       </div>

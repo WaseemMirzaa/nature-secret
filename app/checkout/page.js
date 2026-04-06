@@ -27,7 +27,7 @@ import {
   isNsPromoWindowActive,
   normalizePromoCode,
   NS_PROMO_CODE,
-  NS_PROMO_DURATION_MINUTES,
+  NS_PROMO_DURATION_HOURS,
   setSessionDiscountCode,
 } from '@/lib/nsSessionPromo';
 
@@ -194,7 +194,7 @@ export default function CheckoutPage() {
     if (isNsPromoCode(code)) {
       if (!isNsPromoWindowActive()) {
         setDiscountError(
-          `This ${NS_PROMO_DURATION_MINUTES}-minute offer window has ended. You can still use other codes.`,
+          `This ${NS_PROMO_DURATION_HOURS}-hour offer window has ended. You can still use other codes.`,
         );
         return;
       }
@@ -348,7 +348,7 @@ export default function CheckoutPage() {
     'w-full rounded-2xl border border-neutral-600 bg-gradient-to-b from-white to-gold-50/[0.35] px-2.5 py-2 text-base leading-snug text-neutral-900 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9)] placeholder:text-neutral-400/85 placeholder:text-sm max-sm:placeholder:font-normal transition-all duration-200 hover:border-neutral-700 hover:shadow-[0_1px_6px_-3px_rgba(0,0,0,0.06)] focus:border-neutral-700 focus:bg-white focus:shadow-[0_0_0_3px_rgba(82,82,82,0.16)] focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 sm:border-2 sm:border-neutral-600 sm:px-3 sm:py-2.5 sm:text-sm sm:leading-snug lg:px-3.5 lg:py-3 lg:text-[0.9375rem]';
 
   const labelClass =
-    'block mb-0.5 sm:mb-1 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.12em] sm:tracking-wide text-neutral-600 border-l-[3px] border-gold-500 pl-2 sm:pl-2.5';
+    'block mb-0.5 sm:mb-1 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.12em] sm:tracking-wide text-neutral-600';
 
   /** Cards: low lift + soft wide penumbra (more visible shadow, less “floating”) */
   const checkoutCardShadow =
@@ -384,9 +384,7 @@ export default function CheckoutPage() {
             Complete your order
           </h1>
           <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs lg:text-sm text-neutral-600 leading-relaxed max-w-md">
-            Pay cash on delivery when it arrives — delivery in 5–7 business days.{' '}
-            <span className="text-neutral-500">Signing in is optional</span>
-            {customer ? " — you're signed in, so we've filled in what we can." : ' — no account needed; enter your details below as a guest.'}
+            Your order will arrive within 3 to 7 days.
           </p>
         </div>
       </div>
@@ -537,17 +535,17 @@ export default function CheckoutPage() {
             </span>
           </div>
           <p className="mt-1.5 sm:mt-2 text-[10px] sm:text-xs text-neutral-500 leading-relaxed">
-            {shipping === 0 ? 'Free shipping on this order.' : 'Standard delivery 5–7 business days.'}
+            {shipping === 0 ? 'Free shipping on this order — delivery in 3–7 days.' : 'Standard delivery in 3–7 days.'}
           </p>
         </section>
 
         <section className={`animate-checkout-enter checkout-enter-delay-3 motion-reduce:animate-none motion-reduce:opacity-100 p-3.5 sm:p-4 ${cardSurface}`}>
           <h2 className={`${sectionTitle} mb-1`}>Payment</h2>
           <p className="text-[10px] sm:text-xs text-neutral-500 mb-2 sm:mb-3 leading-relaxed">
-            All transactions are secure. Pay when your order arrives.
+            All transactions are secure. Pay when your order arrives (usually within 3–7 days).
           </p>
           <div className="rounded-2xl border-0 bg-gold-100 px-3 py-2.5 sm:px-4 sm:py-3.5 text-xs sm:text-sm font-semibold text-neutral-900 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.07)]">
-            Cash on delivery (COD)
+            Cash on delivery (COD) · arrives in 3–7 days
           </div>
         </section>
 
@@ -691,7 +689,7 @@ export default function CheckoutPage() {
             </p>
           </div>
           <p className="mt-3 text-[10px] sm:text-xs text-center text-neutral-500 leading-snug lg:hidden">
-            Pay on delivery · COD · Secure delivery
+            Arrives in 3–7 days · Pay on delivery (COD) · Secure checkout
           </p>
         </div>
 

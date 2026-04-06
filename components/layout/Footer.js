@@ -33,7 +33,7 @@ export function Footer() {
               Premium herbal oils and skincare. Clean, minimal, effective. Crafted for those who value quality and simplicity.
             </p>
             <p className="mt-3 text-xs text-neutral-600">
-              Nationwide delivery · Cash on delivery · Quality assured
+              Nationwide delivery · Arrives in 3–7 days · Quality assured
             </p>
             <FooterContact />
             <div className="mt-6 h-px w-12 bg-gold-400/60" aria-hidden />

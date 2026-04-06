@@ -2,10 +2,13 @@
 
 import Link from '@/components/Link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { overlayHistoryDismissIfTop, overlayHistoryOpen } from '@/lib/overlayHistory';
 import { Logo } from '@/components/Logo';
 import { PageLoader } from '@/components/ui/PageLoader';
 import { AdminRealtimeProvider } from '@/context/AdminRealtimeContext';
+
+const ADMIN_MOBILE_OVERLAY_ID = 'nsAdminMobileNav';
 
 const ADMIN_NAV = [
   { href: '/admin', label: 'Dashboard', adminOnly: true },
@@ -65,6 +68,23 @@ export default function AdminLayout({ children }) {
   const router = useRouter();
   const [auth, setAuth] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const adminMenuWasOpenRef = useRef(false);
+
+  const closeMobileMenu = useCallback(() => {
+    overlayHistoryDismissIfTop(ADMIN_MOBILE_OVERLAY_ID, () => setMobileMenuOpen(false));
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!mobileMenuOpen) {
+      adminMenuWasOpenRef.current = false;
+      return;
+    }
+    if (!adminMenuWasOpenRef.current) {
+      overlayHistoryOpen(ADMIN_MOBILE_OVERLAY_ID, () => setMobileMenuOpen(false));
+    }
+    adminMenuWasOpenRef.current = true;
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     const stored = typeof window !== 'undefined' && localStorage.getItem('nature_secret_admin');
@@ -115,12 +135,12 @@ export default function AdminLayout({ children }) {
       </div>
       {/* Sidebar: drawer on mobile, fixed on md+ */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-black/30" aria-hidden onClick={() => setMobileMenuOpen(false)} />
+        <div className="md:hidden fixed inset-0 z-40 bg-black/30" aria-hidden onClick={closeMobileMenu} />
       )}
       <aside className={`w-64 max-w-[85vw] md:max-w-none md:w-56 border-r border-neutral-200 bg-white flex flex-col fixed md:static inset-y-0 left-0 z-40 transform transition-transform duration-200 ease-out md:transform-none pt-14 md:pt-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
-        <button type="button" onClick={() => setMobileMenuOpen(false)} className="md:hidden absolute top-4 right-4 p-2 min-w-[44px] min-h-[44px] rounded-xl text-neutral-500 hover:bg-neutral-100" aria-label="Close menu">×</button>
+        <button type="button" onClick={closeMobileMenu} className="md:hidden absolute top-4 right-4 p-2 min-w-[44px] min-h-[44px] rounded-xl text-neutral-500 hover:bg-neutral-100" aria-label="Close menu">×</button>
         <div className="flex-1 overflow-y-auto flex flex-col">
-          <NavSidebar pathname={pathname} auth={auth} onNavClick={() => setMobileMenuOpen(false)} onLogout={() => { localStorage.removeItem('nature_secret_admin'); router.replace('/admin/login'); }} />
+          <NavSidebar pathname={pathname} auth={auth} onNavClick={closeMobileMenu} onLogout={() => { localStorage.removeItem('nature_secret_admin'); closeMobileMenu(); router.replace('/admin/login'); }} />
         </div>
       </aside>
       <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 min-w-0">{children}</main>

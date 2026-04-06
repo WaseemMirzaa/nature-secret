@@ -1,15 +1,35 @@
 'use client';
 
 import Link from '@/components/Link';
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useCartStore, useCartOpenStore, useCustomerStore, useAuthModalStore } from '@/lib/store';
 import { Logo } from '@/components/Logo';
 import { CartIcon } from '@/components/icons/CartIcon';
 import { HeartIcon } from '@/components/icons/HeartIcon';
 import { MenuIcon } from '@/components/icons/MenuIcon';
+import { overlayHistoryDismissIfTop, overlayHistoryOpen } from '@/lib/overlayHistory';
+
+const MOBILE_NAV_OVERLAY_ID = 'nsMobileNav';
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuWasOpenRef = useRef(false);
+
+  const closeMenu = useCallback(() => {
+    overlayHistoryDismissIfTop(MOBILE_NAV_OVERLAY_ID, () => setMenuOpen(false));
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!menuOpen) {
+      menuWasOpenRef.current = false;
+      return;
+    }
+    if (!menuWasOpenRef.current) {
+      overlayHistoryOpen(MOBILE_NAV_OVERLAY_ID, () => setMenuOpen(false));
+    }
+    menuWasOpenRef.current = true;
+  }, [menuOpen]);
   const openCart = useCartOpenStore((s) => s.open);
   const items = useCartStore((s) => s.items);
   const customer = useCustomerStore((s) => s.customer);
@@ -75,22 +95,22 @@ export function Header() {
         {menuOpen && (
           <div className="md:hidden border-t border-neutral-200 bg-white">
             <nav className="flex flex-col gap-0 px-3 py-3">
-              <Link href="/" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Home</Link>
-              <Link href="/shop" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Shop</Link>
-              <Link href="/shop?category=herbal-oils" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Botanical oils</Link>
-              <Link href="/shop?category=skin-care" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Skin Care</Link>
-              <Link href="/blog" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Blog</Link>
-              <Link href="/contact" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Contact</Link>
+              <Link href="/" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenu}>Home</Link>
+              <Link href="/shop" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenu}>Shop</Link>
+              <Link href="/shop?category=herbal-oils" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenu}>Botanical oils</Link>
+              <Link href="/shop?category=skin-care" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenu}>Skin Care</Link>
+              <Link href="/blog" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenu}>Blog</Link>
+              <Link href="/contact" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenu}>Contact</Link>
               {customer ? (
                 <>
-                  <Link href="/account" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Account</Link>
-                  <Link href="/support" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={() => setMenuOpen(false)}>Support</Link>
-                  <button type="button" className="py-2.5 text-sm text-left text-neutral-600 hover:text-gold-600 font-medium w-full border-b border-neutral-100" onClick={() => { useCustomerStore.getState().logout(); setMenuOpen(false); window.location.href = '/'; }}>Log out</button>
+                  <Link href="/account" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenu}>Account</Link>
+                  <Link href="/support" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenu}>Support</Link>
+                  <button type="button" className="py-2.5 text-sm text-left text-neutral-600 hover:text-gold-600 font-medium w-full border-b border-neutral-100" onClick={() => { useCustomerStore.getState().logout(); closeMenu(); window.location.href = '/'; }}>Log out</button>
                 </>
               ) : (
                 <>
-                  <button type="button" className="py-2.5 text-sm text-left text-neutral-600 hover:text-gold-600 font-medium w-full border-b border-neutral-100" onClick={() => { useAuthModalStore.getState().openLogin(); setMenuOpen(false); }}>Login</button>
-                  <button type="button" className="py-2.5 text-sm text-left font-medium text-neutral-900 w-full mt-1.5 rounded-full sm:rounded-2xl bg-gold-50 text-gold-800 border border-gold-200" onClick={() => { useAuthModalStore.getState().openSignup(); setMenuOpen(false); }}>Create account</button>
+                  <button type="button" className="py-2.5 text-sm text-left text-neutral-600 hover:text-gold-600 font-medium w-full border-b border-neutral-100" onClick={() => { useAuthModalStore.getState().openLogin(); closeMenu(); }}>Login</button>
+                  <button type="button" className="py-2.5 text-sm text-left font-medium text-neutral-900 w-full mt-1.5 rounded-full sm:rounded-2xl bg-gold-50 text-gold-800 border border-gold-200" onClick={() => { useAuthModalStore.getState().openSignup(); closeMenu(); }}>Create account</button>
                 </>
               )}
             </nav>

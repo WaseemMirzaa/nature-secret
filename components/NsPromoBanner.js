@@ -4,16 +4,20 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import {
   NS_PROMO_CODE,
-  NS_PROMO_DURATION_MINUTES,
+  NS_PROMO_DURATION_HOURS,
   initNsPromoDeadline,
   getNsPromoSecondsRemaining,
   isNsPromoWindowActive,
 } from '@/lib/nsSessionPromo';
 
-function formatMmSs(totalSeconds) {
-  const m = Math.floor(totalSeconds / 60);
+function formatCountdown(totalSeconds) {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
   const s = totalSeconds % 60;
-  return `${m}:${String(s).padStart(2, '0')}`;
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  const mm = Math.floor(totalSeconds / 60);
+  const ss = totalSeconds % 60;
+  return `${mm}:${String(ss).padStart(2, '0')}`;
 }
 
 export function NsPromoBanner() {
@@ -48,10 +52,10 @@ export function NsPromoBanner() {
     >
       <p className="text-sm sm:text-base text-neutral-900 leading-snug font-medium">
         <span className="font-bold text-gold-950">
-          Offer for our first customers available for {NS_PROMO_DURATION_MINUTES} min
+          Offer for our first customers available for {NS_PROMO_DURATION_HOURS} hours
         </span>
         <span className="text-neutral-600"> — </span>
-        <span className="tabular-nums font-bold text-gold-900 text-base sm:text-lg">{formatMmSs(seconds)}</span>
+        <span className="tabular-nums font-bold text-gold-900 text-base sm:text-lg">{formatCountdown(seconds)}</span>
         <span className="text-neutral-700 font-semibold"> left this visit</span>
         <span className="text-neutral-600"> · </span>
         <span className="text-neutral-800">

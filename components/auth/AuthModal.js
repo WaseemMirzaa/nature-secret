@@ -1,16 +1,36 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCustomerStore, useAuthModalStore } from '@/lib/store';
 import { Logo } from '@/components/Logo';
 import { customerFirebaseLogin, customerForgotPassword, formatApiError } from '@/lib/api';
 import { getFirebaseAuth, getFirebaseAuthErrorMessage, MIN_PASSWORD_LENGTH } from '@/lib/firebase';
+import { overlayHistoryDismissIfTop, overlayHistoryOpen } from '@/lib/overlayHistory';
+
+const OVERLAY_ID = 'nsAuth';
 
 export function AuthModal() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { open, mode, close } = useAuthModalStore();
+  const modalWasOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!open) {
+      modalWasOpenRef.current = false;
+      return;
+    }
+    if (!modalWasOpenRef.current) {
+      overlayHistoryOpen(OVERLAY_ID, () => useAuthModalStore.getState().close());
+    }
+    modalWasOpenRef.current = true;
+  }, [open]);
+
+  const closeModal = useCallback(() => {
+    overlayHistoryDismissIfTop(OVERLAY_ID, close);
+  }, [close]);
   const login = useCustomerStore((s) => s.login);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -78,7 +98,7 @@ export function AuthModal() {
       const raw = localStorage.getItem('nature_secret_customer');
       const customer = raw ? JSON.parse(raw) : null;
       login(customer || { email: email.trim(), name: name.trim() || email.trim().split('@')[0] });
-      close();
+      overlayHistoryDismissIfTop(OVERLAY_ID, close);
       setEmail('');
       setPassword('');
       setName('');
@@ -96,11 +116,11 @@ export function AuthModal() {
 
   return (
     <>
-      <div className="fixed inset-0 z-50 bg-black/30" aria-hidden onClick={close} />
+      <div className="fixed inset-0 z-50 bg-black/30" aria-hidden onClick={closeModal} />
       <div className="fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-neutral-200 bg-white p-6 shadow-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <Logo className="h-7" link={false} />
-          <button type="button" onClick={close} className="p-1 text-neutral-400 hover:text-neutral-600" aria-label="Close">×</button>
+          <button type="button" onClick={closeModal} className="p-1 text-neutral-400 hover:text-neutral-600" aria-label="Close">×</button>
         </div>
 
         {mode === 'forgot' ? (
