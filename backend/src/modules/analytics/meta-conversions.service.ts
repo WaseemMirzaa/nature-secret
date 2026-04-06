@@ -144,8 +144,7 @@ export class MetaConversionsService {
       if (hSt) user_data.st = [hSt];
       const hZp = dto.zip ? this.hashNormalizedPII(dto.zip, 20) : null;
       if (hZp) user_data.zp = [hZp];
-      const hStreet = dto.street ? this.hashNormalizedPII(dto.street, 120) : null;
-      if (hStreet) user_data.street = [hStreet];
+      // Meta CAPI user_data does not accept `street` (Graph error_subcode 2804019).
       const hCountry = dto.country ? this.hashCountryCode(dto.country) : null;
       if (hCountry) user_data.country = [hCountry];
       const oid = dto.orderId?.trim();

@@ -39,6 +39,7 @@ function StoreAttributionEffects({ pathname, isAdmin }) {
 
   useEffect(() => {
     if (typeof window === 'undefined' || isAdmin || !pathname) return;
+    if (pathname.startsWith('/checkout')) return;
     trackPageView(pathname);
   }, [pathname, isAdmin]);
 

@@ -121,6 +121,7 @@ export class MetaCapiDto {
   @MaxLength(200)
   customerName?: string;
 
+  /** Accepted from client; not forwarded — Meta CAPI `user_data` has no `street` parameter. */
   @IsOptional()
   @IsString()
   @MaxLength(500)
