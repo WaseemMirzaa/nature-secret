@@ -647,7 +647,7 @@ export default function ProductDetailClient({
                       setOrderNowVibrate(true);
                       setTimeout(() => setOrderNowVibrate(false), 400);
                     }}
-                    className={`w-full rounded-2xl border-2 border-gold-500/80 bg-gold-50/80 py-3 lg:py-3.5 text-sm font-semibold text-neutral-900 hover:bg-gold-100/90 transition shadow-gold-sm ${
+                    className={`w-full rounded-2xl border-2 border-gold-400/90 bg-gold-shine-cta py-3 lg:py-3.5 text-sm font-semibold text-neutral-900 hover:brightness-[1.03] transition shadow-gold-md ${
                       orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
                     }`}
                   >
@@ -1154,7 +1154,7 @@ export default function ProductDetailClient({
                   setOrderNowVibrate(true);
                   setTimeout(() => setOrderNowVibrate(false), 400);
                 }}
-                className={`min-h-[3rem] flex flex-col items-center justify-center gap-0 rounded-xl bg-gold-500 px-1.5 py-1 text-center text-xs font-semibold text-neutral-900 hover:bg-gold-400 transition shadow-sm leading-tight ${
+                className={`min-h-[3rem] flex flex-col items-center justify-center gap-0 rounded-xl bg-gold-shine-cta px-1.5 py-1 text-center text-xs font-semibold text-neutral-900 hover:brightness-[1.03] transition shadow-gold-sm leading-tight ${
                   orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
                 }`}
               >
@@ -1201,7 +1201,7 @@ export default function ProductDetailClient({
                   setOrderNowVibrate(true);
                   setTimeout(() => setOrderNowVibrate(false), 400);
                 }}
-                className={`rounded-xl border-2 border-gold-500/80 bg-gold-50 px-5 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-gold-100 transition shadow-gold-sm min-w-[120px] ${
+                className={`rounded-xl border-2 border-gold-400/90 bg-gold-shine-cta px-5 py-2.5 text-sm font-semibold text-neutral-900 hover:brightness-[1.03] transition shadow-gold-md min-w-[120px] ${
                   orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
                 }`}
               >

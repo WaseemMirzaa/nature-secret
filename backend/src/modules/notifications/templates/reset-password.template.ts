@@ -34,7 +34,7 @@ export function renderResetPasswordEmail(resetLink: string): string {
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
                   <td>
-                    <span style="font-size: 22px; font-weight: 600; color: #cba847; letter-spacing: 0.02em;">Nature Secret</span>
+                    <span style="font-size: 22px; font-weight: 600; color: #d4af37; letter-spacing: 0.02em;">Nature Secret</span>
                   </td>
                 </tr>
                 <tr>
@@ -53,12 +53,12 @@ export function renderResetPasswordEmail(resetLink: string): string {
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="left">
                 <tr>
                   <td style="border-radius: 12px; background-color: #1c1917;">
-                    <a href="${link}" target="_blank" style="display: inline-block; padding: 14px 28px; font-size: 15px; font-weight: 600; color: #cba847; text-decoration: none; letter-spacing: 0.02em;">Reset password</a>
+                    <a href="${link}" target="_blank" style="display: inline-block; padding: 14px 28px; font-size: 15px; font-weight: 600; color: #d4af37; text-decoration: none; letter-spacing: 0.02em;">Reset password</a>
                   </td>
                 </tr>
               </table>
               <p style="margin: 28px 0 0; font-size: 13px; color: #78716c; line-height: 1.5;">If you didn't request this, you can ignore this email. Your password will stay the same.</p>
-              <p style="margin: 16px 0 0; font-size: 12px; color: #a8a29e; line-height: 1.5; word-break: break-all;">Or copy this link: <a href="${link}" style="color: #cba847;">${link}</a></p>
+              <p style="margin: 16px 0 0; font-size: 12px; color: #a8a29e; line-height: 1.5; word-break: break-all;">Or copy this link: <a href="${link}" style="color: #d4af37;">${link}</a></p>
             </td>
           </tr>
           <!-- Footer -->

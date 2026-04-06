@@ -5,9 +5,20 @@
 :root {
   --bg: #fafaf9;
   --fg: #1c1917;
-  --gold: #cba847;
-  --gold-soft: rgba(203, 168, 71, 0.12);
-  --gold-border: rgba(203, 168, 71, 0.35);
+  --gold: #d4af37;
+  --gold-mid: #b8962e;
+  --gold-rgb: 212 175 55;
+  --gold-soft: rgba(212, 175, 55, 0.14);
+  --gold-border: rgba(212, 175, 55, 0.38);
+  --gold-shine: linear-gradient(
+    135deg,
+    #fffef8 0%,
+    #f5e6a8 22%,
+    #d4af37 45%,
+    #f4e8a1 56%,
+    #c9a227 82%,
+    #8b6914 100%
+  );
 }
 
 html {
@@ -64,9 +75,11 @@ body {
   @apply outline-none ring-2 ring-neutral-800 ring-offset-2 ring-offset-neutral-50;
 }
 
-/* Prevent horizontal overflow on small screens */
+/* Prevent horizontal overflow on small screens — inputs only (iOS zoom); buttons use explicit text-* */
 @media (max-width: 640px) {
-  input, select, textarea, button {
+  input,
+  select,
+  textarea {
     font-size: 16px; /* Prevents iOS zoom on focus */
   }
 }
@@ -115,7 +128,7 @@ html {
   margin-top: 0.35em;
 }
 .blog-prose a {
-  color: #9a7209;
+  color: #967d25;
   text-decoration: none;
 }
 .blog-prose a:hover {
@@ -154,7 +167,7 @@ html {
   color: #1c1917;
 }
 .product-description a {
-  color: #9a7209;
+  color: #967d25;
   text-decoration: none;
 }
 .product-description a:hover {
