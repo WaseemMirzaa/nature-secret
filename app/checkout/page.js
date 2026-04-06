@@ -310,10 +310,12 @@ export default function CheckoutPage() {
       items: items.map((i) => ({ productId: i.productId, variantId: i.variantId, qty: i.qty, price: i.price })),
     };
     let orderId;
+    const formattedTotal = Number((grandTotal / 100).toFixed(2));
+    const formattedCurrency = String(currency || 'USD').toUpperCase();
     try {
       trackPlaceOrderClick(
-        grandTotal / 100,
-        currency,
+        formattedTotal,
+        formattedCurrency,
         items.map((i) => pixelStdIdForProduct(i.productId)).filter(Boolean),
       );
       const res = await apiCreateOrder(orderPayload);
@@ -343,28 +345,30 @@ export default function CheckoutPage() {
       if (!sessionStorage.getItem(dedupeKey)) {
         trackPurchase(
           orderId,
-          grandTotal / 100,
-          currency,
+          formattedTotal,
+          formattedCurrency,
           purchaseContentIds,
           purchaseCategoryIds,
           purchaseNumItems,
           { ...metaCustomer, externalId: orderId, orderId },
           purchasePixelStdIds,
           purchaseStandardContents,
+          'product',
         );
         sessionStorage.setItem(dedupeKey, '1');
       }
     } catch (_) {
       trackPurchase(
         orderId,
-        grandTotal / 100,
-        currency,
+        formattedTotal,
+        formattedCurrency,
         purchaseContentIds,
         purchaseCategoryIds,
         purchaseNumItems,
         { ...metaCustomer, externalId: orderId, orderId },
         purchasePixelStdIds,
         purchaseStandardContents,
+        'product',
       );
     }
     try {
