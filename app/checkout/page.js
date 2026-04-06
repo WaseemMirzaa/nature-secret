@@ -354,10 +354,10 @@ export default function CheckoutPage() {
   const checkoutCardShadow =
     'shadow-[0_2px_16px_-4px_rgba(0,0,0,0.11),inset_0_1px_0_0_rgba(255,255,255,0.88)] sm:shadow-[0_4px_22px_-6px_rgba(0,0,0,0.13)]';
   const cardSurface =
-    `rounded-[1.75rem] border-0 bg-gradient-to-br from-white via-white to-gold-50/25 ${checkoutCardShadow} sm:rounded-2xl`;
+    `rounded-[1.75rem] border-0 bg-gradient-to-br from-white via-white to-neutral-50/50 ${checkoutCardShadow} sm:rounded-2xl`;
 
   const sectionTitle =
-    'text-[10px] sm:text-xs font-bold text-neutral-900 border-l-[3px] border-gold-500 pl-2 sm:pl-2.5 tracking-tight';
+    'text-[10px] sm:text-xs font-bold text-neutral-900 border-l-[3px] border-neutral-400 pl-2 sm:pl-2.5 tracking-tight';
 
   if (items.length === 0 && !placing) {
     return (
@@ -573,7 +573,7 @@ export default function CheckoutPage() {
             <button
               type="button"
               onClick={applyDiscount}
-              className="shrink-0 self-stretch rounded-full sm:rounded-2xl bg-gradient-to-br from-neutral-900 to-neutral-800 px-3.5 sm:px-4 py-2 text-[12px] sm:text-sm font-semibold text-white shadow-[0_2px_8px_-4px_rgba(0,0,0,0.18)] ring-1 ring-gold-500/15 transition hover:scale-[1.02] active:scale-[0.98] motion-reduce:hover:scale-100 touch-manipulation min-w-[4.25rem] sm:min-w-0"
+              className="shrink-0 self-stretch rounded-full sm:rounded-2xl bg-gradient-to-br from-neutral-900 to-neutral-800 px-3.5 sm:px-4 py-2 text-[12px] sm:text-sm font-semibold text-white shadow-[0_2px_8px_-4px_rgba(0,0,0,0.18)] ring-1 ring-neutral-500/25 transition hover:scale-[1.02] active:scale-[0.98] motion-reduce:hover:scale-100 touch-manipulation min-w-[4.25rem] sm:min-w-0"
             >
               Apply
             </button>
@@ -611,7 +611,7 @@ export default function CheckoutPage() {
                 const lineTotal = i.price * i.qty;
                 return (
                   <li key={`${i.productId}-${i.variantId ?? 'default'}`} className="flex gap-2 sm:gap-2.5 lg:gap-3">
-                    <div className="relative h-11 w-11 sm:h-[3.25rem] sm:w-[3.25rem] lg:h-14 lg:w-14 rounded-2xl sm:rounded-md lg:rounded-lg overflow-hidden bg-white flex-shrink-0 ring-1 ring-gold-100/80">
+                    <div className="relative h-11 w-11 sm:h-[3.25rem] sm:w-[3.25rem] lg:h-14 lg:w-14 rounded-2xl sm:rounded-md lg:rounded-lg overflow-hidden bg-white flex-shrink-0 ring-1 ring-neutral-200/90">
                       <Image src={imgSrc} alt="" fill className="object-cover" sizes="56px" unoptimized={!imgSrc.startsWith('http')} />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -676,7 +676,7 @@ export default function CheckoutPage() {
             </div>
           </div>
           <div className="mt-3 sm:mt-4 flex items-center gap-2.5 sm:gap-3 border-t border-neutral-200/90 pt-3 sm:pt-4">
-            <div className="relative h-12 w-12 sm:h-14 sm:w-14 shrink-0 overflow-hidden rounded-2xl sm:rounded-lg bg-neutral-100 ring-1 ring-gold-200/40">
+            <div className="relative h-12 w-12 sm:h-14 sm:w-14 shrink-0 overflow-hidden rounded-2xl sm:rounded-lg bg-neutral-100 ring-1 ring-neutral-200/70">
               <Image
                 src={firstThumb || '/assets/nature-secret-logo.svg'}
                 alt=""

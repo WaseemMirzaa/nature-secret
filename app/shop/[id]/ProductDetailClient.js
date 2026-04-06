@@ -649,7 +649,7 @@ export default function ProductDetailClient({
                       setAddCartVibrate(true);
                       setTimeout(() => setAddCartVibrate(false), 400);
                     }}
-                    className={`w-full rounded-full sm:rounded-2xl bg-neutral-900 py-3.5 lg:py-4 text-sm font-semibold text-white hover:bg-neutral-800 transition shadow-md ${
+                    className={`w-full rounded-full sm:rounded-2xl bg-neutral-900 py-2.5 lg:py-3 text-xs font-semibold text-white hover:bg-neutral-800 transition shadow-md ${
                       addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
                     }`}
                   >
@@ -662,7 +662,7 @@ export default function ProductDetailClient({
                       setOrderNowVibrate(true);
                       setTimeout(() => setOrderNowVibrate(false), 400);
                     }}
-                    className={`w-full rounded-full sm:rounded-2xl bg-gold-500 py-3 lg:py-3.5 text-sm font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-md checkout-cta-animated cta-shimmer-gold ${
+                    className={`w-full rounded-full sm:rounded-2xl bg-gold-500 py-2.5 lg:py-3 text-xs font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-md checkout-cta-animated cta-shimmer-gold ${
                       orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
                     }`}
                   >
@@ -1148,7 +1148,7 @@ export default function ProductDetailClient({
                 </p>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2 pt-0.5">
+            <div className="grid grid-cols-2 gap-1.5 pt-0.5">
               <button
                 type="button"
                 onClick={() => {
@@ -1156,7 +1156,7 @@ export default function ProductDetailClient({
                   setAddCartVibrate(true);
                   setTimeout(() => setAddCartVibrate(false), 400);
                 }}
-                className={`min-h-[3rem] flex items-center justify-center rounded-full sm:rounded-2xl bg-neutral-900 px-2 text-xs font-semibold text-white hover:bg-neutral-800 transition shadow-sm ${
+                className={`min-h-[2.5rem] flex items-center justify-center rounded-full sm:rounded-2xl bg-neutral-900 px-1.5 text-[11px] font-semibold text-white hover:bg-neutral-800 transition shadow-sm ${
                   addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
                 }`}
               >
@@ -1169,12 +1169,12 @@ export default function ProductDetailClient({
                   setOrderNowVibrate(true);
                   setTimeout(() => setOrderNowVibrate(false), 400);
                 }}
-                className={`min-h-[3rem] flex flex-col items-center justify-center gap-0 rounded-full sm:rounded-2xl bg-gold-500 px-1.5 py-1 text-center text-xs font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-sm leading-tight checkout-cta-animated cta-shimmer-gold ${
+                className={`min-h-[2.5rem] flex flex-col items-center justify-center gap-0 rounded-full sm:rounded-2xl bg-gold-500 px-1 py-0.5 text-center text-[11px] font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-sm leading-tight checkout-cta-animated cta-shimmer-gold ${
                   orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
                 }`}
               >
                 <span className="relative z-10">Order now</span>
-                <span className="relative z-10 text-[10px] font-medium text-neutral-800/90">Cash on delivery</span>
+                <span className="relative z-10 text-[9px] font-medium text-neutral-800/90">Cash on delivery</span>
               </button>
             </div>
           </div>
@@ -1203,7 +1203,7 @@ export default function ProductDetailClient({
                   setAddCartVibrate(true);
                   setTimeout(() => setAddCartVibrate(false), 400);
                 }}
-                className={`rounded-full sm:rounded-2xl bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800 transition shadow-md min-w-[140px] ${
+                className={`rounded-full sm:rounded-2xl bg-neutral-900 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-neutral-800 transition shadow-md min-w-[108px] ${
                   addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
                 }`}
               >
@@ -1216,7 +1216,7 @@ export default function ProductDetailClient({
                   setOrderNowVibrate(true);
                   setTimeout(() => setOrderNowVibrate(false), 400);
                 }}
-                className={`rounded-full sm:rounded-2xl bg-gold-500 px-5 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-md min-w-[120px] checkout-cta-animated cta-shimmer-gold ${
+                className={`rounded-full sm:rounded-2xl bg-gold-500 px-3.5 py-1.5 text-xs font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-md min-w-[92px] checkout-cta-animated cta-shimmer-gold ${
                   orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
                 }`}
               >
