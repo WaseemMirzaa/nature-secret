@@ -345,10 +345,9 @@ export default function CheckoutPage() {
   if (!mounted) return <CustomerPageLoader message="Loading" />;
 
   const fieldClass =
-    'w-full min-h-[3rem] rounded-2xl border-2 border-gold-200/90 bg-gradient-to-b from-white to-gold-50/[0.45] px-4 py-3.5 text-base leading-snug text-neutral-900 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.85)] placeholder:text-neutral-400 transition-all duration-200 hover:border-gold-400/80 hover:shadow-[0_4px_14px_-6px_rgba(203,168,71,0.35)] focus:border-gold-600 focus:bg-white focus:shadow-[0_0_0_4px_rgba(203,168,71,0.22)] focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 sm:min-h-[3.125rem] lg:min-h-[3.5rem] lg:px-4 lg:py-4 lg:text-[1.0625rem]';
+    'w-full rounded-xl border-2 border-gold-200/90 bg-gradient-to-b from-white to-gold-50/[0.45] px-3 py-2.5 text-sm leading-snug text-neutral-900 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.85)] placeholder:text-neutral-400 transition-all duration-200 hover:border-gold-400/80 hover:shadow-[0_4px_14px_-6px_rgba(203,168,71,0.35)] focus:border-gold-600 focus:bg-white focus:shadow-[0_0_0_3px_rgba(203,168,71,0.18)] focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 lg:px-3.5 lg:py-3 lg:text-[0.9375rem]';
 
-  const labelClass =
-    'block mb-2 text-xs font-bold tracking-wide text-neutral-800 sm:text-sm lg:text-[0.8125rem]';
+  const labelClass = 'block mb-1 text-[11px] font-bold uppercase tracking-wide text-neutral-700';
 
   if (items.length === 0 && !placing) {
     return (
@@ -366,10 +365,10 @@ export default function CheckoutPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-3 sm:px-5 lg:px-8 py-4 sm:py-6 lg:py-12 max-lg:pb-36 lg:pb-16">
-      <div className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4 animate-checkout-enter motion-reduce:animate-none motion-reduce:opacity-100">
+      <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4 animate-checkout-enter motion-reduce:animate-none motion-reduce:opacity-100">
         <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold-700/90 mb-1.5">Almost there</p>
-          <h1 className="text-xl sm:text-2xl font-bold text-neutral-900 tracking-tight">Complete your order</h1>
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gold-700/90 mb-1">Almost there</p>
+          <h1 className="text-lg sm:text-xl font-bold text-neutral-900 tracking-tight">Complete your order</h1>
           <p className="mt-2 text-xs sm:text-sm text-neutral-600 leading-relaxed max-w-md">
             Pay cash on delivery when it arrives — delivery in 5–7 business days.
           </p>
@@ -385,12 +384,12 @@ export default function CheckoutPage() {
       </div>
       <form ref={formRef} id="checkout-form" onSubmit={handleSubmit}>
         <div className="flex flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_min(20rem,32%)] lg:gap-x-8 xl:grid-cols-[minmax(0,1fr)_min(22rem,380px)] xl:gap-x-12 lg:items-start">
-          <div className="space-y-7 lg:space-y-8 min-w-0">
+          <div className="space-y-6 lg:space-y-7 min-w-0">
         <section
           id="checkout-contact"
-          className="scroll-mt-24 animate-checkout-enter checkout-enter-delay-1 motion-reduce:animate-none motion-reduce:opacity-100 rounded-2xl border border-gold-200/50 bg-gradient-to-br from-white via-white to-gold-50/30 p-4 shadow-[0_4px_24px_-12px_rgba(203,168,71,0.2)] sm:p-5"
+          className="scroll-mt-24 animate-checkout-enter checkout-enter-delay-1 motion-reduce:animate-none motion-reduce:opacity-100 rounded-2xl border border-gold-200/50 bg-gradient-to-br from-white via-white to-gold-50/30 p-3.5 shadow-[0_4px_24px_-12px_rgba(203,168,71,0.2)] sm:p-4"
         >
-          <h2 className="text-sm font-bold text-neutral-900 border-l-[3px] border-gold-500 pl-2.5 mb-4">
+          <h2 className="text-xs font-bold text-neutral-900 border-l-[3px] border-gold-500 pl-2.5 mb-3">
             Contact & delivery
           </h2>
           <div className="space-y-3 sm:space-y-3.5">
@@ -481,7 +480,7 @@ export default function CheckoutPage() {
                 rows={2}
                 value={form.address}
                 onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-                className={`${fieldClass} min-h-[5.5rem] sm:min-h-[5rem] lg:min-h-[7rem] resize-y`}
+                className={`${fieldClass} min-h-[4.5rem] sm:min-h-[4.25rem] lg:min-h-[5.5rem] resize-y`}
               />
             </div>
             <div className="grid grid-cols-2 gap-2.5 lg:gap-4">
@@ -521,8 +520,8 @@ export default function CheckoutPage() {
           </div>
         </section>
 
-        <section className="animate-checkout-enter checkout-enter-delay-2 motion-reduce:animate-none motion-reduce:opacity-100 rounded-2xl border border-gold-200/50 bg-gradient-to-br from-white to-gold-50/20 p-4 shadow-[0_4px_24px_-12px_rgba(203,168,71,0.15)] sm:p-5">
-          <h2 className="text-sm font-bold text-neutral-900 border-l-[3px] border-gold-500 pl-2.5 mb-3">Shipping method</h2>
+        <section className="animate-checkout-enter checkout-enter-delay-2 motion-reduce:animate-none motion-reduce:opacity-100 rounded-2xl border border-gold-200/50 bg-gradient-to-br from-white to-gold-50/20 p-3.5 shadow-[0_4px_24px_-12px_rgba(203,168,71,0.15)] sm:p-4">
+          <h2 className="text-xs font-bold text-neutral-900 border-l-[3px] border-gold-500 pl-2.5 mb-2.5">Shipping method</h2>
           <div className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200/90 bg-gradient-to-br from-neutral-50 to-white px-3 py-3.5 sm:px-4 text-sm">
             <span className="font-medium text-neutral-800">Standard</span>
             <span className="font-semibold tabular-nums text-neutral-900">
@@ -534,17 +533,17 @@ export default function CheckoutPage() {
           </p>
         </section>
 
-        <section className="animate-checkout-enter checkout-enter-delay-3 motion-reduce:animate-none motion-reduce:opacity-100 rounded-2xl border border-gold-200/50 bg-gradient-to-br from-white to-gold-50/20 p-4 shadow-[0_4px_24px_-12px_rgba(203,168,71,0.15)] sm:p-5">
-          <h2 className="text-sm font-bold text-neutral-900 border-l-[3px] border-gold-500 pl-2.5 mb-1">Payment</h2>
+        <section className="animate-checkout-enter checkout-enter-delay-3 motion-reduce:animate-none motion-reduce:opacity-100 rounded-2xl border border-gold-200/50 bg-gradient-to-br from-white to-gold-50/20 p-3.5 shadow-[0_4px_24px_-12px_rgba(203,168,71,0.15)] sm:p-4">
+          <h2 className="text-xs font-bold text-neutral-900 border-l-[3px] border-gold-500 pl-2.5 mb-1">Payment</h2>
           <p className="text-xs text-neutral-500 mb-3">All transactions are secure. Pay when your order arrives.</p>
           <div className="rounded-xl border border-gold-300/70 bg-gradient-to-br from-gold-50/90 to-amber-50/40 px-3 py-3.5 sm:px-4 text-sm font-semibold text-neutral-900 shadow-gold-sm">
             Cash on delivery (COD)
           </div>
         </section>
 
-        <section className="animate-checkout-enter checkout-enter-delay-4 motion-reduce:animate-none motion-reduce:opacity-100 rounded-2xl border border-gold-200/50 bg-gradient-to-br from-white to-gold-50/20 p-4 shadow-[0_4px_24px_-12px_rgba(203,168,71,0.15)] sm:p-5">
-          <h2 className="text-sm font-bold text-neutral-900 border-l-[3px] border-gold-500 pl-2.5 mb-3">Discount</h2>
-          <div className="flex gap-2">
+        <section className="animate-checkout-enter checkout-enter-delay-4 motion-reduce:animate-none motion-reduce:opacity-100 rounded-2xl border border-gold-200/50 bg-gradient-to-br from-white to-gold-50/20 p-3.5 shadow-[0_4px_24px_-12px_rgba(203,168,71,0.15)] sm:p-4">
+          <h2 className="text-xs font-bold text-neutral-900 border-l-[3px] border-gold-500 pl-2.5 mb-2.5">Discount</h2>
+          <div className="flex gap-2 items-stretch">
             <input
               id="checkout-discount-code"
               type="text"
@@ -558,7 +557,7 @@ export default function CheckoutPage() {
             <button
               type="button"
               onClick={applyDiscount}
-              className="shrink-0 self-stretch min-h-[3rem] rounded-2xl bg-gradient-to-br from-neutral-900 to-neutral-800 px-5 text-base font-bold text-white shadow-md ring-1 ring-gold-500/20 transition hover:scale-[1.03] active:scale-[0.98] motion-reduce:hover:scale-100 lg:min-h-[3.5rem] lg:text-[1.0625rem]"
+              className="shrink-0 self-stretch rounded-xl bg-gradient-to-br from-neutral-900 to-neutral-800 px-4 py-2.5 text-sm font-bold text-white shadow-md ring-1 ring-gold-500/20 transition hover:scale-[1.02] active:scale-[0.98] motion-reduce:hover:scale-100"
             >
               Apply
             </button>
@@ -584,8 +583,8 @@ export default function CheckoutPage() {
           </div>
 
         <aside className="mt-7 space-y-4 lg:mt-0 lg:sticky lg:top-24 lg:self-start animate-checkout-enter checkout-enter-delay-5 motion-reduce:animate-none motion-reduce:opacity-100 min-w-0">
-          <section className="rounded-2xl border border-gold-200/50 bg-gradient-to-b from-gold-50/40 via-white to-white p-3 sm:p-5 lg:p-5 shadow-[0_4px_24px_-12px_rgba(203,168,71,0.18)]">
-          <h2 className="text-sm font-bold text-neutral-900 border-l-[3px] border-gold-500 pl-2.5 mb-3 lg:text-base">Order summary</h2>
+          <section className="rounded-2xl border border-gold-200/50 bg-gradient-to-b from-gold-50/40 via-white to-white p-3 sm:p-4 shadow-[0_4px_24px_-12px_rgba(203,168,71,0.18)]">
+          <h2 className="text-xs font-bold text-neutral-900 border-l-[3px] border-gold-500 pl-2.5 mb-2.5">Order summary</h2>
             <ul className="space-y-3 mb-4 max-h-[min(50vh,320px)] overflow-y-auto overscroll-contain -mr-1 pr-1 touch-pan-y sm:max-h-none sm:overflow-visible">
               {items.map((i) => {
                 const p = getProduct(i.productId);
@@ -636,8 +635,8 @@ export default function CheckoutPage() {
             </ul>
           </section>
 
-        <div className="rounded-2xl border border-gold-200/60 bg-gradient-to-br from-white via-gold-50/30 to-white p-4 sm:p-5 lg:p-6 shadow-[0_8px_32px_-12px_rgba(203,168,71,0.25)]">
-          <div className="space-y-2 text-sm lg:text-[0.9375rem] text-neutral-600">
+        <div className="rounded-2xl border border-gold-200/60 bg-gradient-to-br from-white via-gold-50/30 to-white p-3.5 sm:p-4 shadow-[0_8px_32px_-12px_rgba(203,168,71,0.25)]">
+          <div className="space-y-2 text-sm text-neutral-600">
             <div className="flex justify-between gap-2">
               <span>Subtotal</span>
               <span className="tabular-nums text-neutral-900 font-medium">{formatPrice(subtotal, currency)}</span>
@@ -672,7 +671,7 @@ export default function CheckoutPage() {
                 {itemCount} {itemCount === 1 ? 'item' : 'items'}
               </p>
             </div>
-            <p className="text-lg lg:text-xl font-bold tabular-nums text-neutral-900 shrink-0">
+            <p className="text-base lg:text-lg font-bold tabular-nums text-neutral-900 shrink-0">
               {formatPrice(grandTotal, currency)}
             </p>
           </div>
@@ -691,7 +690,7 @@ export default function CheckoutPage() {
               type="submit"
               disabled={placing}
               aria-busy={placing}
-              className={`${ctaBase} w-full min-h-[3.5rem] lg:text-[1.0625rem]`}
+              className={`${ctaBase} w-full min-h-[3rem]`}
             >
               {placing ? 'Placing order…' : 'Complete order'}
             </button>
@@ -724,7 +723,7 @@ export default function CheckoutPage() {
             form="checkout-form"
             disabled={placing}
             aria-busy={placing}
-            className={`${ctaBase} min-h-[48px] min-w-[10rem] shrink-0 px-4 py-3 text-[0.9375rem]`}
+            className={`${ctaBase} min-h-[44px] min-w-[9.5rem] shrink-0 px-4 py-2.5 text-sm`}
           >
             {placing ? 'Placing…' : 'Complete order'}
           </button>
