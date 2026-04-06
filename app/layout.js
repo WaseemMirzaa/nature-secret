@@ -33,24 +33,28 @@ function versionRefreshScript(appVersion) {
 (function(){
   var version=${JSON.stringify(appVersion || '')};
   if(!version) return;
-  var key='ns_app_version';
-  try{
-    var prev=localStorage.getItem(key);
-    if(!prev){localStorage.setItem(key,version);return;}
-    if(prev===version) return;
-    localStorage.setItem(key,version);
-    function hardReload(){
-      try{location.reload();}catch(e){
-        var u=location.pathname+location.search+(location.search?'&':'?')+'ns_hr='+Date.now();
-        location.replace(u+location.hash);
+  function run(){
+    var key='ns_app_version';
+    try{
+      var prev=localStorage.getItem(key);
+      if(!prev){localStorage.setItem(key,version);return;}
+      if(prev===version) return;
+      localStorage.setItem(key,version);
+      function hardReload(){
+        try{location.reload();}catch(e){
+          var u=location.pathname+location.search+(location.search?'&':'?')+'ns_hr='+Date.now();
+          location.replace(u+location.hash);
+        }
       }
-    }
-    if(window.caches&&caches.keys){
-      caches.keys().then(function(names){
-        return Promise.all(names.map(function(n){return caches.delete(n);}));
-      }).then(hardReload).catch(hardReload);
-    }else{hardReload();}
-  }catch(e){try{location.reload();}catch(e2){}}
+      if(window.caches&&caches.keys){
+        caches.keys().then(function(names){
+          return Promise.all(names.map(function(n){return caches.delete(n);}));
+        }).then(hardReload).catch(hardReload);
+      }else{hardReload();}
+    }catch(e){try{location.reload();}catch(e2){}}
+  }
+  if(window.requestIdleCallback)requestIdleCallback(run,{timeout:4000});
+  else setTimeout(run,0);
 })();
 `;
 }
@@ -69,6 +73,8 @@ export default function RootLayout({ children }) {
             <link rel="dns-prefetch" href={apiOrigin} />
           </>
         ) : null}
+        <link rel="dns-prefetch" href="https://img.shields.io" />
+        <link rel="preconnect" href="https://img.shields.io" crossOrigin="" />
         <link rel="icon" href="/assets/nature-secret-logo.svg" type="image/svg+xml" />
         <link rel="manifest" href="/manifest.json" />
       </head>

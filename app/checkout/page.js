@@ -69,7 +69,7 @@ export default function CheckoutPage() {
     const vv = window.visualViewport;
     if (!vv) return;
     const update = () => {
-      const threshold = Math.max(96, window.innerHeight * 0.11);
+      const threshold = Math.max(72, window.innerHeight * 0.085);
       setKeyboardOverlap(window.innerHeight - vv.height > threshold);
     };
     update();
@@ -90,27 +90,70 @@ export default function CheckoutPage() {
     if (!el) return;
     const mq = window.matchMedia('(max-width: 1023px)');
     let t;
+    let scrollT;
     const syncFromVv = () => {
       const vv = window.visualViewport;
       if (!vv) return;
-      const th = Math.max(96, window.innerHeight * 0.11);
+      const th = Math.max(72, window.innerHeight * 0.085);
       setKeyboardOverlap(window.innerHeight - vv.height > th);
     };
+    const scrollFieldIntoViewSafe = (fieldEl) => {
+      if (!(fieldEl instanceof HTMLElement)) return;
+      const scrollInlineSubmit = () => {
+        const fid = fieldEl.id;
+        if (fid !== 'checkout-city' && fid !== 'checkout-pincode') return;
+        const btn = document.getElementById('checkout-inline-mobile-submit');
+        if (!btn) return;
+        try {
+          btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        } catch (_) {
+          btn.scrollIntoView(false);
+        }
+      };
+      const run = () => {
+        try {
+          fieldEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        } catch (_) {
+          fieldEl.scrollIntoView(false);
+        }
+      };
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          run();
+          setTimeout(scrollInlineSubmit, 120);
+        });
+      });
+      if (scrollT) clearTimeout(scrollT);
+      scrollT = setTimeout(() => {
+        run();
+        setTimeout(scrollInlineSubmit, 150);
+      }, 420);
+    };
+
     const onFocusIn = (e) => {
       if (!mq.matches || !e.target?.matches?.('input, textarea, select')) return;
-      clearTimeout(t);
-      t = setTimeout(syncFromVv, 120);
-      /** Scroll phone row near top so contact fields stay visible above keyboard */
-      const phoneEl = phoneFieldRef.current;
       const contactEl = document.getElementById('checkout-contact');
-      if (phoneEl && contactEl?.contains(e.target)) {
-        requestAnimationFrame(() => {
-          phoneEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
+      const target = e.target;
+      const inContact = contactEl?.contains(target);
+      const inDiscount = target?.id === 'checkout-discount-code';
+
+      if (inContact) {
+        setKeyboardOverlap(true);
+      }
+      clearTimeout(t);
+      if (scrollT) {
+        clearTimeout(scrollT);
+        scrollT = undefined;
+      }
+      t = setTimeout(syncFromVv, 80);
+
+      if (inContact || inDiscount) {
+        scrollFieldIntoViewSafe(target);
       }
     };
     const onFocusOut = () => {
       clearTimeout(t);
+      if (scrollT) clearTimeout(scrollT);
       t = setTimeout(() => {
         if (!el.contains(document.activeElement)) {
           setKeyboardOverlap(false);
@@ -123,6 +166,7 @@ export default function CheckoutPage() {
     el.addEventListener('focusout', onFocusOut);
     return () => {
       clearTimeout(t);
+      if (scrollT) clearTimeout(scrollT);
       el.removeEventListener('focusin', onFocusIn);
       el.removeEventListener('focusout', onFocusOut);
     };
@@ -420,7 +464,7 @@ export default function CheckoutPage() {
         onSubmit={handleSubmit}
         className="flex flex-col lg:grid lg:grid-cols-2 gap-4 md:gap-5 lg:gap-12"
       >
-        <div id="checkout-contact" className="order-2 lg:order-1 min-w-0 scroll-mt-20">
+        <div id="checkout-contact" className="order-2 lg:order-1 min-w-0 scroll-mt-20 max-lg:scroll-mb-[min(50vh,18rem)]">
           <h2 className="text-xs sm:text-sm font-medium text-neutral-900 mb-2 lg:mb-4 tracking-tight">Contact & delivery</h2>
           <div className="space-y-2 sm:space-y-2.5 lg:space-y-4">
             {/* Honeypot: hidden; if filled, submit is rejected client-side (no Meta/API). */}
@@ -517,6 +561,7 @@ export default function CheckoutPage() {
           <p className="mt-2 sm:mt-3 lg:mt-4 text-[11px] sm:text-xs lg:text-sm text-neutral-500">Payment: Cash on delivery.</p>
           {keyboardOverlap && (
             <button
+              id="checkout-inline-mobile-submit"
               type="submit"
               form="checkout-form"
               disabled={placing}

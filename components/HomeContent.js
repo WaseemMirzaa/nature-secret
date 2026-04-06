@@ -53,6 +53,8 @@ export default function HomeContent({
   const [slideIndex, setSlideIndex] = useState(0);
   const [sliderError, setSliderError] = useState(false);
   const [homeContent, setHomeContent] = useState(initialHomeContent);
+  /** Defer marquee shield images until idle so LCP/hero network isn’t contended (Speed Index on slow 4G). */
+  const [trustMarqueeReady, setTrustMarqueeReady] = useState(false);
 
   const ssrSlides = useMemo(() => mapSliderSlides(initialSlider), [initialSlider]);
   const heroSlides = clientSlider != null ? clientSlider : ssrSlides;
@@ -152,6 +154,26 @@ export default function HomeContent({
     return () => clearInterval(t);
   }, [heroSlides.length]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const go = () => {
+      if (!cancelled) setTrustMarqueeReady(true);
+    };
+    if (typeof window === 'undefined') return undefined;
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(go, { timeout: 2200 });
+      return () => {
+        cancelled = true;
+        window.cancelIdleCallback(id);
+      };
+    }
+    const t = window.setTimeout(go, 350);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(t);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen">
       {/* Hero */}
@@ -237,21 +259,26 @@ export default function HomeContent({
           <p className="text-center text-[10px] sm:text-xs font-medium uppercase tracking-wider text-neutral-500 mb-2 sm:mb-3">
             Trusted shopping
           </p>
-          <div className="overflow-hidden">
-            <div className="flex min-w-max shrink-0 animate-trust-marquee items-center gap-4 sm:gap-6 lg:gap-8 pr-4 sm:pr-6 will-change-transform">
-              {[...TRUST_BADGE_TICKER, ...TRUST_BADGE_TICKER].map((b, i) => (
-                <img
-                  key={`${b.id}-${i}`}
-                  src={b.src}
-                  alt={b.alt}
-                  width={200}
-                  height={28}
-                  className="h-6 sm:h-7 w-auto max-w-[200px] object-contain opacity-90 hover:opacity-100 transition-opacity select-none"
-                  loading="lazy"
-                  decoding="async"
-                />
-              ))}
-            </div>
+          <div className="overflow-hidden min-h-[1.75rem] sm:min-h-8">
+            {trustMarqueeReady ? (
+              <div className="flex min-w-max shrink-0 animate-trust-marquee items-center gap-4 sm:gap-6 lg:gap-8 pr-4 sm:pr-6 will-change-transform">
+                {[...TRUST_BADGE_TICKER, ...TRUST_BADGE_TICKER].map((b, i) => (
+                  <img
+                    key={`${b.id}-${i}`}
+                    src={b.src}
+                    alt=""
+                    width={200}
+                    height={28}
+                    className="h-6 sm:h-7 w-auto max-w-[200px] object-contain opacity-90 transition-opacity select-none"
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="h-6 sm:h-7 w-full" aria-hidden />
+            )}
           </div>
           <ul className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 mt-3 sm:mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1.5 sm:gap-x-8 text-[11px] sm:text-xs text-neutral-600">
             {TRUST_BADGES.map((b) => (
