@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --bg: #ffffff;
+  /* Default page canvas — rgb(250, 250, 249); pair with bg-white sections for contrast */
+  --bg: #fafaf9;
   --fg: #1c1917;
   --gold: #d4af37;
   --gold-mid: #b8962e;
@@ -25,12 +26,17 @@ html {
   overflow-x: hidden;
 }
 body {
-  @apply bg-white text-neutral-900 antialiased;
+  @apply text-neutral-900 antialiased;
+  background-color: var(--bg);
   font-feature-settings: "rlig" 1, "calt" 1;
   overflow-x: hidden;
 }
 
 @layer utilities {
+  /** Page canvas (explicit alias for section wrappers). */
+  .bg-page-canvas {
+    background-color: var(--bg);
+  }
   .text-balance {
     text-wrap: balance;
   }
@@ -128,7 +134,8 @@ body {
 
 /* Premium focus ring */
 *:focus-visible {
-  @apply outline-none ring-2 ring-neutral-800 ring-offset-2 ring-offset-white;
+  @apply outline-none ring-2 ring-neutral-800 ring-offset-2;
+  --tw-ring-offset-color: var(--bg);
 }
 
 /* Prevent horizontal overflow on small screens — inputs only (iOS zoom); buttons use explicit text-* */

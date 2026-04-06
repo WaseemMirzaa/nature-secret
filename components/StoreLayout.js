@@ -89,7 +89,7 @@ export function StoreLayout({ children }) {
         <NsPromoBanner />
         <div className="flex-1 flex flex-col">
           {showBreadcrumbs && (
-            <div className="mx-auto w-full max-w-7xl px-3 sm:px-5 lg:px-8 py-1.5 sm:py-2.5 lg:py-3 border-b border-neutral-100 bg-neutral-50/30">
+            <div className="mx-auto w-full max-w-7xl px-3 sm:px-5 lg:px-8 py-1.5 sm:py-2.5 lg:py-3 border-b border-neutral-200/80 bg-white">
               <Breadcrumbs />
             </div>
           )}

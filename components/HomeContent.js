@@ -13,7 +13,7 @@ import {
   getContentSettings,
 } from '@/lib/api';
 const HomeBelowFold = dynamic(() => import('@/components/HomeBelowFold'), {
-  loading: () => <div className="min-h-[40vh] w-full bg-neutral-50/40" aria-hidden />,
+  loading: () => <div className="min-h-[40vh] w-full bg-page-canvas" aria-hidden />,
   ssr: true,
 });
 
@@ -152,7 +152,7 @@ export default function HomeContent({
   return (
     <div className="min-h-screen">
       {/* Hero */}
-      <section className="relative bg-neutral-50 overflow-hidden">
+      <section className="relative overflow-hidden">
         <div className="absolute left-0 top-24 w-24 h-px bg-gradient-to-r from-gold-400/60 to-transparent" aria-hidden />
         <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-8 sm:py-14 lg:py-32">
           <div className="max-w-2xl">

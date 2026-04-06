@@ -50,9 +50,9 @@ export default function HomeBelowFold({
 function HomeBestsellersSection({ productsError, bestsellerProducts }) {
   if (productsError && bestsellerProducts.length === 0) {
     return (
-      <section className="py-7 sm:py-11 lg:py-28">
+      <section className="py-7 sm:py-11 lg:py-28 bg-white">
         <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
-          <div className="rounded-2xl border border-neutral-200 bg-neutral-50/80 p-6 sm:p-12 text-center">
+          <div className="rounded-2xl border border-neutral-200 bg-neutral-50/50 p-6 sm:p-12 text-center">
             <p className="text-neutral-600">Unable to load products right now. Try again later.</p>
             <Link href="/shop" className="mt-4 inline-block text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/40 pb-0.5">View shop</Link>
           </div>
@@ -63,7 +63,7 @@ function HomeBestsellersSection({ productsError, bestsellerProducts }) {
   if (bestsellerProducts.length === 0) return null;
 
   return (
-    <section className="py-7 sm:py-11 lg:py-28">
+    <section className="py-7 sm:py-11 lg:py-28 bg-white">
       <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
         <div className="flex items-end justify-between mb-4 sm:mb-10 lg:mb-12">
           <div>
@@ -127,7 +127,7 @@ function HomeBestsellersSection({ productsError, bestsellerProducts }) {
 function HomeFeaturedCategoriesSection({ productsError, featuredCategories, products }) {
   if (productsError && featuredCategories.length === 0) {
     return (
-      <section className="py-7 sm:py-11 lg:py-28 bg-neutral-100/90">
+      <section className="py-7 sm:py-11 lg:py-28 bg-page-canvas">
         <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
           <div className="rounded-2xl border border-neutral-200 bg-white p-6 sm:p-12 text-center">
             <p className="text-neutral-600">Unable to load collections. Try again later.</p>
@@ -139,7 +139,7 @@ function HomeFeaturedCategoriesSection({ productsError, featuredCategories, prod
   if (featuredCategories.length === 0) return null;
 
   return (
-    <section className="py-7 sm:py-11 lg:py-28 bg-neutral-100/90">
+    <section className="py-7 sm:py-11 lg:py-28 bg-page-canvas">
       <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
         <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-1.5 sm:mb-2">Explore</p>
         <h2 className="text-xl sm:text-3xl font-semibold text-neutral-900 mb-4 sm:mb-10 lg:mb-12 tracking-tight">Collections</h2>

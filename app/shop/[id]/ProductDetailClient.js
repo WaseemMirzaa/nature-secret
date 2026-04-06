@@ -29,6 +29,19 @@ import {
 import { compressReviewMediaFile } from '@/lib/compressReviewMedia';
 import { InlineLoader } from '@/components/ui/PageLoader';
 
+/** Match checkout mobile sticky bar (`app/checkout/page.js`). */
+const CHECKOUT_STICKY_SHELL =
+  'border-0 bg-gradient-to-t from-gold-50/95 via-white/98 to-white/98 backdrop-blur-xl shadow-[0_-6px_24px_-10px_rgba(0,0,0,0.12)] rounded-t-[1.75rem]';
+const CHECKOUT_STICKY_TAGLINE =
+  'text-[9px] text-center font-medium text-gold-800/85 mb-1.5 leading-snug tracking-wide';
+const CHECKOUT_STICKY_TOTAL_LABEL =
+  'text-[9px] font-bold uppercase tracking-[0.14em] text-gold-800/75';
+/** Same as checkout `ctaBase` (Complete order). */
+const CHECKOUT_STICKY_CTA_DARK =
+  'checkout-cta-animated inline-flex items-center justify-center rounded-full sm:rounded-2xl bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800 text-[13px] font-semibold text-white shadow-[0_3px_12px_-6px_rgba(0,0,0,0.22),0_0_0_1px_rgba(212,175,55,0.1)] ring-1 ring-inset ring-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_5px_18px_-8px_rgba(0,0,0,0.28)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 focus-visible:ring-offset-2 motion-reduce:transition-none motion-reduce:hover:scale-100 touch-manipulation';
+const CHECKOUT_STICKY_CTA_GOLD =
+  'checkout-cta-animated cta-shimmer-gold inline-flex flex-col items-center justify-center gap-0 rounded-full sm:rounded-2xl bg-gold-500 text-[13px] font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-md leading-tight';
+
 const isUuid = (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 
 function getVideoPresentation(url) {
@@ -1064,17 +1077,18 @@ export default function ProductDetailClient({
         </section>
       )}
 
-      {/* Mobile / tablet: compact fixed bottom — variant, qty + subtotal row, 2-col CTAs */}
+      {/* Mobile / tablet: same shell + typography as checkout mobile sticky bar */}
       {product.inventory !== 0 && (
         <div
-          className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200 bg-white/95 backdrop-blur-md shadow-[0_-2px_16px_rgba(0,0,0,0.06)] px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+          className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 px-3 pt-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] ${CHECKOUT_STICKY_SHELL}`}
           role="region"
           aria-label="Purchase options"
         >
-          <div className="mx-auto max-w-7xl flex flex-col gap-1.5">
+          <p className={CHECKOUT_STICKY_TAGLINE}>Pay on delivery · COD · Secure delivery</p>
+          <div className="mx-auto max-w-7xl flex flex-col gap-2">
             {product.variants?.length > 1 && (
               <div>
-                <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider mb-0.5">Size / Variant</p>
+                <p className={`${CHECKOUT_STICKY_TOTAL_LABEL} mb-1`}>Size / variant</p>
                 <div className="flex flex-wrap gap-1">
                   {product.variants.map((v) => (
                     <button
@@ -1091,137 +1105,152 @@ export default function ProductDetailClient({
                 </div>
               </div>
             )}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <label
-                  htmlFor={`product-qty-sticky-${formFieldSuffix}`}
-                  className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider shrink-0"
-                >
-                  Qty
-                </label>
-                <div className="inline-flex items-stretch overflow-hidden rounded-full border border-neutral-200 bg-white">
-                  <button
-                    type="button"
-                    onClick={() => setQty((n) => Math.max(1, (n || 1) - 1))}
-                    className="w-8 h-8 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 text-base leading-none"
-                    aria-label="Decrease quantity"
+            <div className="flex items-end gap-2.5">
+              <div className="min-w-0 flex-1 pl-0.5">
+                <div className="flex items-center gap-2 mb-1">
+                  <label
+                    htmlFor={`product-qty-sticky-${formFieldSuffix}`}
+                    className={`${CHECKOUT_STICKY_TOTAL_LABEL} normal-case tracking-normal shrink-0`}
                   >
-                    −
-                  </button>
-                  <div className="flex min-w-[2rem] items-center justify-center border-x border-neutral-100 bg-transparent px-0.5">
-                    <input
-                    id={`product-qty-sticky-${formFieldSuffix}`}
-                    name="quantitySticky"
-                      type="number"
-                      min={1}
-                      max={99}
-                      value={effectiveQty}
-                      onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
-                      className="w-full min-w-0 text-center text-xs font-semibold tabular-nums text-neutral-900 border-0 bg-transparent p-0 m-0 h-8 leading-none align-middle focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                    />
+                    Qty
+                  </label>
+                  <div className="inline-flex items-stretch overflow-hidden rounded-full border border-neutral-200 bg-white">
+                    <button
+                      type="button"
+                      onClick={() => setQty((n) => Math.max(1, (n || 1) - 1))}
+                      className="w-8 h-8 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 text-base leading-none"
+                      aria-label="Decrease quantity"
+                    >
+                      −
+                    </button>
+                    <div className="flex min-w-[2rem] items-center justify-center border-x border-neutral-100 bg-transparent px-0.5">
+                      <input
+                        id={`product-qty-sticky-${formFieldSuffix}`}
+                        name="quantitySticky"
+                        type="number"
+                        min={1}
+                        max={99}
+                        value={effectiveQty}
+                        onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
+                        className="w-full min-w-0 text-center text-xs font-semibold tabular-nums text-neutral-900 border-0 bg-transparent p-0 m-0 h-8 leading-none align-middle focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setQty((n) => Math.min(99, (n || 1) + 1))}
+                      className="w-8 h-8 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 text-base leading-none"
+                      aria-label="Increase quantity"
+                    >
+                      +
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setQty((n) => Math.min(99, (n || 1) + 1))}
-                    className="w-8 h-8 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 text-base leading-none"
-                    aria-label="Increase quantity"
-                  >
-                    +
-                  </button>
                 </div>
-              </div>
-              <div className="text-right shrink-0 pl-1">
-                {effectiveQty > 1 && (
-                  <p className="text-[10px] text-neutral-500 tabular-nums leading-tight">
-                    {effectiveQty} × {formatPrice(price, currency)}
-                  </p>
-                )}
+                <p className={CHECKOUT_STICKY_TOTAL_LABEL}>Total</p>
                 {stickyCompareLineTotal != null &&
                   stickyCompareLineTotal > stickyLineTotal &&
                   Number.isFinite(stickyCompareLineTotal) && (
-                    <span className="block text-[11px] text-neutral-500 line-through tabular-nums leading-tight">
+                    <p className="text-[11px] text-neutral-500 line-through tabular-nums leading-tight">
                       {formatPrice(stickyCompareLineTotal, currency)}
-                    </span>
+                    </p>
                   )}
-                <p className="text-base font-semibold text-neutral-900 tabular-nums leading-tight">
+                <p className="text-base font-bold tabular-nums text-neutral-900 truncate leading-tight tracking-tight">
                   {formatPrice(stickyLineTotal, currency)}
                 </p>
+                <p className="text-[9px] text-neutral-500 mt-0.5 leading-snug">
+                  {effectiveQty > 1 ? `${effectiveQty} × ${formatPrice(price, currency)} · ` : ''}
+                  {variant?.name ? `${variant.name} · ` : ''}
+                  Cash on delivery
+                </p>
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-1.5 pt-0.5">
-              <button
-                type="button"
-                onClick={() => {
-                  handleAddToCart();
-                  setAddCartVibrate(true);
-                  setTimeout(() => setAddCartVibrate(false), 400);
-                }}
-                className={`min-h-[2.5rem] flex items-center justify-center rounded-full sm:rounded-2xl bg-neutral-900 px-1.5 text-[11px] font-semibold text-white hover:bg-neutral-800 transition shadow-sm ${
-                  addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
-                }`}
-              >
-                Add to cart
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  handleOrderNow();
-                  setOrderNowVibrate(true);
-                  setTimeout(() => setOrderNowVibrate(false), 400);
-                }}
-                className={`min-h-[2.5rem] flex flex-col items-center justify-center gap-0 rounded-full sm:rounded-2xl bg-gold-500 px-1 py-0.5 text-center text-[11px] font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-sm leading-tight checkout-cta-animated cta-shimmer-gold ${
-                  orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
-                }`}
-              >
-                <span className="relative z-10">Order now</span>
-                <span className="relative z-10 text-[9px] font-medium text-neutral-800/90">Cash on delivery</span>
-              </button>
+              <div className="flex shrink-0 flex-col gap-1.5 min-w-[8.75rem]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleAddToCart();
+                    setAddCartVibrate(true);
+                    setTimeout(() => setAddCartVibrate(false), 400);
+                  }}
+                  className={`${CHECKOUT_STICKY_CTA_DARK} min-h-[46px] w-full px-4 ${
+                    addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
+                  }`}
+                >
+                  Add to cart
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleOrderNow();
+                    setOrderNowVibrate(true);
+                    setTimeout(() => setOrderNowVibrate(false), 400);
+                  }}
+                  className={`${CHECKOUT_STICKY_CTA_GOLD} min-h-[52px] w-full px-3 py-1.5 ${
+                    orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
+                  }`}
+                >
+                  <span className="relative z-10">Order now</span>
+                  <span className="relative z-10 text-[9px] font-medium text-neutral-800/90">Cash on delivery</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Desktop: sticky bottom bar when purchase panel scrolls out */}
+      {/* Desktop: sticky bottom — same shell + CTAs as checkout mobile sticky */}
       {showStickyBar && product.inventory !== 0 && (
         <div
-          className="max-lg:hidden flex fixed bottom-0 left-0 right-0 z-50 items-center justify-between gap-4 px-6 xl:px-10 py-3.5 xl:py-4 border-t border-neutral-200 bg-white/95 backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.08)]"
+          className={`max-lg:hidden fixed bottom-0 left-0 right-0 z-40 px-6 xl:px-10 pt-2.5 pb-3.5 xl:pt-3 xl:pb-4 ${CHECKOUT_STICKY_SHELL}`}
           role="region"
           aria-label="Quick purchase"
         >
-          <div className="max-w-7xl mx-auto w-full flex flex-wrap items-center justify-between gap-4 xl:gap-6">
-            <p className="text-lg xl:text-xl font-semibold text-neutral-900 tabular-nums">
-              {(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice) && (
-                <span className="text-neutral-500 line-through text-sm mr-2">{formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}</span>
-              )}
-              {formatPrice(price, currency)}
-            </p>
-            <div className="flex items-center gap-3 flex-1 justify-end min-w-[280px]">
-              <button
-                type="button"
-                onClick={() => {
-                  handleAddToCart();
-                  setAddCartVibrate(true);
-                  setTimeout(() => setAddCartVibrate(false), 400);
-                }}
-                className={`rounded-full sm:rounded-2xl bg-neutral-900 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-neutral-800 transition shadow-md min-w-[108px] ${
-                  addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
-                }`}
-              >
-                Add to cart
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  handleOrderNow();
-                  setOrderNowVibrate(true);
-                  setTimeout(() => setOrderNowVibrate(false), 400);
-                }}
-                className={`rounded-full sm:rounded-2xl bg-gold-500 px-3.5 py-1.5 text-xs font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-md min-w-[92px] checkout-cta-animated cta-shimmer-gold ${
-                  orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
-                }`}
-              >
-                <span className="relative z-10">Buy now</span>
-              </button>
+          <div className="max-w-7xl mx-auto w-full">
+            <p className={CHECKOUT_STICKY_TAGLINE}>Pay on delivery · COD · Secure delivery</p>
+            <div className="flex flex-wrap items-end justify-between gap-4 xl:gap-6">
+              <div className="min-w-0 flex-1 pl-0.5">
+                <p className={CHECKOUT_STICKY_TOTAL_LABEL}>Total</p>
+                {(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice) && (
+                  <p className="text-sm text-neutral-500 line-through tabular-nums leading-tight">
+                    {formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}
+                  </p>
+                )}
+                <p className="text-lg xl:text-xl font-bold text-neutral-900 tabular-nums leading-tight tracking-tight">
+                  {formatPrice(stickyLineTotal, currency)}
+                </p>
+                <p className="text-[9px] text-neutral-500 mt-0.5">
+                  {effectiveQty > 1 ? `${effectiveQty} × ${formatPrice(price, currency)} · ` : ''}
+                  {variant?.name ? `${variant.name} · ` : ''}
+                  Cash on delivery
+                </p>
+              </div>
+              <div className="flex items-end gap-2.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleAddToCart();
+                    setAddCartVibrate(true);
+                    setTimeout(() => setAddCartVibrate(false), 400);
+                  }}
+                  className={`${CHECKOUT_STICKY_CTA_DARK} min-h-[46px] min-w-[8.75rem] px-4 ${
+                    addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
+                  }`}
+                >
+                  Add to cart
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleOrderNow();
+                    setOrderNowVibrate(true);
+                    setTimeout(() => setOrderNowVibrate(false), 400);
+                  }}
+                  className={`${CHECKOUT_STICKY_CTA_GOLD} min-h-[52px] min-w-[8.75rem] px-4 py-2 ${
+                    orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
+                  }`}
+                >
+                  <span className="relative z-10">Buy now</span>
+                  <span className="relative z-10 text-[9px] font-medium text-neutral-800/90">Cash on delivery</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -19,7 +19,7 @@ export default function BlogPage() {
 
   return (
     <div className="min-h-screen">
-      <section className="border-b border-neutral-200 bg-neutral-50/60">
+      <section className="border-b border-neutral-200 bg-white">
         <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-6 sm:py-10 lg:py-20">
           <div className="absolute left-3 sm:left-5 lg:left-8 top-[7rem] w-16 h-px bg-gradient-to-r from-gold-400/50 to-transparent" aria-hidden />
           <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-2 sm:mb-3">Journal</p>

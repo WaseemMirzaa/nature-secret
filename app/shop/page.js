@@ -92,7 +92,7 @@ function ShopContent() {
   return (
     <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-3 sm:py-5 lg:py-12">
       <div className="flex flex-col lg:flex-row gap-3 sm:gap-5 lg:gap-8">
-        <aside className="lg:w-56 flex-shrink-0 animate-slide-up">
+        <aside className="lg:w-56 flex-shrink-0 animate-slide-up rounded-2xl border border-neutral-200/70 bg-white p-3 sm:p-4 shadow-sm lg:self-start">
           <h3 className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-gold-700/90 mb-3 sm:mb-4">Category</h3>
           <ul className="space-y-1">
             <li>
@@ -153,7 +153,7 @@ function ShopContent() {
                 </div>
               ))
             ) : filtered.length === 0 ? (
-              <div className="col-span-full rounded-xl sm:rounded-2xl border border-neutral-200 bg-neutral-50/80 p-6 sm:p-10 lg:p-12 text-center">
+              <div className="col-span-full rounded-xl sm:rounded-2xl border border-neutral-200 bg-white p-6 sm:p-10 lg:p-12 text-center shadow-sm">
                 <p className="text-neutral-600">{apiError ? 'Unable to load products. Try again later.' : 'No products to show right now. The catalog may be updating—please try again later.'}</p>
                 <Link href="/" className="mt-4 inline-block text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/40 pb-0.5">Back to home</Link>
               </div>

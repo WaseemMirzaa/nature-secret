@@ -38,7 +38,7 @@ export default function BlogPostPage() {
 
   if (!mounted || (slug && apiLoading && !apiPost && !postFromStore)) {
     return (
-      <div className="min-h-screen bg-neutral-50/40">
+      <div className="min-h-screen bg-page-canvas">
         <div className="mx-auto max-w-3xl px-3 sm:px-5 lg:px-8 py-6 sm:py-12 lg:py-16">
           <div className="h-5 w-24 rounded bg-neutral-200 animate-pulse" />
           <div className="mt-8 h-10 w-3/4 rounded bg-neutral-200 animate-pulse" />
@@ -50,7 +50,7 @@ export default function BlogPostPage() {
 
   if (!slug || !post) {
     return (
-      <div className="min-h-screen bg-neutral-50/40">
+      <div className="min-h-screen bg-page-canvas">
         <div className="mx-auto max-w-3xl px-3 sm:px-5 lg:px-8 py-6 sm:py-12 lg:py-16">
           <Link href="/blog" className="text-xs sm:text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/40 pb-0.5 inline-flex items-center gap-1">
             ← Journal
@@ -66,7 +66,7 @@ export default function BlogPostPage() {
     : [];
 
   return (
-    <div className="min-h-screen bg-neutral-50/40">
+    <div className="min-h-screen bg-page-canvas">
       <article className="mx-auto max-w-3xl px-3 sm:px-5 lg:px-8 py-5 sm:py-10 lg:py-20">
         <Link href="/blog" className="text-xs sm:text-sm font-medium text-neutral-500 hover:text-gold-600 transition-colors inline-flex items-center gap-1 mb-4 sm:mb-8 lg:mb-10">
           ← Journal

@@ -350,9 +350,9 @@ export default function CheckoutPage() {
   const labelClass =
     'block mb-0.5 sm:mb-1 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.12em] sm:tracking-wide text-neutral-600';
 
-  /** Card lift: black-tinted shadow (~½ previous spread/opacity) */
+  /** Cards: low lift + soft wide penumbra (more visible shadow, less “floating”) */
   const checkoutCardShadow =
-    'shadow-[0_2px_16px_-4px_rgba(0,0,0,0.11),inset_0_1px_0_0_rgba(255,255,255,0.88)] sm:shadow-[0_4px_22px_-6px_rgba(0,0,0,0.13)]';
+    'shadow-[0_1px_2px_rgba(0,0,0,0.055),0_10px_32px_-12px_rgba(0,0,0,0.095),inset_0_1px_0_0_rgba(255,255,255,0.88)] sm:shadow-[0_2px_4px_rgba(0,0,0,0.06),0_14px_40px_-14px_rgba(0,0,0,0.105),inset_0_1px_0_0_rgba(255,255,255,0.88)]';
   const cardSurface =
     `rounded-[1.75rem] border-0 bg-gradient-to-br from-white via-white to-neutral-50/50 ${checkoutCardShadow} sm:rounded-2xl`;
 
