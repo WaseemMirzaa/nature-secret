@@ -61,12 +61,19 @@ function versionRefreshScript(appVersion) {
 
 export default function RootLayout({ children }) {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-  const appVersion = process.env.NEXT_PUBLIC_APP_VERSION || '';
+  /** Bust stale JS/CSS after deploy: explicit env, else Vercel commit (auto), else empty. */
+  const appVersion =
+    process.env.NEXT_PUBLIC_APP_VERSION?.trim() ||
+    (typeof process.env.VERCEL_GIT_COMMIT_SHA === 'string' && process.env.VERCEL_GIT_COMMIT_SHA.length >= 7
+      ? process.env.VERCEL_GIT_COMMIT_SHA.slice(0, 7)
+      : '') ||
+    '';
   const apiOrigin = getApiOriginForPreconnect();
   return (
     <html lang="en" className={inter.variable}>
       <head>
         <meta name="api-url" content={apiUrl} />
+        {appVersion ? <meta name="ns-app-version" content={appVersion} /> : null}
         {apiOrigin ? (
           <>
             <link rel="preconnect" href={apiOrigin} crossOrigin="" />

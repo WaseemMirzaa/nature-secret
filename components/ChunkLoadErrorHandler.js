@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { PageLoadRetryLoader } from '@/components/PageLoadRetryLoader';
+import { PageLoadExhaustedError } from '@/components/PageLoadExhaustedError';
 import {
   NS_PAGE_LOAD_RETRY_KEY,
   NS_PAGE_LOAD_RETRY_DONE,
@@ -15,6 +16,7 @@ import {
 
 export function ChunkLoadErrorHandler({ children }) {
   const [retryUi, setRetryUi] = useState(null);
+  const [exhausted, setExhausted] = useState(false);
   const handlingRef = useRef(false);
 
   useLayoutEffect(() => {
@@ -52,7 +54,7 @@ export function ChunkLoadErrorHandler({ children }) {
           sessionStorage.setItem(NS_PAGE_LOAD_RETRY_DONE, '1');
         } catch (_) {}
         handlingRef.current = false;
-        window.location.replace('/404');
+        setExhausted(true);
         return;
       }
       handlingRef.current = true;
@@ -60,7 +62,14 @@ export function ChunkLoadErrorHandler({ children }) {
     }
 
     const onError = (event) => {
-      const msg = event?.message || '';
+      let msg = event?.message || '';
+      const t = event?.target;
+      if (!msg && t && t.tagName === 'SCRIPT' && t.src) {
+        msg = `Failed to load script ${t.src}`;
+      }
+      if (!msg && t && t.tagName === 'LINK' && t.href) {
+        msg = `Failed to load stylesheet ${t.href}`;
+      }
       if (isRecoverablePageLoadError(msg)) scheduleRetry();
     };
     const onReject = (event) => {
@@ -75,8 +84,12 @@ export function ChunkLoadErrorHandler({ children }) {
     };
   }, []);
 
+  if (exhausted) {
+    return <PageLoadExhaustedError />;
+  }
+
   if (retryUi) {
-    return <PageLoadRetryLoader attempt={retryUi.nextCount} />;
+    return <PageLoadRetryLoader />;
   }
 
   return <>{children}</>;
