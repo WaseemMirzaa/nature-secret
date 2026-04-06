@@ -348,7 +348,7 @@ export default function CheckoutPage() {
     'w-full rounded-2xl border border-neutral-600 bg-gradient-to-b from-white to-gold-50/[0.35] px-2.5 py-2 text-base leading-snug text-neutral-900 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9)] placeholder:text-neutral-400/85 placeholder:text-sm max-sm:placeholder:font-normal transition-all duration-200 hover:border-neutral-700 hover:shadow-[0_1px_6px_-3px_rgba(0,0,0,0.06)] focus:border-neutral-700 focus:bg-white focus:shadow-[0_0_0_3px_rgba(82,82,82,0.16)] focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 sm:border-2 sm:border-neutral-600 sm:px-3 sm:py-2.5 sm:text-sm sm:leading-snug lg:px-3.5 lg:py-3 lg:text-[0.9375rem]';
 
   const labelClass =
-    'block mb-0.5 sm:mb-1 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.12em] sm:tracking-wide text-neutral-600';
+    'block mb-0.5 sm:mb-1 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.12em] sm:tracking-wide text-neutral-600 border-l-[3px] border-gold-500 pl-2 sm:pl-2.5';
 
   /** Cards: low lift + soft wide penumbra (more visible shadow, less “floating”) */
   const checkoutCardShadow =
@@ -357,7 +357,7 @@ export default function CheckoutPage() {
     `rounded-[1.75rem] border-0 bg-gradient-to-br from-white via-white to-neutral-50/50 ${checkoutCardShadow} sm:rounded-2xl`;
 
   const sectionTitle =
-    'text-[10px] sm:text-xs font-bold text-neutral-900 border-l-[3px] border-neutral-400 pl-2 sm:pl-2.5 tracking-tight';
+    'text-[10px] sm:text-xs font-bold text-neutral-900 border-l-[3px] border-gold-500 pl-2 sm:pl-2.5 tracking-tight';
 
   if (items.length === 0 && !placing) {
     return (
@@ -384,17 +384,11 @@ export default function CheckoutPage() {
             Complete your order
           </h1>
           <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs lg:text-sm text-neutral-600 leading-relaxed max-w-md">
-            Pay cash on delivery when it arrives — delivery in 5–7 business days.
+            Pay cash on delivery when it arrives — delivery in 5–7 business days.{' '}
+            <span className="text-neutral-500">Signing in is optional</span>
+            {customer ? " — you're signed in, so we've filled in what we can." : ' — no account needed; enter your details below as a guest.'}
           </p>
         </div>
-        {!customer && (
-          <Link
-            href="/login"
-            className="text-xs sm:text-sm font-semibold text-gold-800 hover:text-gold-700 border-b border-gold-400/50 sm:border-b-2 sm:border-gold-400/60 pb-0.5 shrink-0 self-start transition-colors"
-          >
-            Sign in
-          </Link>
-        )}
       </div>
       <form ref={formRef} id="checkout-form" onSubmit={handleSubmit}>
         <div className="flex flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_min(20rem,32%)] lg:gap-x-8 xl:grid-cols-[minmax(0,1fr)_min(22rem,380px)] xl:gap-x-12 lg:items-start">
@@ -724,7 +718,7 @@ export default function CheckoutPage() {
       </form>
 
       <div
-        className="fixed bottom-0 left-0 right-0 z-40 border-0 bg-gradient-to-t from-gold-50/95 via-white/98 to-white/98 backdrop-blur-xl px-3 pt-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] shadow-[0_-6px_24px_-10px_rgba(0,0,0,0.12)] lg:hidden rounded-t-[1.75rem]"
+        className="fixed bottom-0 left-0 right-0 z-40 border-0 bg-gradient-to-t from-gold-50/95 via-white/98 to-white/98 backdrop-blur-xl px-3 pt-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] shadow-[0_-6px_24px_-10px_rgba(0,0,0,0.12)] lg:hidden rounded-t-[1.75rem] overflow-hidden"
         role="region"
         aria-label="Order total and submit"
       >

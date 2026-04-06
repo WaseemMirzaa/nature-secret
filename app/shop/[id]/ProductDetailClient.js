@@ -31,7 +31,7 @@ import { InlineLoader } from '@/components/ui/PageLoader';
 
 /** Match checkout mobile sticky bar (`app/checkout/page.js`). */
 const CHECKOUT_STICKY_SHELL =
-  'border-0 bg-gradient-to-t from-gold-50/95 via-white/98 to-white/98 backdrop-blur-xl shadow-[0_-6px_24px_-10px_rgba(0,0,0,0.12)] rounded-t-[1.75rem]';
+  'border-0 bg-gradient-to-t from-gold-50/95 via-white/98 to-white/98 backdrop-blur-xl shadow-[0_-6px_24px_-10px_rgba(0,0,0,0.12)] rounded-t-[1.75rem] overflow-hidden';
 const CHECKOUT_STICKY_TAGLINE =
   'text-[9px] text-center font-medium text-gold-800/85 mb-1.5 leading-snug tracking-wide';
 const CHECKOUT_STICKY_TOTAL_LABEL =
@@ -539,7 +539,7 @@ export default function ProductDetailClient({
             </p>
           </div>
 
-          {/* Desktop: purchase column (scrolls with page; disclaimer below description, not sticky) */}
+          {/* Desktop: purchase column (scrolls with page; disclaimer lives below FAQ in main column) */}
           <div
             ref={purchasePanelRef}
             className="max-lg:hidden block space-y-3 xl:space-y-4 pb-6 lg:pb-8 rounded-2xl lg:pl-0 xl:pl-1"
@@ -581,16 +581,6 @@ export default function ProductDetailClient({
                 </button>
               </div>
             )}
-            {disclaimerEnabled ? (
-              <div className="rounded-xl border-2 border-gold-300/70 bg-gold-50/60 px-3 py-2.5 shadow-gold-sm">
-                <p className="text-[11px] font-semibold text-neutral-900">{disclaimerTitleToShow}</p>
-                <ul className="mt-1.5 space-y-1 text-[11px] text-neutral-700 leading-relaxed list-disc pl-4">
-                  {disclaimerItemsToShow.map((item, idx) => (
-                    <li key={`d-${idx}-${item.slice(0, 12)}`}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
             {product.variants?.length > 1 && (
               <div className="pt-1 lg:pt-2">
                 <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Size / Variant</p>
@@ -728,7 +718,25 @@ export default function ProductDetailClient({
             </ul>
           </div>
         )}
-        <div className={`rounded-2xl bg-neutral-50 border border-neutral-100 p-6 xl:p-8 text-sm xl:text-[15px] text-neutral-600 space-y-3 leading-relaxed max-w-2xl xl:max-w-3xl ${(product.faq || []).length ? 'mt-10 xl:mt-12' : ''}`}>
+        {disclaimerEnabled ? (
+          <div
+            className={`rounded-xl border border-neutral-200 bg-neutral-50/90 px-3 py-2.5 max-w-2xl xl:max-w-3xl ${
+              (product.faq || []).length ? 'mt-8 xl:mt-10' : ''
+            }`}
+          >
+            <p className="text-[11px] xl:text-xs font-semibold text-neutral-900">{disclaimerTitleToShow}</p>
+            <ul className="mt-1.5 space-y-1 text-[11px] xl:text-sm text-neutral-700 leading-relaxed list-disc pl-4">
+              {disclaimerItemsToShow.map((item, idx) => (
+                <li key={`d-${idx}-${item.slice(0, 12)}`}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        <div
+          className={`rounded-2xl bg-neutral-50 border border-neutral-100 p-6 xl:p-8 text-sm xl:text-[15px] text-neutral-600 space-y-3 leading-relaxed max-w-2xl xl:max-w-3xl ${
+            (product.faq || []).length || disclaimerEnabled ? 'mt-10 xl:mt-12' : ''
+          }`}
+        >
           <p><strong>Shipping:</strong> {SHIPPING_POLICY}</p>
           <p><strong>Returns:</strong> {RETURN_POLICY}</p>
         </div>
@@ -793,16 +801,6 @@ export default function ProductDetailClient({
             </button>
           </div>
         )}
-        {disclaimerEnabled ? (
-          <div className="mt-3 sm:mt-4 rounded-xl border-2 border-gold-300/70 bg-gold-50/60 px-3 py-2.5 shadow-gold-sm">
-            <p className="text-[11px] sm:text-xs font-semibold text-neutral-900">{disclaimerTitleToShow}</p>
-            <ul className="mt-1.5 space-y-1 text-[11px] sm:text-sm text-neutral-700 leading-relaxed list-disc pl-4">
-              {disclaimerItemsToShow.map((item, idx) => (
-                <li key={`m-d-${idx}-${item.slice(0, 12)}`}>{item}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
         {(product.faq || []).length > 0 && (
           <div className="mt-5 sm:mt-8">
             <h3 className="text-xs sm:text-sm font-semibold text-neutral-900 mb-2 sm:mb-3 tracking-tight">FAQ</h3>
@@ -818,6 +816,20 @@ export default function ProductDetailClient({
             </ul>
           </div>
         )}
+        {disclaimerEnabled ? (
+          <div
+            className={`rounded-xl border border-neutral-200 bg-neutral-50/90 px-3 py-2.5 ${
+              (product.faq || []).length ? 'mt-5 sm:mt-6' : 'mt-5 sm:mt-8'
+            }`}
+          >
+            <p className="text-[11px] sm:text-xs font-semibold text-neutral-900">{disclaimerTitleToShow}</p>
+            <ul className="mt-1.5 space-y-1 text-[11px] sm:text-sm text-neutral-700 leading-relaxed list-disc pl-4">
+              {disclaimerItemsToShow.map((item, idx) => (
+                <li key={`m-d-${idx}-${item.slice(0, 12)}`}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
         <div className="mt-4 sm:mt-6 rounded-xl sm:rounded-2xl bg-neutral-100 p-3 sm:p-4 text-xs sm:text-sm text-neutral-600 space-y-1.5 sm:space-y-2 leading-relaxed">
           <p><strong>Shipping:</strong> {SHIPPING_POLICY}</p>
           <p><strong>Returns:</strong> {RETURN_POLICY}</p>
