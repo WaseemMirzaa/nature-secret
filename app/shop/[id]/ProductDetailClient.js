@@ -95,7 +95,12 @@ function scrubMedicalTerms(input = '') {
   return text;
 }
 
-export default function ProductDetailClient({ slugOrId, initialProduct: initialFromServer, initialReviews = [] }) {
+export default function ProductDetailClient({
+  slugOrId,
+  initialProduct: initialFromServer,
+  initialReviews = [],
+  initialContentSettings = null,
+}) {
   const storeProducts = useProductsStore((s) => s.products);
   const [apiProduct, setApiProduct] = useState(initialFromServer ?? null);
   const [productLoading, setProductLoading] = useState(!(initialFromServer ?? null) && !!slugOrId);
@@ -171,9 +176,13 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
   const purchasePanelRef = useRef(null);
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [isLg, setIsLg] = useState(false);
-  const [productDisclaimerTitle, setProductDisclaimerTitle] = useState('Important Note');
+  const [productDisclaimerTitle, setProductDisclaimerTitle] = useState(
+    () => initialContentSettings?.productDisclaimerTitle || 'Important Note',
+  );
   const [productDisclaimerText, setProductDisclaimerText] = useState(
-    'Cosmetic body oil for external use only. Not a drug. Individual experience may vary. Patch test before wider use.',
+    () =>
+      initialContentSettings?.productDisclaimerText ||
+      'Cosmetic body oil for external use only. Not a drug. Individual experience may vary. Patch test before wider use.',
   );
 
   useLayoutEffect(() => {
@@ -211,6 +220,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
   }, [isLg, product?.id]);
 
   useEffect(() => {
+    if (initialContentSettings?.productDisclaimerTitle && initialContentSettings?.productDisclaimerText) return;
     let cancelled = false;
     getContentSettings()
       .then((r) => {
@@ -222,7 +232,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialContentSettings]);
 
   const variant = selectedVariant ?? defaultVariant ?? product?.variants?.[0];
   const hasProductDisclaimerItems = Array.isArray(product?.disclaimerItems) && product.disclaimerItems.some((x) => String(x || '').trim().length > 0);

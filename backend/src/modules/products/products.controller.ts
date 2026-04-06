@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ProductsService } from './products.service';
+import { ReviewsService } from '../reviews/reviews.service';
 import { Public } from '../../common/decorators/public.decorator';
 
 function stripCost(p: any) {
@@ -8,9 +9,16 @@ function stripCost(p: any) {
   return rest;
 }
 
+function wantsReviews(q: string | undefined): boolean {
+  return q === 'true' || q === '1' || q === 'yes';
+}
+
 @Controller('products')
 export class ProductsController {
-  constructor(private service: ProductsService) {}
+  constructor(
+    private service: ProductsService,
+    private reviewsService: ReviewsService,
+  ) {}
 
   @Public()
   @Get()
@@ -25,13 +33,19 @@ export class ProductsController {
 
   @Public()
   @Get('slug/:slug')
-  async findBySlug(@Param('slug') slug: string) {
-    return stripCost(await this.service.findBySlug(slug));
+  async findBySlug(@Param('slug') slug: string, @Query('includeReviews') includeReviews?: string) {
+    const product = stripCost(await this.service.findBySlug(slug));
+    if (!wantsReviews(includeReviews)) return product;
+    const reviews = await this.reviewsService.findByProductId(product.id);
+    return { ...product, reviews };
   }
 
   @Public()
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return stripCost(await this.service.findOne(id));
+  async findOne(@Param('id') id: string, @Query('includeReviews') includeReviews?: string) {
+    const product = stripCost(await this.service.findOne(id));
+    if (!wantsReviews(includeReviews)) return product;
+    const reviews = await this.reviewsService.findByProductId(product.id);
+    return { ...product, reviews };
   }
 }

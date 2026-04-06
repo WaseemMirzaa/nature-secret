@@ -1,8 +1,8 @@
 import { getImageProps } from 'next/image';
 import ProductDetailClient from './ProductDetailClient';
 import {
-  fetchProductPageData,
-  fetchProductBySlugOrId,
+  getCachedProductPageData,
+  fetchContentSettingsServer,
   resolveAbsoluteImageUrl,
   getDefaultHeroImageSrcForProduct,
 } from '@/lib/fetchProductServer';
@@ -16,7 +16,7 @@ function slugFromParams(params) {
 export async function generateMetadata({ params }) {
   const slugOrId = slugFromParams(params);
   if (!slugOrId) return { title: 'Product | Nature Secret' };
-  const product = await fetchProductBySlugOrId(slugOrId);
+  const { product } = await getCachedProductPageData(slugOrId);
   if (!product?.name) return { title: 'Product | Nature Secret' };
   const title = `${product.name} | Nature Secret`;
   const plain =
@@ -34,7 +34,10 @@ export async function generateMetadata({ params }) {
 
 export default async function ProductPage({ params }) {
   const slugOrId = slugFromParams(params);
-  const { product, reviews } = await fetchProductPageData(slugOrId);
+  const [{ product, reviews }, contentSettings] = await Promise.all([
+    getCachedProductPageData(slugOrId),
+    fetchContentSettingsServer(),
+  ]);
 
   const lcpSrc = product ? getDefaultHeroImageSrcForProduct(product) : '';
   let lcpPreload = null;
@@ -72,6 +75,7 @@ export default async function ProductPage({ params }) {
         slugOrId={slugOrId}
         initialProduct={product}
         initialReviews={reviews}
+        initialContentSettings={contentSettings}
       />
     </>
   );
