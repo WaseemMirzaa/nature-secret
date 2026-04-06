@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --bg: #efeeec;
+  --bg: #ffffff;
   --fg: #1c1917;
   --gold: #d4af37;
   --gold-mid: #b8962e;
@@ -25,7 +25,7 @@ html {
   overflow-x: hidden;
 }
 body {
-  @apply bg-neutral-150 text-neutral-900 antialiased;
+  @apply bg-white text-neutral-900 antialiased;
   font-feature-settings: "rlig" 1, "calt" 1;
   overflow-x: hidden;
 }
@@ -112,7 +112,7 @@ body {
 
 /* Premium focus ring */
 *:focus-visible {
-  @apply outline-none ring-2 ring-neutral-800 ring-offset-2 ring-offset-neutral-150;
+  @apply outline-none ring-2 ring-neutral-800 ring-offset-2 ring-offset-white;
 }
 
 /* Prevent horizontal overflow on small screens — inputs only (iOS zoom); buttons use explicit text-* */
