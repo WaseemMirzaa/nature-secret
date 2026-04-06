@@ -11,7 +11,7 @@ import {
 } from '@/lib/networkRetry';
 
 export default function Error({ error, reset }) {
-  const msg = `${error?.message || ''} ${error?.name || ''} ${error?.digest || ''} ${error?.stack || ''}`;
+  const msg = `${error?.message || ''} ${error?.name || ''} ${error?.digest || ''} ${error?.stack || ''} ${String(error || '')}`;
   const recoverable = typeof window !== 'undefined' && isRecoverablePageLoadError(msg);
   const stored = typeof window !== 'undefined' ? readPageLoadRetryState() : { count: 0, first: Date.now() };
   const exhausted = recoverable && stored.count >= MAX_PAGE_LOAD_RETRIES;

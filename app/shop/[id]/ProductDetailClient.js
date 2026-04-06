@@ -233,7 +233,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
     ? product.disclaimerItems
     : ((product?.disclaimerText || productDisclaimerText) ? [product?.disclaimerText || productDisclaimerText] : []);
   const customProductBadges = Array.isArray(product?.productBadges)
-    ? product.productBadges.filter((b) => b?.label && b?.imageUrl)
+    ? product.productBadges.filter((b) => String(b?.imageUrl || '').trim())
     : [];
   const variantImageList = (variant?.images && variant.images.length) ? variant.images : (variant?.image ? [variant.image] : product?.images || []);
   useEffect(() => { setSelectedImageIndex(0); }, [variant?.id]);
@@ -692,29 +692,39 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
           <p><strong>Shipping:</strong> {SHIPPING_POLICY}</p>
           <p><strong>Returns:</strong> {RETURN_POLICY}</p>
         </div>
-        <div className="mt-6 xl:mt-8 flex flex-wrap gap-x-6 gap-y-2 text-xs text-neutral-500">
-          {customProductBadges.length > 0 ? (
-            customProductBadges.map((b, idx) => {
-              const content = (
-                <span className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2 py-1">
-                  <img src={b.imageUrl} alt={b.label} className="h-5 w-auto object-contain" loading="lazy" />
-                  <span>{b.label}</span>
-                </span>
+        {customProductBadges.length > 0 ? (
+          <div className="mt-6 xl:mt-8 flex flex-wrap items-center" style={{ gap: 10 }}>
+            {customProductBadges.map((b, idx) => {
+              const src = resolveImageUrl(b.imageUrl);
+              const alt = String(b.label || 'Badge').trim() || 'Badge';
+              const img = (
+                <img
+                  src={src}
+                  alt={alt}
+                  width={124}
+                  height={124}
+                  className="h-[124px] w-[124px] object-contain"
+                  loading="lazy"
+                />
               );
               return b.href ? (
-                <a key={`${b.label}-${idx}`} href={b.href} target="_blank" rel="noopener noreferrer" className="hover:opacity-90">
-                  {content}
+                <a
+                  key={`badge-${idx}`}
+                  href={b.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 hover:opacity-90"
+                >
+                  {img}
                 </a>
               ) : (
-                <span key={`${b.label}-${idx}`}>{content}</span>
+                <span key={`badge-${idx}`} className="shrink-0">
+                  {img}
+                </span>
               );
-            })
-          ) : (
-            <>
-              <span>Secure payment</span><span>Authentic & organic</span><span>7-day return policy</span>
-            </>
-          )}
-        </div>
+            })}
+          </div>
+        ) : null}
       </section>
 
       {/* Product details: name, description, FAQs (mobile / tablet) */}
@@ -772,29 +782,39 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
           <p><strong>Shipping:</strong> {SHIPPING_POLICY}</p>
           <p><strong>Returns:</strong> {RETURN_POLICY}</p>
         </div>
-        <div className="mt-3 sm:mt-4 flex flex-wrap gap-x-3 gap-y-1 text-[10px] sm:text-xs text-neutral-500">
-          {customProductBadges.length > 0 ? (
-            customProductBadges.map((b, idx) => {
-              const content = (
-                <span className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-1.5 py-1 sm:px-2">
-                  <img src={b.imageUrl} alt={b.label} className="h-4 w-auto object-contain" loading="lazy" />
-                  <span>{b.label}</span>
-                </span>
+        {customProductBadges.length > 0 ? (
+          <div className="mt-3 sm:mt-4 flex flex-wrap items-center" style={{ gap: 10 }}>
+            {customProductBadges.map((b, idx) => {
+              const src = resolveImageUrl(b.imageUrl);
+              const alt = String(b.label || 'Badge').trim() || 'Badge';
+              const img = (
+                <img
+                  src={src}
+                  alt={alt}
+                  width={124}
+                  height={124}
+                  className="h-[124px] w-[124px] object-contain"
+                  loading="lazy"
+                />
               );
               return b.href ? (
-                <a key={`${b.label}-${idx}`} href={b.href} target="_blank" rel="noopener noreferrer" className="hover:opacity-90">
-                  {content}
+                <a
+                  key={`badge-m-${idx}`}
+                  href={b.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 hover:opacity-90"
+                >
+                  {img}
                 </a>
               ) : (
-                <span key={`${b.label}-${idx}`}>{content}</span>
+                <span key={`badge-m-${idx}`} className="shrink-0">
+                  {img}
+                </span>
               );
-            })
-          ) : (
-            <>
-              <span>Secure payment</span><span>Authentic & organic</span><span>7-day return policy</span>
-            </>
-          )}
-        </div>
+            })}
+          </div>
+        ) : null}
       </section>
 
       {/* Write review + recent reviews */}
