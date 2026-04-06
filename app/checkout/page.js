@@ -351,7 +351,7 @@ export default function CheckoutPage() {
     'block mb-0.5 sm:mb-1 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.12em] sm:tracking-wide text-neutral-600';
 
   const cardSurface =
-    'rounded-[1.75rem] border border-gold-200/45 bg-gradient-to-br from-white via-white to-gold-50/25 shadow-[0_2px_20px_-8px_rgba(212,175,55,0.2),inset_0_1px_0_0_rgba(255,255,255,0.9)] sm:rounded-2xl sm:shadow-[0_4px_24px_-12px_rgba(212,175,55,0.22)]';
+    'rounded-[1.75rem] border border-gold-200/45 bg-gradient-to-br from-white via-white to-gold-50/25 shadow-[0_2px_20px_-8px_rgba(0,0,0,0.12),inset_0_1px_0_0_rgba(255,255,255,0.9)] sm:rounded-2xl sm:shadow-[0_4px_24px_-12px_rgba(0,0,0,0.14)]';
 
   const sectionTitle =
     'text-[10px] sm:text-xs font-bold text-neutral-900 border-l-[3px] border-gold-500 pl-2 sm:pl-2.5 tracking-tight';
@@ -549,7 +549,7 @@ export default function CheckoutPage() {
           <p className="text-[10px] sm:text-xs text-neutral-500 mb-2 sm:mb-3 leading-relaxed">
             All transactions are secure. Pay when your order arrives.
           </p>
-          <div className="rounded-2xl border border-gold-400/45 bg-gold-shine-soft px-3 py-2.5 sm:px-4 sm:py-3.5 text-xs sm:text-sm font-semibold text-neutral-900 shadow-gold-sm">
+          <div className="rounded-2xl border border-gold-400/45 bg-gold-shine-soft px-3 py-2.5 sm:px-4 sm:py-3.5 text-xs sm:text-sm font-semibold text-neutral-900 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.12)]">
             Cash on delivery (COD)
           </div>
         </section>
@@ -653,7 +653,7 @@ export default function CheckoutPage() {
             </ul>
           </section>
 
-        <div className={`border-gold-200/55 bg-gradient-to-br from-white via-gold-50/25 to-white p-3.5 sm:p-4 shadow-[0_6px_28px_-10px_rgba(212,175,55,0.24)] rounded-[1.75rem] sm:rounded-2xl border`}>
+        <div className={`border-gold-200/55 bg-gradient-to-br from-white via-gold-50/25 to-white p-3.5 sm:p-4 shadow-[0_6px_28px_-10px_rgba(0,0,0,0.14)] rounded-[1.75rem] sm:rounded-2xl border`}>
           <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-neutral-600">
             <div className="flex justify-between gap-2">
               <span>Subtotal</span>
@@ -721,7 +721,7 @@ export default function CheckoutPage() {
       </form>
 
       <div
-        className="fixed bottom-0 left-0 right-0 z-40 border-t border-gold-200/40 bg-gradient-to-t from-gold-50/95 via-white/98 to-white/98 backdrop-blur-xl px-3 pt-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] shadow-[0_-8px_36px_-12px_rgba(212,175,55,0.24)] lg:hidden rounded-t-[1.75rem]"
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-gold-200/40 bg-gradient-to-t from-gold-50/95 via-white/98 to-white/98 backdrop-blur-xl px-3 pt-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] shadow-[0_-8px_36px_-12px_rgba(0,0,0,0.14)] lg:hidden rounded-t-[1.75rem]"
         role="region"
         aria-label="Order total and submit"
       >
