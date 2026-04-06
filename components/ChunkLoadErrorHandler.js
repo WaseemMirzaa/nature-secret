@@ -12,6 +12,7 @@ import {
   isRecoverablePageLoadError,
   readPageLoadRetryState,
   clearPageLoadRetryState,
+  stringifyErrorReason,
 } from '@/lib/networkRetry';
 
 export function ChunkLoadErrorHandler({ children }) {
@@ -64,6 +65,9 @@ export function ChunkLoadErrorHandler({ children }) {
     const onError = (event) => {
       let msg = event?.message || '';
       const t = event?.target;
+      if (event?.error) {
+        msg = `${msg} ${stringifyErrorReason(event.error)}`.trim();
+      }
       if (!msg && t && t.tagName === 'SCRIPT' && t.src) {
         msg = `Failed to load script ${t.src}`;
       }
@@ -73,7 +77,7 @@ export function ChunkLoadErrorHandler({ children }) {
       if (isRecoverablePageLoadError(msg)) scheduleRetry();
     };
     const onReject = (event) => {
-      const msg = event?.reason?.message || String(event.reason || '');
+      const msg = stringifyErrorReason(event?.reason);
       if (isRecoverablePageLoadError(msg)) scheduleRetry();
     };
     window.addEventListener('error', onError);

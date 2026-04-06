@@ -293,7 +293,7 @@ export default function CheckoutPage() {
     try {
       const dedupeKey = metaPurchaseFiredStorageKey(orderId);
       if (!sessionStorage.getItem(dedupeKey)) {
-        trackPurchase(
+        await trackPurchase(
           orderId,
           formattedTotal,
           formattedCurrency,
@@ -308,7 +308,7 @@ export default function CheckoutPage() {
         sessionStorage.setItem(dedupeKey, '1');
       }
     } catch (_) {
-      trackPurchase(
+      await trackPurchase(
         orderId,
         formattedTotal,
         formattedCurrency,

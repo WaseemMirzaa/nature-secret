@@ -1,13 +1,23 @@
 'use client';
 
-/** Spinner only during automatic reload retries; error copy only after exhaustion. */
+/** Spinner graphic only (no copy). */
+export function PageLoadSpinner() {
+  return (
+    <div
+      className="h-10 w-10 border-2 border-neutral-200 border-t-neutral-900 rounded-full animate-spin"
+      aria-hidden
+    />
+  );
+}
+
+/** Full-screen overlay: spinner only during automatic reload retries (no text or buttons). */
 export function PageLoadRetryLoader() {
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-neutral-50/95 backdrop-blur-sm px-6"
-      aria-hidden
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-neutral-50/95 backdrop-blur-sm"
+      aria-busy="true"
     >
-      <div className="h-10 w-10 border-2 border-neutral-200 border-t-neutral-900 rounded-full animate-spin" />
+      <PageLoadSpinner />
     </div>
   );
 }
