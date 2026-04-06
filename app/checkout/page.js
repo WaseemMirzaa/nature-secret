@@ -54,13 +54,14 @@ export default function CheckoutPage() {
   const [orderError, setOrderError] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [discountError, setDiscountError] = useState('');
-  /** Mobile: virtual keyboard shrinks visual viewport — undock fixed bar to end of page */
+  /** Mobile: virtual keyboard — compact sticky bar + position above keyboard via visualViewport */
   const [keyboardOverlap, setKeyboardOverlap] = useState(false);
+  /** Pixels to lift fixed mobile bar above OS keyboard (visualViewport inset from bottom). */
+  const [mobileBarBottomPx, setMobileBarBottomPx] = useState(0);
   const formRef = useRef(null);
   const phoneFieldRef = useRef(null);
 
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
-  const mobileBarDocked = !keyboardOverlap;
 
   useEffect(() => setMounted(true), []);
 
@@ -69,8 +70,10 @@ export default function CheckoutPage() {
     const vv = window.visualViewport;
     if (!vv) return;
     const update = () => {
-      const threshold = Math.max(72, window.innerHeight * 0.085);
-      setKeyboardOverlap(window.innerHeight - vv.height > threshold);
+      const th = Math.max(72, window.innerHeight * 0.085);
+      setKeyboardOverlap(window.innerHeight - vv.height > th);
+      const inset = Math.max(0, window.innerHeight - vv.offsetTop - vv.height);
+      setMobileBarBottomPx(inset);
     };
     update();
     vv.addEventListener('resize', update);
@@ -99,17 +102,6 @@ export default function CheckoutPage() {
     };
     const scrollFieldIntoViewSafe = (fieldEl) => {
       if (!(fieldEl instanceof HTMLElement)) return;
-      const scrollInlineSubmit = () => {
-        const fid = fieldEl.id;
-        if (fid !== 'checkout-city' && fid !== 'checkout-pincode') return;
-        const btn = document.getElementById('checkout-inline-mobile-submit');
-        if (!btn) return;
-        try {
-          btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-        } catch (_) {
-          btn.scrollIntoView(false);
-        }
-      };
       const run = () => {
         try {
           fieldEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
@@ -118,16 +110,10 @@ export default function CheckoutPage() {
         }
       };
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          run();
-          setTimeout(scrollInlineSubmit, 120);
-        });
+        requestAnimationFrame(run);
       });
       if (scrollT) clearTimeout(scrollT);
-      scrollT = setTimeout(() => {
-        run();
-        setTimeout(scrollInlineSubmit, 150);
-      }, 420);
+      scrollT = setTimeout(run, 420);
     };
 
     const onFocusIn = (e) => {
@@ -450,9 +436,7 @@ export default function CheckoutPage() {
 
   return (
     <div
-      className={`mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-2.5 sm:py-4 lg:py-12 animate-slide-up ${
-        mobileBarDocked ? 'max-lg:pb-[11rem] sm:max-lg:pb-[12rem]' : 'max-lg:pb-6 sm:max-lg:pb-8'
-      }`}
+      className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-2.5 sm:py-4 lg:py-12 animate-slide-up max-lg:pb-[10rem] sm:max-lg:pb-[11rem]"
     >
       <div className="mb-2 sm:mb-5 lg:mb-8">
         <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-neutral-900">Checkout</h1>
@@ -559,17 +543,6 @@ export default function CheckoutPage() {
             </div>
           </div>
           <p className="mt-2 sm:mt-3 lg:mt-4 text-[11px] sm:text-xs lg:text-sm text-neutral-500">Payment: Cash on delivery.</p>
-          {keyboardOverlap && (
-            <button
-              id="checkout-inline-mobile-submit"
-              type="submit"
-              form="checkout-form"
-              disabled={placing}
-              className="lg:hidden mt-4 flex w-full min-h-[3.25rem] items-center justify-center rounded-2xl bg-neutral-900 px-6 py-3.5 text-[0.9375rem] font-semibold leading-snug tracking-tight text-white shadow-[0_6px_20px_-4px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/[0.06] transition-all duration-200 hover:bg-neutral-800 active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/55 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none"
-            >
-              {placing ? 'Placing order…' : 'Place order · Cash on delivery'}
-            </button>
-          )}
         </div>
 
         <div className="order-1 lg:order-2 min-w-0">
@@ -660,53 +633,77 @@ export default function CheckoutPage() {
         </div>
       </form>
 
-      {/* Mobile: fixed dock; when keyboard/focus — inline at end so fields stay visible */}
+      {/* Mobile: always fixed; bottom follows visualViewport so bar sits above keyboard */}
       <div
-        className={
-          mobileBarDocked
-            ? 'lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.08)] pb-[max(0.75rem,env(safe-area-inset-bottom))]'
-            : 'lg:hidden relative z-10 mt-8 w-full border-t border-neutral-200 bg-white shadow-[0_-2px_20px_rgba(0,0,0,0.06)] rounded-t-2xl pb-[max(0.75rem,env(safe-area-inset-bottom))]'
-        }
+        className="lg:hidden fixed left-0 right-0 z-[60] border-t border-neutral-200 bg-white/95 backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.08)] transition-[bottom,padding] duration-300 ease-out will-change-[bottom]"
+        style={{
+          bottom: `calc(${mobileBarBottomPx}px + env(safe-area-inset-bottom, 0px))`,
+        }}
         role="region"
         aria-label="Order total and place order"
       >
-        <div className="mx-auto max-w-7xl w-full px-3 sm:px-5 pt-3 sm:pt-4">
+        <div
+          className={`mx-auto max-w-7xl w-full px-3 sm:px-5 transition-all duration-300 ease-out ${
+            keyboardOverlap ? 'pt-2 pb-1' : 'pt-3 sm:pt-4'
+          }`}
+        >
           {orderError && (
-            <p className="text-[11px] sm:text-xs text-red-600 mb-2 leading-snug">{orderError}</p>
+            <p className="text-[11px] sm:text-xs text-red-600 mb-1.5 leading-snug">{orderError}</p>
           )}
-          <div className="space-y-1 text-xs text-neutral-600 mb-3">
-            <div className="flex justify-between gap-3 tabular-nums">
-              <span>Subtotal</span>
-              <span>{formatPrice(subtotal, currency)}</span>
-            </div>
-            {discountAmount > 0 && (
-              <div className="flex justify-between gap-3 tabular-nums text-green-700">
-                <span>Discount</span>
-                <span>−{formatPrice(discountAmount, currency)}</span>
+          <div
+            className={`text-neutral-600 transition-all duration-300 ease-out overflow-hidden ${
+              keyboardOverlap ? 'max-h-0 opacity-0 mb-0' : 'max-h-[200px] opacity-100 mb-3'
+            }`}
+          >
+            <div className="space-y-1 text-xs">
+              <div className="flex justify-between gap-3 tabular-nums">
+                <span>Subtotal</span>
+                <span>{formatPrice(subtotal, currency)}</span>
               </div>
-            )}
-            <div className="flex justify-between gap-3 tabular-nums">
-              <span>Shipping</span>
-              <span>{shipping === 0 ? 'Free' : formatPrice(shipping, currency)}</span>
+              {discountAmount > 0 && (
+                <div className="flex justify-between gap-3 tabular-nums text-green-700">
+                  <span>Discount</span>
+                  <span>−{formatPrice(discountAmount, currency)}</span>
+                </div>
+              )}
+              <div className="flex justify-between gap-3 tabular-nums">
+                <span>Shipping</span>
+                <span>{shipping === 0 ? 'Free' : formatPrice(shipping, currency)}</span>
+              </div>
             </div>
-            <div className="flex justify-between items-end gap-3 pt-2 border-t border-neutral-200">
-              <span className="text-sm font-semibold text-neutral-900">Total</span>
-              <span className="text-xl sm:text-2xl font-bold text-neutral-900 tabular-nums tracking-tight">{formatPrice(grandTotal, currency)}</span>
-            </div>
+          </div>
+          <div
+            className={`flex items-center justify-between gap-3 transition-all duration-300 ease-out ${
+              keyboardOverlap ? 'border-0 pt-0 pb-1' : 'border-t border-neutral-200 pt-2 pb-0'
+            }`}
+          >
+            <span className={`text-neutral-600 transition-all duration-300 ${keyboardOverlap ? 'text-[10px] font-medium' : 'text-xs'}`}>
+              Total
+            </span>
+            <span
+              className={`font-bold tabular-nums text-neutral-900 transition-all duration-300 ${
+                keyboardOverlap ? 'text-base' : 'text-xl sm:text-2xl'
+              }`}
+            >
+              {formatPrice(grandTotal, currency)}
+            </span>
           </div>
         </div>
-        {!keyboardOverlap && (
-          <div className="px-4 sm:px-5 pb-3 sm:pb-4">
-            <button
-              type="submit"
-              form="checkout-form"
-              disabled={placing}
-              className="flex w-full min-h-[3.5rem] sm:min-h-[3.625rem] items-center justify-center rounded-2xl bg-neutral-900 px-6 py-3.5 text-[0.9375rem] sm:text-base font-semibold leading-snug tracking-tight text-white shadow-[0_6px_20px_-4px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/[0.06] transition-all duration-200 hover:bg-neutral-800 hover:shadow-[0_10px_28px_-6px_rgba(0,0,0,0.42)] active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/55 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none animate-cta-attract hover:animate-none disabled:animate-none"
-            >
-              {placing ? 'Placing order…' : 'Place order · Cash on delivery'}
-            </button>
-          </div>
-        )}
+        <div className={`px-3 sm:px-5 transition-all duration-300 ease-out ${keyboardOverlap ? 'pb-1.5 pt-0' : 'pb-3 sm:pb-4 pt-1'}`}>
+          <button
+            id="checkout-mobile-sticky-submit"
+            type="submit"
+            form="checkout-form"
+            disabled={placing}
+            className={`flex w-full items-center justify-center rounded-2xl bg-neutral-900 font-semibold text-white shadow-[0_6px_20px_-4px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/[0.06] transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/55 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none active:scale-[0.98] ${
+              keyboardOverlap
+                ? 'min-h-[2.5rem] px-4 py-2 text-xs sm:text-sm shadow-md scale-[0.98] origin-bottom'
+                : 'min-h-[3.5rem] sm:min-h-[3.625rem] px-6 py-3.5 text-[0.9375rem] sm:text-base animate-cta-attract hover:animate-none disabled:animate-none hover:bg-neutral-800 hover:shadow-[0_10px_28px_-6px_rgba(0,0,0,0.42)]'
+            }`}
+          >
+            {placing ? 'Placing order…' : keyboardOverlap ? 'Place order · COD' : 'Place order · Cash on delivery'}
+          </button>
+        </div>
       </div>
     </div>
   );
