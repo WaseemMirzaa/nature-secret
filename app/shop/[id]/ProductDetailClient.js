@@ -662,11 +662,11 @@ export default function ProductDetailClient({
                       setOrderNowVibrate(true);
                       setTimeout(() => setOrderNowVibrate(false), 400);
                     }}
-                    className={`w-full rounded-full sm:rounded-2xl bg-gold-500 py-3 lg:py-3.5 text-sm font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-md ${
+                    className={`w-full rounded-full sm:rounded-2xl bg-gold-500 py-3 lg:py-3.5 text-sm font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-md checkout-cta-animated cta-shimmer-gold ${
                       orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
                     }`}
                   >
-                    Order now — Cash on delivery
+                    <span className="relative z-10">Order now — Cash on delivery</span>
                   </button>
                 </>
               )}
@@ -1169,12 +1169,12 @@ export default function ProductDetailClient({
                   setOrderNowVibrate(true);
                   setTimeout(() => setOrderNowVibrate(false), 400);
                 }}
-                className={`min-h-[3rem] flex flex-col items-center justify-center gap-0 rounded-full sm:rounded-2xl bg-gold-500 px-1.5 py-1 text-center text-xs font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-sm leading-tight ${
+                className={`min-h-[3rem] flex flex-col items-center justify-center gap-0 rounded-full sm:rounded-2xl bg-gold-500 px-1.5 py-1 text-center text-xs font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-sm leading-tight checkout-cta-animated cta-shimmer-gold ${
                   orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
                 }`}
               >
-                <span>Order now</span>
-                <span className="text-[10px] font-medium text-neutral-800/90">Cash on delivery</span>
+                <span className="relative z-10">Order now</span>
+                <span className="relative z-10 text-[10px] font-medium text-neutral-800/90">Cash on delivery</span>
               </button>
             </div>
           </div>
@@ -1216,11 +1216,11 @@ export default function ProductDetailClient({
                   setOrderNowVibrate(true);
                   setTimeout(() => setOrderNowVibrate(false), 400);
                 }}
-                className={`rounded-full sm:rounded-2xl bg-gold-500 px-5 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-md min-w-[120px] ${
+                className={`rounded-full sm:rounded-2xl bg-gold-500 px-5 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-md min-w-[120px] checkout-cta-animated cta-shimmer-gold ${
                   orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
                 }`}
               >
-                Buy now
+                <span className="relative z-10">Buy now</span>
               </button>
             </div>
           </div>
