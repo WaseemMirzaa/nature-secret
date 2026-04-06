@@ -374,7 +374,7 @@ export default function CheckoutPage() {
     'checkout-cta-animated inline-flex items-center justify-center rounded-full sm:rounded-2xl bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800 px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_3px_12px_-6px_rgba(0,0,0,0.22),0_0_0_1px_rgba(212,175,55,0.1)] ring-1 ring-inset ring-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_5px_18px_-8px_rgba(0,0,0,0.28)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 disabled:hover:scale-100 motion-reduce:transition-none motion-reduce:hover:scale-100 sm:px-6 sm:py-3.5 sm:text-[0.9375rem]';
 
   return (
-    <div className="checkout-page mx-auto max-w-6xl px-3 sm:px-5 lg:px-8 py-4 sm:py-6 lg:py-12 max-lg:pb-36 lg:pb-16">
+    <div className="checkout-page mx-auto max-w-6xl px-3 sm:px-5 lg:px-8 py-4 sm:py-6 lg:py-12 pb-10 sm:pb-12 lg:pb-16">
       <div className="mb-5 sm:mb-6 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4 animate-checkout-enter motion-reduce:animate-none motion-reduce:opacity-100">
         <div className="min-w-0">
           <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.16em] sm:tracking-[0.18em] text-gold-700/90 mb-0.5 sm:mb-1">
@@ -594,7 +594,7 @@ export default function CheckoutPage() {
         </section>
           </div>
 
-        <aside className="mt-6 sm:mt-7 space-y-3 sm:space-y-4 lg:mt-0 lg:sticky lg:top-24 lg:self-start animate-checkout-enter checkout-enter-delay-5 motion-reduce:animate-none motion-reduce:opacity-100 min-w-0">
+        <aside className="mt-6 sm:mt-7 space-y-3 sm:space-y-4 lg:mt-0 animate-checkout-enter checkout-enter-delay-5 motion-reduce:animate-none motion-reduce:opacity-100 min-w-0">
           <section className={`p-3 sm:p-4 ${cardSurface}`}>
           <h2 className={`${sectionTitle} mb-2 sm:mb-2.5`}>Order summary</h2>
             <ul className="space-y-3 mb-4 max-h-[min(50vh,320px)] overflow-y-auto overscroll-contain -mr-1 pr-1 touch-pan-y sm:max-h-none sm:overflow-visible">
@@ -690,6 +690,9 @@ export default function CheckoutPage() {
               {formatPrice(grandTotal, currency)}
             </p>
           </div>
+          <p className="mt-3 text-[10px] sm:text-xs text-center text-neutral-500 leading-snug lg:hidden">
+            Pay on delivery · COD · Secure delivery
+          </p>
         </div>
 
           <div ref={orderErrorRef}>
@@ -700,12 +703,12 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          <div className="hidden lg:block space-y-2">
+          <div className="mt-3 sm:mt-4 space-y-2">
             <button
               type="submit"
               disabled={placing}
               aria-busy={placing}
-              className={`${ctaBase} w-full min-h-[3rem]`}
+              className={`${ctaBase} w-full min-h-[3rem] touch-manipulation`}
             >
               {placing ? 'Placing order…' : 'Complete order'}
             </button>
@@ -716,39 +719,6 @@ export default function CheckoutPage() {
         </aside>
         </div>
       </form>
-
-      <div
-        className="fixed bottom-0 left-0 right-0 z-40 border-0 bg-gradient-to-t from-gold-50/95 via-white/98 to-white/98 backdrop-blur-xl px-3 pt-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] shadow-[0_-6px_24px_-10px_rgba(0,0,0,0.12)] lg:hidden rounded-t-[1.75rem] overflow-hidden"
-        role="region"
-        aria-label="Order total and submit"
-      >
-        <p className="text-[9px] text-center font-medium text-gold-800/85 mb-1.5 leading-snug tracking-wide">
-          Pay on delivery · COD · Secure delivery
-        </p>
-        <div className="flex items-end gap-2.5">
-          <div className="min-w-0 flex-1 pl-0.5">
-            <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-gold-800/75">Total</p>
-            <p className="text-base font-bold tabular-nums text-neutral-900 truncate leading-tight tracking-tight">
-              {formatPrice(grandTotal, currency)}
-            </p>
-            <p className="text-[9px] text-neutral-500 mt-0.5">
-              {itemCount} {itemCount === 1 ? 'item' : 'items'} · COD
-            </p>
-          </div>
-          <button
-            type="submit"
-            form="checkout-form"
-            disabled={placing}
-            aria-busy={placing}
-            className={`${ctaBase} min-h-[46px] min-w-[8.75rem] shrink-0 px-4 touch-manipulation`}
-          >
-            {placing ? 'Placing…' : 'Complete order'}
-          </button>
-        </div>
-        {placing && (
-          <p className="text-[9px] text-center font-medium text-gold-800/75 mt-1.5">Usually takes a few seconds.</p>
-        )}
-      </div>
     </div>
   );
 }
