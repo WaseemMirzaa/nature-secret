@@ -70,6 +70,46 @@ body {
   }
 }
 
+@keyframes checkoutCtaShimmer {
+  0% {
+    transform: translateX(-130%);
+  }
+  100% {
+    transform: translateX(130%);
+  }
+}
+
+@layer components {
+  .checkout-cta-animated {
+    @apply relative isolate overflow-hidden;
+  }
+  .checkout-cta-animated::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(
+      105deg,
+      transparent 38%,
+      rgba(255, 252, 245, 0.16) 50%,
+      transparent 62%
+    );
+    transform: translateX(-130%);
+    animation: checkoutCtaShimmer 3.4s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .checkout-cta-animated::before {
+      animation: none;
+    }
+  }
+  .checkout-cta-animated:disabled::before {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 /* Premium focus ring */
 *:focus-visible {
   @apply outline-none ring-2 ring-neutral-800 ring-offset-2 ring-offset-neutral-150;

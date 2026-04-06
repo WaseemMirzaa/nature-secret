@@ -371,7 +371,7 @@ export default function CheckoutPage() {
   }
 
   const ctaBase =
-    'inline-flex items-center justify-center rounded-full sm:rounded-2xl bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800 px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_6px_22px_-6px_rgba(0,0,0,0.4),0_0_0_1px_rgba(212,175,55,0.14)] ring-1 ring-inset ring-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_10px_32px_-8px_rgba(212,175,55,0.38)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 disabled:hover:scale-100 motion-reduce:transition-none motion-reduce:hover:scale-100 sm:px-6 sm:py-3.5 sm:text-[0.9375rem]';
+    'checkout-cta-animated inline-flex items-center justify-center rounded-full sm:rounded-2xl bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800 px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_6px_22px_-6px_rgba(0,0,0,0.4),0_0_0_1px_rgba(212,175,55,0.14)] ring-1 ring-inset ring-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_10px_32px_-8px_rgba(212,175,55,0.38)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 disabled:hover:scale-100 motion-reduce:transition-none motion-reduce:hover:scale-100 sm:px-6 sm:py-3.5 sm:text-[0.9375rem]';
 
   return (
     <div className="checkout-page mx-auto max-w-6xl px-3 sm:px-5 lg:px-8 py-4 sm:py-6 lg:py-12 max-lg:pb-36 lg:pb-16">
