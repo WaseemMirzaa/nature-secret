@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, Req, UseGuards } from '@nestjs/common';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { Request } from 'express';
 import { AnalyticsService } from './analytics.service';
@@ -24,6 +24,7 @@ export class AnalyticsController {
 
   @Public()
   @Throttle({ default: { limit: 180, ttl: 60000 } })
+  @HttpCode(200)
   @Post('meta-capi')
   async metaCapiRelay(@Body() dto: MetaCapiDto, @Req() req: Request) {
     return this.metaCapi.send(dto, req);

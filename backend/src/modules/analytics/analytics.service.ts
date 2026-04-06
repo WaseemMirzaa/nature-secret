@@ -181,16 +181,11 @@ export class AnalyticsService {
   }
 
   /**
-   * Derived-table FROM only — must NOT be a bare table name string or TypeORM resolves it to
-   * AnalyticsEvent metadata and prepends `e.id` to SELECT (MySQL ONLY_FULL_GROUP_BY on aggregates).
-   * Double-wrapped subquery so `hasMetadata("(SELECT …")` never matches a registered entity/table name.
+   * Entity-scoped qb for raw aggregates / GROUP BY. Use getRawOne/getRawMany (not getMany) so TypeORM does
+   * not expand `select("e")`-style selections; avoids broken ONLY_FULL_GROUP_BY from stray `e.id` in SELECT.
    */
   private createAnalyticsFlatQb(): SelectQueryBuilder<AnalyticsEvent> {
-    const table = this.repo.metadata.tablePath;
-    const inner = `(SELECT * FROM \`${table}\`)`;
-    return this.repo.manager
-      .createQueryBuilder()
-      .from(`(SELECT * FROM ${inner} AS _ns_inner)`, 'e') as SelectQueryBuilder<AnalyticsEvent>;
+    return this.repo.createQueryBuilder('e');
   }
 
   private coalesceTrim(col: string): string {
