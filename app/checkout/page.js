@@ -31,6 +31,16 @@ import {
   setSessionDiscountCode,
 } from '@/lib/nsSessionPromo';
 
+/** Collapse order summary on mobile while these fields are focused + keyboard open */
+const CHECKOUT_CONTACT_FIELD_IDS = new Set([
+  'checkout-phone',
+  'checkout-email',
+  'checkout-full-name',
+  'checkout-address',
+  'checkout-city',
+  'checkout-pincode',
+]);
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, clear, updateQty } = useCartStore();
@@ -58,6 +68,10 @@ export default function CheckoutPage() {
   const [keyboardOverlap, setKeyboardOverlap] = useState(false);
   /** Pixels to lift fixed mobile bar above OS keyboard (visualViewport inset from bottom). */
   const [mobileBarBottomPx, setMobileBarBottomPx] = useState(0);
+  const [isCheckoutMobile, setIsCheckoutMobile] = useState(false);
+  const [contactFieldFocused, setContactFieldFocused] = useState(false);
+  /** User tapped “Show order summary” while typing (keyboard still open). */
+  const [orderSummaryPeekOpen, setOrderSummaryPeekOpen] = useState(false);
   const formRef = useRef(null);
   const phoneFieldRef = useRef(null);
 
@@ -85,6 +99,19 @@ export default function CheckoutPage() {
       window.removeEventListener('resize', update);
     };
   }, [mounted]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 1023px)');
+    const fn = () => setIsCheckoutMobile(mq.matches);
+    fn();
+    mq.addEventListener('change', fn);
+    return () => mq.removeEventListener('change', fn);
+  }, []);
+
+  useEffect(() => {
+    if (!keyboardOverlap) setOrderSummaryPeekOpen(false);
+  }, [keyboardOverlap]);
 
   /** Re-sync after focus moves (visualViewport can lag one frame on iOS) */
   useEffect(() => {
@@ -123,6 +150,12 @@ export default function CheckoutPage() {
       const inContact = contactEl?.contains(target);
       const inDiscount = target?.id === 'checkout-discount-code';
 
+      if (CHECKOUT_CONTACT_FIELD_IDS.has(target?.id)) {
+        setContactFieldFocused(true);
+      } else {
+        setContactFieldFocused(false);
+      }
+
       if (inContact) {
         setKeyboardOverlap(true);
       }
@@ -143,9 +176,15 @@ export default function CheckoutPage() {
       t = setTimeout(() => {
         if (!el.contains(document.activeElement)) {
           setKeyboardOverlap(false);
+          setContactFieldFocused(false);
+          setOrderSummaryPeekOpen(false);
           return;
         }
         syncFromVv();
+        const ae = document.activeElement;
+        const inContactField = ae instanceof HTMLElement && CHECKOUT_CONTACT_FIELD_IDS.has(ae.id);
+        setContactFieldFocused(inContactField);
+        if (!inContactField) setOrderSummaryPeekOpen(false);
       }, 200);
     };
     el.addEventListener('focusin', onFocusIn);
@@ -423,6 +462,9 @@ export default function CheckoutPage() {
     router.push(`/checkout/confirmation?order=${orderId}`);
   }
 
+  const orderSummaryCollapsedMobile =
+    isCheckoutMobile && contactFieldFocused && keyboardOverlap && !orderSummaryPeekOpen;
+
   if (!mounted) return <CustomerPageLoader message="Loading" />;
 
   if (items.length === 0 && !placing) {
@@ -547,7 +589,43 @@ export default function CheckoutPage() {
 
         <div className="order-1 lg:order-2 min-w-0">
           <div className="rounded-xl lg:rounded-2xl border border-neutral-200 bg-neutral-50 p-3 sm:p-4 lg:p-6 lg:sticky lg:top-24 max-lg:shadow-sm">
-            <h2 className="text-xs sm:text-sm font-medium text-neutral-900 mb-2 lg:mb-4 tracking-tight">Order summary</h2>
+            {orderSummaryCollapsedMobile ? (
+              <div className="flex items-center justify-between gap-2 mb-0 lg:hidden">
+                <span className="text-xs sm:text-sm font-medium text-neutral-900">Order summary</span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-sm font-semibold tabular-nums text-neutral-900">{formatPrice(grandTotal, currency)}</span>
+                  <button
+                    type="button"
+                    onClick={() => setOrderSummaryPeekOpen(true)}
+                    className="text-xs font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/50 pb-0.5"
+                  >
+                    Show
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="mb-2 lg:mb-4 flex items-start justify-between gap-2">
+                <h2 className="text-xs sm:text-sm font-medium text-neutral-900 tracking-tight">Order summary</h2>
+                {orderSummaryPeekOpen &&
+                  isCheckoutMobile &&
+                  contactFieldFocused &&
+                  keyboardOverlap && (
+                    <button
+                      type="button"
+                      onClick={() => setOrderSummaryPeekOpen(false)}
+                      className="lg:hidden text-xs font-medium text-neutral-500 hover:text-neutral-800 shrink-0 pt-0.5"
+                    >
+                      Hide
+                    </button>
+                  )}
+              </div>
+            )}
+            <div
+              className={`transition-all duration-300 ease-out ${
+                orderSummaryCollapsedMobile ? 'max-h-0 overflow-hidden opacity-0 pointer-events-none' : ''
+              }`}
+              aria-hidden={orderSummaryCollapsedMobile}
+            >
             <ul className="space-y-2 sm:space-y-2.5 lg:space-y-4 mb-2 sm:mb-3 lg:mb-4 max-lg:max-h-[min(42vh,260px)] max-lg:overflow-y-auto max-lg:overscroll-contain max-lg:-mr-1 max-lg:pr-1 touch-pan-y">
               {items.map((i) => {
                 const p = getProduct(i.productId);
@@ -629,6 +707,7 @@ export default function CheckoutPage() {
             >
               {placing ? 'Placing order…' : 'Place order (Cash on delivery)'}
             </button>
+            </div>
           </div>
         </div>
       </form>
