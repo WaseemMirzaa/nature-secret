@@ -31,16 +31,6 @@ import {
   setSessionDiscountCode,
 } from '@/lib/nsSessionPromo';
 
-/** Collapse order summary on mobile while these fields are focused + keyboard open */
-const CHECKOUT_CONTACT_FIELD_IDS = new Set([
-  'checkout-phone',
-  'checkout-email',
-  'checkout-full-name',
-  'checkout-address',
-  'checkout-city',
-  'checkout-pincode',
-]);
-
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, clear, updateQty } = useCartStore();
@@ -64,138 +54,12 @@ export default function CheckoutPage() {
   const [orderError, setOrderError] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [discountError, setDiscountError] = useState('');
-  /** Mobile: virtual keyboard — compact sticky bar + position above keyboard via visualViewport */
-  const [keyboardOverlap, setKeyboardOverlap] = useState(false);
-  /** Pixels to lift fixed mobile bar above OS keyboard (visualViewport inset from bottom). */
-  const [mobileBarBottomPx, setMobileBarBottomPx] = useState(0);
-  const [isCheckoutMobile, setIsCheckoutMobile] = useState(false);
-  const [contactFieldFocused, setContactFieldFocused] = useState(false);
-  /** User tapped “Show order summary” while typing (keyboard still open). */
-  const [orderSummaryPeekOpen, setOrderSummaryPeekOpen] = useState(false);
   const formRef = useRef(null);
   const phoneFieldRef = useRef(null);
 
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
 
   useEffect(() => setMounted(true), []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !mounted) return;
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const update = () => {
-      const th = Math.max(72, window.innerHeight * 0.085);
-      setKeyboardOverlap(window.innerHeight - vv.height > th);
-      const inset = Math.max(0, window.innerHeight - vv.offsetTop - vv.height);
-      setMobileBarBottomPx(inset);
-    };
-    update();
-    vv.addEventListener('resize', update);
-    vv.addEventListener('scroll', update);
-    window.addEventListener('resize', update);
-    return () => {
-      vv.removeEventListener('resize', update);
-      vv.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
-    };
-  }, [mounted]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mq = window.matchMedia('(max-width: 1023px)');
-    const fn = () => setIsCheckoutMobile(mq.matches);
-    fn();
-    mq.addEventListener('change', fn);
-    return () => mq.removeEventListener('change', fn);
-  }, []);
-
-  useEffect(() => {
-    if (!keyboardOverlap) setOrderSummaryPeekOpen(false);
-  }, [keyboardOverlap]);
-
-  /** Re-sync after focus moves (visualViewport can lag one frame on iOS) */
-  useEffect(() => {
-    if (typeof window === 'undefined' || !mounted || items.length === 0) return;
-    const el = formRef.current;
-    if (!el) return;
-    const mq = window.matchMedia('(max-width: 1023px)');
-    let t;
-    let scrollT;
-    const syncFromVv = () => {
-      const vv = window.visualViewport;
-      if (!vv) return;
-      const th = Math.max(72, window.innerHeight * 0.085);
-      setKeyboardOverlap(window.innerHeight - vv.height > th);
-    };
-    const scrollFieldIntoViewSafe = (fieldEl) => {
-      if (!(fieldEl instanceof HTMLElement)) return;
-      const run = () => {
-        try {
-          fieldEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-        } catch (_) {
-          fieldEl.scrollIntoView(false);
-        }
-      };
-      requestAnimationFrame(() => {
-        requestAnimationFrame(run);
-      });
-      if (scrollT) clearTimeout(scrollT);
-      scrollT = setTimeout(run, 420);
-    };
-
-    const onFocusIn = (e) => {
-      if (!mq.matches || !e.target?.matches?.('input, textarea, select')) return;
-      const contactEl = document.getElementById('checkout-contact');
-      const target = e.target;
-      const inContact = contactEl?.contains(target);
-      const inDiscount = target?.id === 'checkout-discount-code';
-
-      if (CHECKOUT_CONTACT_FIELD_IDS.has(target?.id)) {
-        setContactFieldFocused(true);
-      } else {
-        setContactFieldFocused(false);
-      }
-
-      if (inContact) {
-        setKeyboardOverlap(true);
-      }
-      clearTimeout(t);
-      if (scrollT) {
-        clearTimeout(scrollT);
-        scrollT = undefined;
-      }
-      t = setTimeout(syncFromVv, 80);
-
-      if (inContact || inDiscount) {
-        scrollFieldIntoViewSafe(target);
-      }
-    };
-    const onFocusOut = () => {
-      clearTimeout(t);
-      if (scrollT) clearTimeout(scrollT);
-      t = setTimeout(() => {
-        if (!el.contains(document.activeElement)) {
-          setKeyboardOverlap(false);
-          setContactFieldFocused(false);
-          setOrderSummaryPeekOpen(false);
-          return;
-        }
-        syncFromVv();
-        const ae = document.activeElement;
-        const inContactField = ae instanceof HTMLElement && CHECKOUT_CONTACT_FIELD_IDS.has(ae.id);
-        setContactFieldFocused(inContactField);
-        if (!inContactField) setOrderSummaryPeekOpen(false);
-      }, 200);
-    };
-    el.addEventListener('focusin', onFocusIn);
-    el.addEventListener('focusout', onFocusOut);
-    return () => {
-      clearTimeout(t);
-      if (scrollT) clearTimeout(scrollT);
-      el.removeEventListener('focusin', onFocusIn);
-      el.removeEventListener('focusout', onFocusOut);
-    };
-  }, [mounted, items.length]);
 
   useEffect(() => {
     if (!mounted || items.length === 0) return;
@@ -462,8 +326,13 @@ export default function CheckoutPage() {
     router.push(`/checkout/confirmation?order=${orderId}`);
   }
 
-  const orderSummaryCollapsedMobile =
-    isCheckoutMobile && contactFieldFocused && keyboardOverlap && !orderSummaryPeekOpen;
+  const itemCount = items.reduce((n, i) => n + (i.qty || 0), 0);
+  const firstLine = items[0];
+  const firstProduct = firstLine ? getProduct(firstLine.productId) : null;
+  const firstVariant = firstLine ? getVariant(firstLine.productId, firstLine.variantId) : null;
+  const firstThumb =
+    firstLine &&
+    (firstVariant?.image || firstProduct?.images?.[0] || '/assets/nature-secret-logo.svg');
 
   if (!mounted) return <CustomerPageLoader message="Loading" />;
 
@@ -477,22 +346,22 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div
-      className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-2.5 sm:py-4 lg:py-12 animate-slide-up max-lg:pb-[10rem] sm:max-lg:pb-[11rem]"
-    >
-      <div className="mb-2 sm:mb-5 lg:mb-8">
-        <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-neutral-900">Checkout</h1>
-        <p className="mt-0.5 lg:mt-1 text-[11px] sm:text-xs lg:text-sm text-neutral-500 leading-snug">Complete your order. Email is required for order updates; we&apos;ll also reach you on your phone.</p>
+    <div className="mx-auto max-w-xl px-3 sm:px-5 lg:px-8 py-4 sm:py-6 lg:py-12 animate-slide-up pb-12 sm:pb-16">
+      <div className="mb-6 flex items-start justify-between gap-3">
+        <h1 className="text-xl sm:text-2xl font-semibold text-neutral-900 tracking-tight">Checkout</h1>
+        {!customer && (
+          <Link
+            href="/login"
+            className="text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/40 pb-0.5 shrink-0"
+          >
+            Sign in
+          </Link>
+        )}
       </div>
-      <form
-        ref={formRef}
-        id="checkout-form"
-        onSubmit={handleSubmit}
-        className="flex flex-col lg:grid lg:grid-cols-2 gap-4 md:gap-5 lg:gap-12"
-      >
-        <div id="checkout-contact" className="order-2 lg:order-1 min-w-0 scroll-mt-20 max-lg:scroll-mb-[min(50vh,18rem)]">
-          <h2 className="text-xs sm:text-sm font-medium text-neutral-900 mb-2 lg:mb-4 tracking-tight">Contact & delivery</h2>
-          <div className="space-y-2 sm:space-y-2.5 lg:space-y-4">
+      <form ref={formRef} id="checkout-form" onSubmit={handleSubmit} className="space-y-8">
+        <section id="checkout-contact" className="scroll-mt-20">
+          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Contact & delivery</h2>
+          <div className="space-y-2.5 sm:space-y-3">
             {/* Honeypot: hidden; if filled, submit is rejected client-side (no Meta/API). */}
             <div className="hidden" aria-hidden="true">
               <label htmlFor="checkout-hp-website">Company website</label>
@@ -584,49 +453,63 @@ export default function CheckoutPage() {
               />
             </div>
           </div>
-          <p className="mt-2 sm:mt-3 lg:mt-4 text-[11px] sm:text-xs lg:text-sm text-neutral-500">Payment: Cash on delivery.</p>
-        </div>
+        </section>
 
-        <div className="order-1 lg:order-2 min-w-0">
-          <div className="rounded-xl lg:rounded-2xl border border-neutral-200 bg-neutral-50 p-3 sm:p-4 lg:p-6 lg:sticky lg:top-24 max-lg:shadow-sm">
-            {orderSummaryCollapsedMobile ? (
-              <div className="flex items-center justify-between gap-2 mb-0 lg:hidden">
-                <span className="text-xs sm:text-sm font-medium text-neutral-900">Order summary</span>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-sm font-semibold tabular-nums text-neutral-900">{formatPrice(grandTotal, currency)}</span>
-                  <button
-                    type="button"
-                    onClick={() => setOrderSummaryPeekOpen(true)}
-                    className="text-xs font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/50 pb-0.5"
-                  >
-                    Show
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="mb-2 lg:mb-4 flex items-start justify-between gap-2">
-                <h2 className="text-xs sm:text-sm font-medium text-neutral-900 tracking-tight">Order summary</h2>
-                {orderSummaryPeekOpen &&
-                  isCheckoutMobile &&
-                  contactFieldFocused &&
-                  keyboardOverlap && (
-                    <button
-                      type="button"
-                      onClick={() => setOrderSummaryPeekOpen(false)}
-                      className="lg:hidden text-xs font-medium text-neutral-500 hover:text-neutral-800 shrink-0 pt-0.5"
-                    >
-                      Hide
-                    </button>
-                  )}
-              </div>
-            )}
-            <div
-              className={`transition-all duration-300 ease-out ${
-                orderSummaryCollapsedMobile ? 'max-h-0 overflow-hidden opacity-0 pointer-events-none' : ''
-              }`}
-              aria-hidden={orderSummaryCollapsedMobile}
+        <section>
+          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Shipping method</h2>
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3.5 sm:px-4 text-sm">
+            <span className="font-medium text-neutral-900">Standard</span>
+            <span className="font-semibold tabular-nums text-neutral-900">
+              {shipping === 0 ? 'Free' : formatPrice(shipping, currency)}
+            </span>
+          </div>
+          <p className="mt-2 text-xs text-neutral-500 leading-relaxed">
+            {shipping === 0 ? 'Free shipping on this order.' : 'Standard delivery 5–7 business days.'}
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-sm font-semibold text-neutral-900 mb-1">Payment</h2>
+          <p className="text-xs text-neutral-500 mb-3">All transactions are secure. Pay when your order arrives.</p>
+          <div className="rounded-xl border border-gold-200/70 bg-gold-50/50 px-3 py-3.5 sm:px-4 text-sm font-medium text-neutral-900">
+            Cash on delivery (COD)
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Discount</h2>
+          <div className="flex gap-1.5 sm:gap-2">
+            <input
+              id="checkout-discount-code"
+              type="text"
+              name="discountCode"
+              autoComplete="off"
+              placeholder="Discount code"
+              value={discountCode}
+              onChange={(e) => setDiscountCode(e.target.value)}
+              className="flex-1 rounded-xl border border-neutral-200 px-3 py-2.5 text-sm min-w-0"
+            />
+            <button
+              type="button"
+              onClick={applyDiscount}
+              className="shrink-0 rounded-xl bg-neutral-900 text-white px-4 py-2.5 text-sm font-medium"
             >
-            <ul className="space-y-2 sm:space-y-2.5 lg:space-y-4 mb-2 sm:mb-3 lg:mb-4 max-lg:max-h-[min(42vh,260px)] max-lg:overflow-y-auto max-lg:overscroll-contain max-lg:-mr-1 max-lg:pr-1 touch-pan-y">
+              Apply
+            </button>
+          </div>
+          {discountError && <p className="mt-2 text-xs text-red-600">{discountError}</p>}
+          {appliedDiscount && !discountError && (
+            <p className="mt-2 text-xs text-green-600">
+              {isNsPromoCode(appliedDiscount)
+                ? `${NS_PROMO_CODE} applied — Rs 150 off`
+                : `Code applied (${codes[appliedDiscount]}% off)`}
+            </p>
+          )}
+        </section>
+
+        <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 sm:p-5">
+          <h2 className="text-sm font-semibold text-neutral-900 mb-3">Order summary</h2>
+            <ul className="space-y-3 mb-4 max-h-[min(50vh,320px)] overflow-y-auto overscroll-contain -mr-1 pr-1 touch-pan-y sm:max-h-none sm:overflow-visible">
               {items.map((i) => {
                 const p = getProduct(i.productId);
                 const variant = getVariant(i.productId, i.variantId);
@@ -674,116 +557,60 @@ export default function CheckoutPage() {
                 );
               })}
             </ul>
-            <div className="flex gap-1.5 sm:gap-2 mb-2 sm:mb-3 lg:mb-4">
-              <input
-                id="checkout-discount-code"
-                type="text"
-                name="discountCode"
-                autoComplete="off"
-                placeholder="Discount code"
-                value={discountCode}
-                onChange={(e) => setDiscountCode(e.target.value)}
-                className="flex-1 rounded-lg lg:rounded-xl border border-neutral-200 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm min-w-0"
-              />
-              <button type="button" onClick={applyDiscount} className="shrink-0 rounded-lg lg:rounded-xl bg-neutral-900 text-white px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium">Apply</button>
-            </div>
-            {discountError && <p className="text-[11px] sm:text-xs text-red-600 mb-1.5 sm:mb-2">{discountError}</p>}
-            {appliedDiscount && !discountError && (
-              <p className="text-[11px] sm:text-xs text-green-600 mb-1.5 sm:mb-2">
-                {isNsPromoCode(appliedDiscount) ? `${NS_PROMO_CODE} applied — Rs 150 off` : `Code applied (${codes[appliedDiscount]}% off)`}
-              </p>
-            )}
-            <div className="space-y-1 sm:space-y-1.5 lg:space-y-2 text-xs sm:text-sm">
-              <div className="flex justify-between gap-2 text-neutral-600"><span>Subtotal</span><span className="tabular-nums shrink-0">{formatPrice(subtotal, currency)}</span></div>
-              {discountAmount > 0 && <div className="flex justify-between gap-2 text-green-600"><span>Discount</span><span className="tabular-nums shrink-0">−{formatPrice(discountAmount, currency)}</span></div>}
-              <div className="flex justify-between gap-2 text-neutral-600"><span>Shipping</span><span className="tabular-nums shrink-0">{shipping === 0 ? 'Free' : formatPrice(shipping, currency)}</span></div>
-              <div className="flex justify-between gap-2 font-semibold text-neutral-900 pt-1.5 sm:pt-2 border-t border-neutral-200 text-sm sm:text-base"><span>Total</span><span className="tabular-nums shrink-0 text-base sm:text-lg">{formatPrice(grandTotal, currency)}</span></div>
-            </div>
-            {orderError && <p className="mt-2 sm:mt-3 lg:mt-4 text-xs sm:text-sm text-red-600">{orderError}</p>}
-            <button
-              type="submit"
-              disabled={placing}
-              className="mt-5 sm:mt-6 max-lg:hidden flex w-full min-h-[3.25rem] items-center justify-center rounded-2xl bg-neutral-900 px-8 py-3.5 text-[0.9375rem] font-semibold leading-snug tracking-tight text-white shadow-[0_6px_20px_-4px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/[0.06] transition-all duration-200 hover:bg-neutral-800 hover:shadow-[0_10px_28px_-6px_rgba(0,0,0,0.42)] active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/55 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none animate-cta-attract hover:animate-none disabled:animate-none"
-            >
-              {placing ? 'Placing order…' : 'Place order (Cash on delivery)'}
-            </button>
-            </div>
-          </div>
-        </div>
-      </form>
+        </section>
 
-      {/* Mobile: always fixed; bottom follows visualViewport so bar sits above keyboard */}
-      <div
-        className="lg:hidden fixed left-0 right-0 z-[60] border-t border-neutral-200 bg-white/95 backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.08)] transition-[bottom,padding] duration-300 ease-out will-change-[bottom]"
-        style={{
-          bottom: `calc(${mobileBarBottomPx}px + env(safe-area-inset-bottom, 0px))`,
-        }}
-        role="region"
-        aria-label="Order total and place order"
-      >
-        <div
-          className={`mx-auto max-w-7xl w-full px-3 sm:px-5 transition-all duration-300 ease-out ${
-            keyboardOverlap ? 'pt-2 pb-1' : 'pt-3 sm:pt-4'
-          }`}
-        >
-          {orderError && (
-            <p className="text-[11px] sm:text-xs text-red-600 mb-1.5 leading-snug">{orderError}</p>
-          )}
-          <div
-            className={`text-neutral-600 transition-all duration-300 ease-out overflow-hidden ${
-              keyboardOverlap ? 'max-h-0 opacity-0 mb-0' : 'max-h-[200px] opacity-100 mb-3'
-            }`}
-          >
-            <div className="space-y-1 text-xs">
-              <div className="flex justify-between gap-3 tabular-nums">
-                <span>Subtotal</span>
-                <span>{formatPrice(subtotal, currency)}</span>
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5 shadow-sm">
+          <div className="space-y-2 text-sm text-neutral-600">
+            <div className="flex justify-between gap-2">
+              <span>Subtotal</span>
+              <span className="tabular-nums text-neutral-900">{formatPrice(subtotal, currency)}</span>
+            </div>
+            {discountAmount > 0 && (
+              <div className="flex justify-between gap-2 text-green-700">
+                <span>Discount</span>
+                <span className="tabular-nums">−{formatPrice(discountAmount, currency)}</span>
               </div>
-              {discountAmount > 0 && (
-                <div className="flex justify-between gap-3 tabular-nums text-green-700">
-                  <span>Discount</span>
-                  <span>−{formatPrice(discountAmount, currency)}</span>
-                </div>
-              )}
-              <div className="flex justify-between gap-3 tabular-nums">
-                <span>Shipping</span>
-                <span>{shipping === 0 ? 'Free' : formatPrice(shipping, currency)}</span>
-              </div>
+            )}
+            <div className="flex justify-between gap-2">
+              <span>Shipping</span>
+              <span className="tabular-nums text-neutral-900">
+                {shipping === 0 ? 'Free' : formatPrice(shipping, currency)}
+              </span>
             </div>
           </div>
-          <div
-            className={`flex items-center justify-between gap-3 transition-all duration-300 ease-out ${
-              keyboardOverlap ? 'border-0 pt-0 pb-1' : 'border-t border-neutral-200 pt-2 pb-0'
-            }`}
-          >
-            <span className={`text-neutral-600 transition-all duration-300 ${keyboardOverlap ? 'text-[10px] font-medium' : 'text-xs'}`}>
-              Total
-            </span>
-            <span
-              className={`font-bold tabular-nums text-neutral-900 transition-all duration-300 ${
-                keyboardOverlap ? 'text-base' : 'text-xl sm:text-2xl'
-              }`}
-            >
+          <div className="mt-4 flex items-center gap-3 border-t border-neutral-200 pt-4">
+            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-neutral-100 ring-1 ring-neutral-200/80">
+              <Image
+                src={firstThumb || '/assets/nature-secret-logo.svg'}
+                alt=""
+                fill
+                className="object-cover"
+                sizes="56px"
+                unoptimized={firstThumb && !String(firstThumb).startsWith('http')}
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-neutral-900">Total</p>
+              <p className="text-xs text-neutral-500">
+                {itemCount} {itemCount === 1 ? 'item' : 'items'}
+              </p>
+            </div>
+            <p className="text-lg font-bold tabular-nums text-neutral-900 shrink-0">
               {formatPrice(grandTotal, currency)}
-            </span>
+            </p>
           </div>
         </div>
-        <div className={`px-3 sm:px-5 transition-all duration-300 ease-out ${keyboardOverlap ? 'pb-1.5 pt-0' : 'pb-3 sm:pb-4 pt-1'}`}>
-          <button
-            id="checkout-mobile-sticky-submit"
-            type="submit"
-            form="checkout-form"
-            disabled={placing}
-            className={`flex w-full items-center justify-center rounded-2xl bg-neutral-900 font-semibold text-white shadow-[0_6px_20px_-4px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/[0.06] transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/55 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 disabled:shadow-none active:scale-[0.98] ${
-              keyboardOverlap
-                ? 'min-h-[2.5rem] px-4 py-2 text-xs sm:text-sm shadow-md scale-[0.98] origin-bottom'
-                : 'min-h-[3.5rem] sm:min-h-[3.625rem] px-6 py-3.5 text-[0.9375rem] sm:text-base animate-cta-attract hover:animate-none disabled:animate-none hover:bg-neutral-800 hover:shadow-[0_10px_28px_-6px_rgba(0,0,0,0.42)]'
-            }`}
-          >
-            {placing ? 'Placing order…' : keyboardOverlap ? 'Place order · COD' : 'Place order · Cash on delivery'}
-          </button>
-        </div>
-      </div>
+
+        {orderError && <p className="text-sm text-red-600">{orderError}</p>}
+
+        <button
+          type="submit"
+          disabled={placing}
+          className="flex w-full min-h-[3.25rem] items-center justify-center rounded-2xl bg-neutral-900 px-6 py-3.5 text-[0.9375rem] font-semibold text-white shadow-[0_6px_20px_-4px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/[0.06] transition hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/55 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45"
+        >
+          {placing ? 'Placing order…' : 'Complete order'}
+        </button>
+      </form>
     </div>
   );
 }

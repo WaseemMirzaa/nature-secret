@@ -11,7 +11,8 @@ function getImagesConfig() {
       unoptimized: false,
       formats: ['image/avif', 'image/webp'],
       minimumCacheTTL: 86400,
-      deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+      /** 480 helps narrow viewports avoid oversized 640px src on slow 4G */
+      deviceSizes: [480, 640, 750, 828, 1080, 1200, 1920],
       /** Thumbnails + small UI; include 384 for ~128px logical @3x */
       imageSizes: [32, 48, 64, 96, 128, 256, 384],
       remotePatterns: [

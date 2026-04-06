@@ -6,6 +6,7 @@ import {
   resolveAbsoluteImageUrl,
   getDefaultHeroImageSrcForProduct,
 } from '@/lib/fetchProductServer';
+import { PRODUCT_HERO_IMAGE_QUALITY, PRODUCT_HERO_IMAGE_SIZES } from '@/lib/constants';
 
 function slugFromParams(params) {
   const raw = params?.id;
@@ -43,9 +44,9 @@ export default async function ProductPage({ params }) {
         src: lcpSrc,
         alt: '',
         fill: true,
-        sizes: '(max-width: 1024px) 100vw, 42vw',
+        sizes: PRODUCT_HERO_IMAGE_SIZES,
         priority: true,
-        quality: 70,
+        quality: PRODUCT_HERO_IMAGE_QUALITY,
       });
       lcpPreload = (
         <link
@@ -53,7 +54,7 @@ export default async function ProductPage({ params }) {
           as="image"
           href={lcpImg.src}
           {...(lcpImg.srcSet
-            ? { imagesrcset: lcpImg.srcSet, imagesizes: lcpImg.sizes || '(max-width: 1024px) 100vw, 42vw' }
+            ? { imagesrcset: lcpImg.srcSet, imagesizes: lcpImg.sizes || PRODUCT_HERO_IMAGE_SIZES }
             : {})}
           fetchPriority="high"
         />

@@ -6,7 +6,7 @@ import Link from '@/components/Link';
 import Image from 'next/image';
 import { useProductsStore, useCartStore, useCartOpenStore, useWishlistStore, useCurrencyStore } from '@/lib/store';
 import { useBreadcrumbLabel } from '@/lib/BreadcrumbContext';
-import { SHIPPING_POLICY, RETURN_POLICY } from '@/lib/constants';
+import { PRODUCT_HERO_IMAGE_QUALITY, PRODUCT_HERO_IMAGE_SIZES, SHIPPING_POLICY, RETURN_POLICY } from '@/lib/constants';
 import {
   trackViewContent,
   trackLandingPageViewForProduct,
@@ -443,11 +443,11 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
               alt={productDisplayName}
               fill
               className={`object-contain transition-transform duration-300 ${zoom ? 'scale-110' : ''}`}
-              sizes="(max-width: 1023px) 100vw, (max-width: 1279px) min(576px, 50vw), 448px"
+              sizes={PRODUCT_HERO_IMAGE_SIZES}
               priority
               fetchPriority="high"
-              quality={75}
-              decoding="sync"
+              quality={PRODUCT_HERO_IMAGE_QUALITY}
+              decoding="async"
             />
             <button
               type="button"
@@ -475,8 +475,9 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                     height={80}
                     className="h-full w-full object-contain"
                     sizes="(max-width: 639px) 56px, (max-width: 1023px) 80px, 76px"
-                    quality={75}
-                    loading={i === 0 ? 'eager' : 'lazy'}
+                    quality={65}
+                    loading="lazy"
+                    fetchPriority="low"
                   />
                 </button>
               ) : null;
