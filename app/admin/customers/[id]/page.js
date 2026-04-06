@@ -99,7 +99,7 @@ export default function AdminCustomerDetailPage() {
           className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900"
           placeholder="Add notes about this customer..."
         />
-        <button type="button" onClick={saveNote} className="mt-2 rounded-xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium">Save note</button>
+        <button type="button" onClick={saveNote} className="mt-2 rounded-full sm:rounded-2xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium">Save note</button>
       </section>
 
       <section className="mt-8 rounded-2xl border border-neutral-200 bg-white overflow-hidden">

@@ -220,7 +220,7 @@ export default function EditBlogPage() {
           <textarea value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} rows={2} className="w-full rounded-xl border border-neutral-200 px-4 py-2 text-neutral-900" />
         </div>
         <div className="flex gap-4">
-          <button type="submit" disabled={submitting} className="rounded-xl bg-neutral-900 text-white px-6 py-2.5 text-sm font-medium disabled:opacity-50">Save changes</button>
+          <button type="submit" disabled={submitting} className="rounded-full sm:rounded-2xl bg-neutral-900 text-white px-6 py-2.5 text-sm font-medium disabled:opacity-50">Save changes</button>
           <Link href="/admin/blog" className="rounded-xl border border-neutral-300 px-6 py-2.5 text-sm font-medium text-neutral-900">Cancel</Link>
         </div>
       </form>

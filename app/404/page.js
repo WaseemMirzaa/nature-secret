@@ -26,7 +26,7 @@ export default function NotFoundPage() {
       <p className="text-neutral-600 text-sm text-center max-w-md mb-6">
         This page could not be loaded. Check your connection and try again, or return home.
       </p>
-      <Link href="/" className="rounded-xl bg-neutral-900 text-white px-6 py-2.5 text-sm font-medium hover:bg-neutral-800">
+      <Link href="/" className="rounded-full sm:rounded-2xl bg-neutral-900 text-white px-6 py-2.5 text-sm font-medium hover:bg-neutral-800">
         Back to home
       </Link>
     </div>

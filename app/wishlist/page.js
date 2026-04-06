@@ -67,7 +67,7 @@ export default function WishlistPage() {
                 <button
                   type="button"
                   onClick={() => toggle(p.id)}
-                  className="p-2 rounded-lg border border-neutral-200 text-neutral-600 hover:text-neutral-900"
+                  className="p-2 rounded-full sm:rounded-2xl border border-neutral-200 text-neutral-600 hover:text-neutral-900"
                   aria-label="Remove from wishlist"
                 >
                   <HeartIcon className="w-5 h-5 fill-current" />
@@ -75,7 +75,7 @@ export default function WishlistPage() {
                 <button
                   type="button"
                   onClick={() => { if (v) { addItem({ productId: p.id, variantId: v.id, price: v.price }); openCart(); } }}
-                  className="flex-1 rounded-lg border border-neutral-900 bg-neutral-900 text-white py-2 text-xs sm:text-sm font-medium animate-cta-attract hover:animate-none transition"
+                  className="flex-1 rounded-full sm:rounded-2xl border border-neutral-900 bg-neutral-900 text-white py-2 text-xs sm:text-sm font-medium animate-cta-attract hover:animate-none transition"
                 >
                   Add to cart
                 </button>

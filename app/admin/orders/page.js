@@ -272,7 +272,7 @@ export default function AdminOrdersPage() {
           {(isStaff ? STAFF_STATUSES : STATUSES).map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
         {selected.size > 0 && (
-          <button type="button" onClick={handleBulkStatusChange} disabled={!bulkStatus || bulkUpdating} className="rounded-xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium disabled:opacity-50">
+          <button type="button" onClick={handleBulkStatusChange} disabled={!bulkStatus || bulkUpdating} className="rounded-full sm:rounded-2xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium disabled:opacity-50">
             {bulkUpdating ? 'Updating…' : `Apply to ${selected.size} selected`}
           </button>
         )}
@@ -323,7 +323,7 @@ export default function AdminOrdersPage() {
                       <td className="p-4">{formatPrice(g.totalAmount, currency)}</td>
                       <td className="p-4 text-xs text-neutral-600">{(g.statusSummary || []).map((s) => `${s.status}: ${s.count}`).join(', ')}</td>
                       <td className="p-4">
-                        <Link href={`/admin/orders/${g.firstOrderId}`} prefetch={false} className="inline-flex items-center rounded-xl bg-neutral-900 text-white px-3 py-2 text-sm font-medium hover:bg-neutral-800">View all</Link>
+                        <Link href={`/admin/orders/${g.firstOrderId}`} prefetch={false} className="inline-flex items-center rounded-full sm:rounded-2xl bg-neutral-900 text-white px-3 py-2 text-sm font-medium hover:bg-neutral-800">View all</Link>
                       </td>
                     </tr>
                   ))
@@ -359,7 +359,7 @@ export default function AdminOrdersPage() {
                       )}
                       <td className="p-4">
                         <div className="flex flex-wrap items-center gap-2">
-                          <Link href={`/admin/orders/${o.id}`} prefetch={false} className="inline-flex items-center rounded-xl bg-neutral-900 text-white px-3 py-2 text-sm font-medium hover:bg-neutral-800">View</Link>
+                          <Link href={`/admin/orders/${o.id}`} prefetch={false} className="inline-flex items-center rounded-full sm:rounded-2xl bg-neutral-900 text-white px-3 py-2 text-sm font-medium hover:bg-neutral-800">View</Link>
                           {!isStaff && (
                             <button type="button" onClick={() => generateInvoicePDF(o, productsMap, currency)} className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50">Invoice</button>
                           )}

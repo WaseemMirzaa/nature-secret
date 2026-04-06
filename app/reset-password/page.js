@@ -97,7 +97,7 @@ function ResetPasswordForm() {
                       required
                       minLength={minLen}
                       placeholder="••••••••"
-                      className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-gold-500/30 focus:border-gold-400/50"
+                      className="w-full rounded-xl border border-neutral-600 sm:border-2 sm:border-neutral-600 px-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-600/25 focus:border-neutral-700"
                     />
                   </div>
                   <div>
@@ -112,14 +112,14 @@ function ResetPasswordForm() {
                       required
                       minLength={minLen}
                       placeholder="••••••••"
-                      className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-gold-500/30 focus:border-gold-400/50"
+                      className="w-full rounded-xl border border-neutral-600 sm:border-2 sm:border-neutral-600 px-4 py-3 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-600/25 focus:border-neutral-700"
                     />
                   </div>
                   {error && <p className="text-sm text-red-600">{error}</p>}
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-xl bg-neutral-900 py-3.5 text-sm font-semibold text-white hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:ring-offset-2 disabled:opacity-50 transition"
+                    className="w-full rounded-full sm:rounded-2xl bg-neutral-900 py-3.5 text-sm font-semibold text-white hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:ring-offset-2 disabled:opacity-50 transition"
                   >
                     {loading ? 'Updating…' : 'Update password'}
                   </button>

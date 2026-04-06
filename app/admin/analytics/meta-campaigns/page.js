@@ -789,7 +789,7 @@ export default function AdminMetaCampaignsPage() {
         <button
           type="button"
           onClick={load}
-          className="rounded-xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium hover:bg-neutral-800 min-h-[44px]"
+          className="rounded-full sm:rounded-2xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium hover:bg-neutral-800 min-h-[44px]"
         >
           Refresh
         </button>

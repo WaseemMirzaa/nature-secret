@@ -70,7 +70,7 @@ export default function AccountPage() {
         <button
           type="button"
           onClick={() => { useCustomerStore.getState().logout(); router.push('/'); }}
-          className="self-start rounded-lg sm:rounded-xl border border-neutral-200 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors"
+          className="self-start rounded-full sm:rounded-2xl border border-neutral-200 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors"
         >
           Log out
         </button>
@@ -86,7 +86,7 @@ export default function AccountPage() {
             </div>
             <p className="text-neutral-600 font-medium">No orders yet</p>
             <p className="mt-1 text-sm text-neutral-500">Start shopping to see your orders here.</p>
-            <Link href="/shop" className="mt-4 inline-flex items-center rounded-xl bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-800">Browse Shop</Link>
+            <Link href="/shop" className="mt-4 inline-flex items-center rounded-full sm:rounded-2xl bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-800">Browse Shop</Link>
           </div>
         ) : (
           <div className="space-y-4">
@@ -133,10 +133,10 @@ export default function AccountPage() {
                     <div className="mt-4 pt-4 border-t border-neutral-100 flex flex-wrap items-center justify-between gap-3">
                       <p className="text-base font-semibold text-neutral-900">{formatPrice(order.total ?? 0, currency)}</p>
                       <div className="flex gap-2">
-                        <Link href={`/account/orders/${order.id}`} className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-3.5 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50 transition-colors">
+                        <Link href={`/account/orders/${order.id}`} className="inline-flex items-center rounded-full sm:rounded-2xl border border-neutral-200 bg-white px-3.5 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50 transition-colors">
                           View Details
                         </Link>
-                        <button type="button" onClick={() => handleReorder(order)} className="inline-flex items-center rounded-xl bg-neutral-900 px-3.5 py-2 text-sm font-medium text-white hover:bg-neutral-800 transition-colors">
+                        <button type="button" onClick={() => handleReorder(order)} className="inline-flex items-center rounded-full sm:rounded-2xl bg-neutral-900 px-3.5 py-2 text-sm font-medium text-white hover:bg-neutral-800 transition-colors">
                           Reorder
                         </button>
                       </div>

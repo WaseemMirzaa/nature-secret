@@ -37,7 +37,7 @@ export default function AdminProductDetailPage() {
       <Link href="/admin/products" className="text-sm text-neutral-500 hover:text-neutral-900 mb-6 inline-block">← Products</Link>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-neutral-900">{product.name}</h1>
-        <Link href={`/admin/products/${product.id}`} className="rounded-xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium">Edit product</Link>
+        <Link href={`/admin/products/${product.id}`} className="rounded-full sm:rounded-2xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium">Edit product</Link>
       </div>
 
       <div className="rounded-2xl border border-neutral-200 bg-white overflow-hidden divide-y divide-neutral-100">

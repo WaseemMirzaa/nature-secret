@@ -100,7 +100,7 @@ export default function ContactPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-sm text-neutral-900"
+                  className="w-full rounded-xl border border-neutral-600 sm:border-2 sm:border-neutral-600 px-3 py-2.5 text-sm text-neutral-900"
                 />
                 <input
                   id="contact-ticket-email"
@@ -111,7 +111,7 @@ export default function ContactPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-sm text-neutral-900"
+                  className="w-full rounded-xl border border-neutral-600 sm:border-2 sm:border-neutral-600 px-3 py-2.5 text-sm text-neutral-900"
                 />
                 <input
                   id="contact-ticket-subject"
@@ -122,7 +122,7 @@ export default function ContactPage() {
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                   required
-                  className="w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-sm text-neutral-900"
+                  className="w-full rounded-xl border border-neutral-600 sm:border-2 sm:border-neutral-600 px-3 py-2.5 text-sm text-neutral-900"
                 />
                 <textarea
                   id="contact-ticket-message"
@@ -133,11 +133,11 @@ export default function ContactPage() {
                   onChange={(e) => setMessage(e.target.value)}
                   required
                   rows={4}
-                  className="w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-sm text-neutral-900 resize-none"
+                  className="w-full rounded-xl border border-neutral-600 sm:border-2 sm:border-neutral-600 px-3 py-2.5 text-sm text-neutral-900 resize-none"
                 />
                 {submitError && <p className="text-xs text-red-600">{submitError}</p>}
                 {submitDone && <p className="text-xs text-green-700">Ticket submitted. We&apos;ll reply soon.</p>}
-                <button type="submit" disabled={submitLoading} className="w-full rounded-xl bg-neutral-900 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50">
+                <button type="submit" disabled={submitLoading} className="w-full rounded-full sm:rounded-2xl bg-neutral-900 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50">
                   {submitLoading ? 'Sending…' : 'Submit'}
                 </button>
               </form>

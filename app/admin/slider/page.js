@@ -137,7 +137,7 @@ export default function AdminSliderPage() {
         <button
           type="button"
           onClick={openAdd}
-          className="rounded-xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium"
+          className="rounded-full sm:rounded-2xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium"
         >
           Add slide
         </button>
@@ -202,7 +202,7 @@ export default function AdminSliderPage() {
               />
             </label>
             <div className="flex gap-2">
-              <button type="button" onClick={saveNew} disabled={saving} className="rounded-xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium disabled:opacity-50">Save</button>
+              <button type="button" onClick={saveNew} disabled={saving} className="rounded-full sm:rounded-2xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium disabled:opacity-50">Save</button>
               <button type="button" onClick={cancel} className="rounded-xl border border-neutral-200 px-4 py-2 text-sm font-medium">Cancel</button>
             </div>
           </div>
@@ -238,7 +238,7 @@ export default function AdminSliderPage() {
                   <input type="text" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Title" className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm" />
                   <input type="text" value={form.href} onChange={(e) => setForm((f) => ({ ...f, href: e.target.value }))} placeholder="Link" className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm" />
                   <div className="flex gap-2">
-                    <button type="button" onClick={saveEdit} disabled={saving} className="rounded-lg bg-neutral-900 text-white px-3 py-1.5 text-sm disabled:opacity-50">Save</button>
+                    <button type="button" onClick={saveEdit} disabled={saving} className="rounded-full sm:rounded-2xl bg-neutral-900 text-white px-3 py-1.5 text-sm disabled:opacity-50">Save</button>
                     <button type="button" onClick={cancel} className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm">Cancel</button>
                   </div>
                 </div>

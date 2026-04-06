@@ -143,7 +143,7 @@ export default function AdminContentSettingsPage() {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-xl bg-neutral-900 px-6 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
+          className="rounded-full sm:rounded-2xl bg-neutral-900 px-6 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
         >
           {saving ? 'Saving...' : 'Save'}
         </button>

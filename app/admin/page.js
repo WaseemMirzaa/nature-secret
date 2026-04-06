@@ -104,7 +104,7 @@ export default function AdminDashboardPage() {
           <div className="flex gap-2 ml-auto">
             <button type="button" onClick={() => exportDashboardCSV(stats, (v) => formatPrice(v, currency))} className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50">Export CSV</button>
             <button type="button" onClick={() => exportDashboardXLSX(stats, (v) => formatPrice(v, currency))} className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50">Export XLSX</button>
-            <Link href={ordersLink} className="rounded-xl bg-neutral-900 text-white px-3 py-2 text-sm font-medium inline-block">View orders</Link>
+            <Link href={ordersLink} className="rounded-full sm:rounded-2xl bg-neutral-900 text-white px-3 py-2 text-sm font-medium inline-block">View orders</Link>
           </div>
         )}
       </div>

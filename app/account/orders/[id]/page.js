@@ -69,7 +69,7 @@ export default function AccountOrderDetailPage() {
     return (
       <div className="mx-auto max-w-3xl px-3 sm:px-5 lg:px-8 py-6 sm:py-12 text-center">
         <p className="text-neutral-600">Order not found.</p>
-        <Link href="/account" className="mt-4 inline-flex items-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800">Back to Orders</Link>
+        <Link href="/account" className="mt-4 inline-flex items-center rounded-full sm:rounded-2xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800">Back to Orders</Link>
       </div>
     );
   }
@@ -166,10 +166,10 @@ export default function AccountOrderDetailPage() {
       )}
 
       <div className="mt-5 sm:mt-8 flex flex-wrap gap-3">
-        <button type="button" onClick={handleReorder} className="inline-flex items-center rounded-xl bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 transition-colors">
+        <button type="button" onClick={handleReorder} className="inline-flex items-center rounded-full sm:rounded-2xl bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 transition-colors">
           Reorder Items
         </button>
-        <Link href="/account" className="inline-flex items-center rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-sm font-medium text-neutral-900 hover:bg-neutral-50 transition-colors">
+        <Link href="/account" className="inline-flex items-center rounded-full sm:rounded-2xl border border-neutral-200 bg-white px-5 py-2.5 text-sm font-medium text-neutral-900 hover:bg-neutral-50 transition-colors">
           Back to Orders
         </Link>
       </div>

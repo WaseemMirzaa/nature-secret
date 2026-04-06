@@ -115,7 +115,7 @@ export default function OrderNotificationsPage() {
             type="button"
             onClick={handleSubscribe}
             disabled={loading}
-            className="mt-6 rounded-xl bg-neutral-900 text-white px-6 py-3 text-sm font-medium hover:bg-neutral-800 disabled:opacity-50"
+            className="mt-6 rounded-full sm:rounded-2xl bg-neutral-900 text-white px-6 py-3 text-sm font-medium hover:bg-neutral-800 disabled:opacity-50"
           >
             {loading ? 'Enabling…' : 'Enable notifications'}
           </button>

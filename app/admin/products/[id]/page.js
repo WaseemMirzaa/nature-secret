@@ -742,7 +742,7 @@ export default function EditProductPage() {
             <button
               type="submit"
               disabled={liveSaving || !liveBody.trim()}
-              className="rounded-lg bg-neutral-900 text-white px-4 py-2 text-sm font-medium disabled:opacity-50"
+              className="rounded-full sm:rounded-2xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium disabled:opacity-50"
             >
               {liveSaving ? 'Saving…' : 'Add live review'}
             </button>
@@ -824,7 +824,7 @@ export default function EditProductPage() {
         </div>
 
         <div className="flex gap-4 mt-8">
-          <button type="submit" disabled={submitting} className="rounded-xl bg-neutral-900 text-white px-6 py-2.5 text-sm font-medium disabled:opacity-50">Save changes</button>
+          <button type="submit" disabled={submitting} className="rounded-full sm:rounded-2xl bg-neutral-900 text-white px-6 py-2.5 text-sm font-medium disabled:opacity-50">Save changes</button>
           <Link href="/admin/products" className="rounded-xl border border-neutral-300 px-6 py-2.5 text-sm font-medium text-neutral-900">Cancel</Link>
         </div>
       </form>

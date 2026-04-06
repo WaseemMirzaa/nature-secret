@@ -57,7 +57,7 @@ export default function AdminBlogPage() {
     <div>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-neutral-900">Blog</h1>
-        <Link href="/admin/blog/new" className="rounded-xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium">New post</Link>
+        <Link href="/admin/blog/new" className="rounded-full sm:rounded-2xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium">New post</Link>
       </div>
       <p className="mt-1 text-sm text-neutral-500">Templates: {BLOG_TEMPLATES.map((t) => t.name).join(', ')}</p>
       <div className="mt-4 flex flex-wrap gap-4">

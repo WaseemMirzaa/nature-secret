@@ -90,7 +90,7 @@ export function Header() {
               ) : (
                 <>
                   <button type="button" className="py-2.5 text-sm text-left text-neutral-600 hover:text-gold-600 font-medium w-full border-b border-neutral-100" onClick={() => { useAuthModalStore.getState().openLogin(); setMenuOpen(false); }}>Login</button>
-                  <button type="button" className="py-2.5 text-sm text-left font-medium text-neutral-900 w-full mt-1.5 rounded-xl bg-gold-50 text-gold-800 border border-gold-200" onClick={() => { useAuthModalStore.getState().openSignup(); setMenuOpen(false); }}>Create account</button>
+                  <button type="button" className="py-2.5 text-sm text-left font-medium text-neutral-900 w-full mt-1.5 rounded-full sm:rounded-2xl bg-gold-50 text-gold-800 border border-gold-200" onClick={() => { useAuthModalStore.getState().openSignup(); setMenuOpen(false); }}>Create account</button>
                 </>
               )}
             </nav>

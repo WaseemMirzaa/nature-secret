@@ -120,11 +120,11 @@ export function AuthModal() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-neutral-900"
+                    className="mt-1 w-full rounded-xl border border-neutral-600 sm:border-2 sm:border-neutral-600 px-4 py-2.5 text-neutral-900"
                   />
                 </div>
                 {error && <p className="text-sm text-red-600">{error}</p>}
-                <button type="submit" disabled={loading} className="w-full min-h-[44px] rounded-xl bg-neutral-900 py-3 text-sm font-medium text-white disabled:opacity-50">
+                <button type="submit" disabled={loading} className="w-full min-h-[44px] rounded-full sm:rounded-2xl bg-neutral-900 py-3 text-sm font-medium text-white disabled:opacity-50">
                   {loading ? 'Sending…' : 'Send reset link'}
                 </button>
               </form>
@@ -150,7 +150,7 @@ export function AuthModal() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required={mode === 'signup'}
-                    className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-neutral-900"
+                    className="mt-1 w-full rounded-xl border border-neutral-600 sm:border-2 sm:border-neutral-600 px-4 py-2.5 text-neutral-900"
                     placeholder="Your name"
                   />
                 </div>
@@ -165,7 +165,7 @@ export function AuthModal() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-neutral-900"
+                  className="mt-1 w-full rounded-xl border border-neutral-600 sm:border-2 sm:border-neutral-600 px-4 py-2.5 text-neutral-900"
                 />
               </div>
               <div>
@@ -177,7 +177,7 @@ export function AuthModal() {
                   autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-neutral-900"
+                  className="mt-1 w-full rounded-xl border border-neutral-600 sm:border-2 sm:border-neutral-600 px-4 py-2.5 text-neutral-900"
                   placeholder={mode === 'signup' ? `At least ${MIN_PASSWORD_LENGTH} characters` : ''}
                 />
                 {mode === 'login' && (
@@ -187,7 +187,7 @@ export function AuthModal() {
                 )}
               </div>
               {error && <p className="text-sm text-red-600">{error}</p>}
-              <button type="submit" disabled={loading} className="w-full min-h-[44px] rounded-xl bg-neutral-900 py-3 text-sm font-medium text-white disabled:opacity-50">
+              <button type="submit" disabled={loading} className="w-full min-h-[44px] rounded-full sm:rounded-2xl bg-neutral-900 py-3 text-sm font-medium text-white disabled:opacity-50">
                 {loading ? 'Please wait…' : mode === 'signup' ? 'Create account' : 'Sign in'}
               </button>
             </form>

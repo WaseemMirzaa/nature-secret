@@ -360,37 +360,52 @@ export default function ProductDetailClient({
       ? Number(compareAtForLine) * effectiveQty
       : null;
 
-  function handleAddToCart() {
-    if (!variant) return;
-    addToCart({
+  /** Cart line when product has price but no variant row (or API omits variants). */
+  function getCartLinePayload() {
+    const linePrice = variant?.price ?? product?.price;
+    if (linePrice == null || !Number.isFinite(Number(linePrice))) return null;
+    const variantId = variant?.id;
+    const image =
+      (variant?.images && variant.images[0]) || variant?.image || product?.images?.[0];
+    return {
       productId: product.id,
-      variantId: variant.id,
-      price: variant.price,
+      variantId,
+      price: linePrice,
       name: product.name,
-      image: (variant.images && variant.images[0]) || variant.image || product.images?.[0],
+      image,
       qty: effectiveQty,
-    });
+    };
+  }
+
+  function handleAddToCart() {
+    const line = getCartLinePayload();
+    if (!line) return;
+    addToCart(line);
     openCart();
-    trackAddToCart(product, variant.price / 100, effectiveQty);
+    trackAddToCart(product, line.price / 100, effectiveQty);
   }
 
   function handleOrderNow() {
-    if (!variant) return;
+    const line = getCartLinePayload();
+    if (!line) return;
+    const vid = line.variantId;
     const alreadyInCart = cartItems.some(
-      (i) => i.productId === product.id && i.variantId === variant.id,
+      (i) => i.productId === product.id && (i.variantId ?? '') === (vid ?? ''),
     );
     if (!alreadyInCart) {
-      addToCart({
-        productId: product.id,
-        variantId: variant.id,
-        price: variant.price,
-        name: product.name,
-        image: (variant.images && variant.images[0]) || variant.image || product.images?.[0],
-        qty: effectiveQty,
-      });
-      trackAddToCart(product, variant.price / 100, effectiveQty);
+      addToCart(line);
+      trackAddToCart(product, line.price / 100, effectiveQty);
     }
-    router.push('/checkout');
+    try {
+      const p = router.push('/checkout');
+      if (p && typeof p.then === 'function') {
+        p.catch(() => {
+          if (typeof window !== 'undefined') window.location.assign('/checkout');
+        });
+      }
+    } catch {
+      if (typeof window !== 'undefined') window.location.assign('/checkout');
+    }
   }
 
   function onPickReviewMedia(e) {
@@ -572,7 +587,7 @@ export default function ProductDetailClient({
                       key={v.id}
                       type="button"
                       onClick={() => setSelectedVariant(v)}
-                      className={`rounded-xl border-2 px-4 py-2 text-sm font-medium transition ${
+                      className={`rounded-full sm:rounded-2xl border-2 px-4 py-2 text-sm font-medium transition ${
                         variant?.id === v.id ? 'border-neutral-900 bg-neutral-900 text-white shadow-sm' : 'border-neutral-200 text-neutral-700 hover:border-neutral-300 bg-white'
                       }`}
                     >
@@ -589,11 +604,11 @@ export default function ProductDetailClient({
               >
                 Quantity
               </label>
-              <div className="inline-flex items-stretch rounded-xl border-2 border-neutral-200 bg-white">
+              <div className="inline-flex items-stretch overflow-hidden rounded-full border-2 border-neutral-200 bg-white">
                 <button
                   type="button"
                   onClick={() => setQty((n) => Math.max(1, (n || 1) - 1))}
-                  className="w-11 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-l-lg text-lg leading-none"
+                  className="w-11 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 text-lg leading-none"
                   aria-label="Decrease"
                 >
                   −
@@ -613,7 +628,7 @@ export default function ProductDetailClient({
                 <button
                   type="button"
                   onClick={() => setQty((n) => Math.min(99, (n || 1) + 1))}
-                  className="w-11 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-r-lg text-lg leading-none"
+                  className="w-11 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 text-lg leading-none"
                   aria-label="Increase"
                 >
                   +
@@ -634,7 +649,7 @@ export default function ProductDetailClient({
                       setAddCartVibrate(true);
                       setTimeout(() => setAddCartVibrate(false), 400);
                     }}
-                    className={`w-full rounded-2xl bg-neutral-900 py-3.5 lg:py-4 text-sm font-semibold text-white hover:bg-neutral-800 transition shadow-md ${
+                    className={`w-full rounded-full sm:rounded-2xl bg-neutral-900 py-3.5 lg:py-4 text-sm font-semibold text-white hover:bg-neutral-800 transition shadow-md ${
                       addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
                     }`}
                   >
@@ -647,7 +662,7 @@ export default function ProductDetailClient({
                       setOrderNowVibrate(true);
                       setTimeout(() => setOrderNowVibrate(false), 400);
                     }}
-                    className={`w-full rounded-2xl border-2 border-gold-400/90 bg-gold-shine-cta py-3 lg:py-3.5 text-sm font-semibold text-neutral-900 hover:brightness-[1.03] transition shadow-gold-md ${
+                    className={`w-full rounded-full sm:rounded-2xl border-2 border-gold-400/90 bg-gold-shine-cta py-3 lg:py-3.5 text-sm font-semibold text-neutral-900 hover:brightness-[1.03] transition shadow-gold-md ${
                       orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
                     }`}
                   >
@@ -735,7 +750,7 @@ export default function ProductDetailClient({
                 </span>
               );
             })}
-          </div>
+        </div>
         ) : null}
       </section>
 
@@ -825,7 +840,7 @@ export default function ProductDetailClient({
                 </span>
               );
             })}
-          </div>
+        </div>
         ) : null}
       </section>
 
@@ -883,7 +898,7 @@ export default function ProductDetailClient({
                     value={reviewName}
                     onChange={(e) => setReviewName(e.target.value)}
                     placeholder="Optional"
-                    className="w-full rounded-lg sm:rounded-xl border border-neutral-200 px-2.5 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 text-xs sm:text-sm lg:text-base text-neutral-900"
+                    className="w-full rounded-lg sm:rounded-xl border border-neutral-600 sm:border-2 sm:border-neutral-600 px-2.5 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 text-xs sm:text-sm lg:text-base text-neutral-900"
                   />
                 </div>
                 <div className="w-full sm:w-40 lg:w-44">
@@ -898,7 +913,7 @@ export default function ProductDetailClient({
                     name="rating"
                     value={reviewRating}
                     onChange={(e) => setReviewRating(Number(e.target.value) || 5)}
-                    className="w-full rounded-lg sm:rounded-xl border border-neutral-200 px-2.5 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 text-xs sm:text-sm lg:text-base text-neutral-900"
+                    className="w-full rounded-lg sm:rounded-xl border border-neutral-600 sm:border-2 sm:border-neutral-600 px-2.5 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 text-xs sm:text-sm lg:text-base text-neutral-900"
                   >
                     {[5, 4, 3, 2, 1].map((v) => (
                       <option key={v} value={v}>{`${v} star${v > 1 ? 's' : ''}`}</option>
@@ -922,7 +937,7 @@ export default function ProductDetailClient({
                 rows={4}
                 required
                 placeholder="How did this product help you?"
-                className="w-full rounded-lg sm:rounded-xl border border-neutral-200 px-2.5 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-3 text-xs sm:text-sm lg:text-base text-neutral-900 min-h-[5.5rem] sm:min-h-0 lg:min-h-[7rem]"
+                className="w-full rounded-lg sm:rounded-xl border border-neutral-600 sm:border-2 sm:border-neutral-600 px-2.5 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-3 text-xs sm:text-sm lg:text-base text-neutral-900 min-h-[5.5rem] sm:min-h-0 lg:min-h-[7rem]"
               />
             </div>
             <div className="mt-2 sm:mt-3">
@@ -962,7 +977,7 @@ export default function ProductDetailClient({
             <button
               type="submit"
               disabled={reviewSubmitting || !reviewBody.trim()}
-              className="mt-2 sm:mt-3 lg:mt-4 inline-flex items-center justify-center rounded-xl sm:rounded-2xl bg-neutral-900 px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 text-xs sm:text-sm lg:text-base font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
+              className="mt-2 sm:mt-3 lg:mt-4 inline-flex items-center justify-center rounded-full sm:rounded-2xl bg-neutral-900 px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 text-xs sm:text-sm lg:text-base font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
             >
               {reviewSubmitting ? 'Submitting…' : 'Submit review'}
             </button>
@@ -1066,7 +1081,7 @@ export default function ProductDetailClient({
                       key={v.id}
                       type="button"
                       onClick={() => setSelectedVariant(v)}
-                      className={`rounded-md border px-2 py-1 text-[11px] font-medium transition ${
+                      className={`rounded-full sm:rounded-2xl border px-2 py-1 text-[11px] font-medium transition ${
                         variant?.id === v.id ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-300 text-neutral-700 bg-white'
                       }`}
                     >
@@ -1084,11 +1099,11 @@ export default function ProductDetailClient({
                 >
                   Qty
                 </label>
-                <div className="inline-flex items-stretch rounded-lg border border-neutral-200 bg-white">
+                <div className="inline-flex items-stretch overflow-hidden rounded-full border border-neutral-200 bg-white">
                   <button
                     type="button"
                     onClick={() => setQty((n) => Math.max(1, (n || 1) - 1))}
-                    className="w-8 h-8 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-l-md text-base leading-none"
+                    className="w-8 h-8 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 text-base leading-none"
                     aria-label="Decrease quantity"
                   >
                     −
@@ -1108,7 +1123,7 @@ export default function ProductDetailClient({
                   <button
                     type="button"
                     onClick={() => setQty((n) => Math.min(99, (n || 1) + 1))}
-                    className="w-8 h-8 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 rounded-r-md text-base leading-none"
+                    className="w-8 h-8 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 text-base leading-none"
                     aria-label="Increase quantity"
                   >
                     +
@@ -1141,7 +1156,7 @@ export default function ProductDetailClient({
                   setAddCartVibrate(true);
                   setTimeout(() => setAddCartVibrate(false), 400);
                 }}
-                className={`min-h-[3rem] flex items-center justify-center rounded-xl bg-neutral-900 px-2 text-xs font-semibold text-white hover:bg-neutral-800 transition shadow-sm ${
+                className={`min-h-[3rem] flex items-center justify-center rounded-full sm:rounded-2xl bg-neutral-900 px-2 text-xs font-semibold text-white hover:bg-neutral-800 transition shadow-sm ${
                   addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
                 }`}
               >
@@ -1154,7 +1169,7 @@ export default function ProductDetailClient({
                   setOrderNowVibrate(true);
                   setTimeout(() => setOrderNowVibrate(false), 400);
                 }}
-                className={`min-h-[3rem] flex flex-col items-center justify-center gap-0 rounded-xl bg-gold-shine-cta px-1.5 py-1 text-center text-xs font-semibold text-neutral-900 hover:brightness-[1.03] transition shadow-gold-sm leading-tight ${
+                className={`min-h-[3rem] flex flex-col items-center justify-center gap-0 rounded-full sm:rounded-2xl bg-gold-shine-cta px-1.5 py-1 text-center text-xs font-semibold text-neutral-900 hover:brightness-[1.03] transition shadow-gold-sm leading-tight ${
                   orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
                 }`}
               >
@@ -1188,7 +1203,7 @@ export default function ProductDetailClient({
                   setAddCartVibrate(true);
                   setTimeout(() => setAddCartVibrate(false), 400);
                 }}
-                className={`rounded-xl bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800 transition shadow-md min-w-[140px] ${
+                className={`rounded-full sm:rounded-2xl bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800 transition shadow-md min-w-[140px] ${
                   addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
                 }`}
               >
@@ -1201,7 +1216,7 @@ export default function ProductDetailClient({
                   setOrderNowVibrate(true);
                   setTimeout(() => setOrderNowVibrate(false), 400);
                 }}
-                className={`rounded-xl border-2 border-gold-400/90 bg-gold-shine-cta px-5 py-2.5 text-sm font-semibold text-neutral-900 hover:brightness-[1.03] transition shadow-gold-md min-w-[120px] ${
+                className={`rounded-full sm:rounded-2xl border-2 border-gold-400/90 bg-gold-shine-cta px-5 py-2.5 text-sm font-semibold text-neutral-900 hover:brightness-[1.03] transition shadow-gold-md min-w-[120px] ${
                   orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
                 }`}
               >

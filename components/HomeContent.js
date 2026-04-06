@@ -168,13 +168,13 @@ export default function HomeContent({
             <div className="mt-5 sm:mt-10 flex flex-wrap gap-2.5 sm:gap-4">
               <Link
                 href="/shop"
-                className="inline-flex items-center justify-center rounded-xl sm:rounded-2xl bg-neutral-900 px-6 sm:px-8 py-3 sm:py-3.5 text-xs sm:text-sm font-medium text-white shadow-premium transition hover:bg-neutral-800 hover:shadow-gold-md focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:ring-offset-2"
+                className="inline-flex items-center justify-center rounded-full sm:rounded-2xl bg-neutral-900 px-6 sm:px-8 py-3 sm:py-3.5 text-xs sm:text-sm font-medium text-white shadow-premium transition hover:bg-neutral-800 hover:shadow-gold-md focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:ring-offset-2"
               >
                 Shop now
               </Link>
               <Link
                 href="/blog"
-                className="inline-flex items-center justify-center rounded-xl sm:rounded-2xl border-2 border-neutral-300 bg-white px-6 sm:px-8 py-3 sm:py-3.5 text-xs sm:text-sm font-medium text-neutral-900 transition hover:border-gold-400/60 hover:bg-gold-50/50"
+                className="inline-flex items-center justify-center rounded-full sm:rounded-2xl border-2 border-neutral-300 bg-white px-6 sm:px-8 py-3 sm:py-3.5 text-xs sm:text-sm font-medium text-neutral-900 transition hover:border-gold-400/60 hover:bg-gold-50/50"
               >
                 Read our journal
               </Link>

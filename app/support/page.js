@@ -48,7 +48,7 @@ export default function SupportPage() {
       <div className="max-w-2xl mx-auto px-3 sm:px-5 lg:px-8 py-4 sm:py-7 lg:py-10">
         <h1 className="text-xl sm:text-2xl font-semibold text-neutral-900">My support tickets</h1>
         <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-neutral-600">View the status of your support requests.</p>
-        <Link href="/contact" className="mt-3 sm:mt-4 inline-block rounded-lg sm:rounded-xl bg-neutral-900 px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-white hover:bg-neutral-800">
+        <Link href="/contact" className="mt-3 sm:mt-4 inline-block rounded-full sm:rounded-2xl bg-neutral-900 px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-white hover:bg-neutral-800">
           New ticket
         </Link>
 

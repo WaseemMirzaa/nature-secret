@@ -110,7 +110,7 @@ export default function BlogPostPage() {
                   <Link
                     key={p.id}
                     href={`/shop/${productPath(p)}`}
-                    className="flex items-center gap-2 sm:gap-3 rounded-lg sm:rounded-xl border border-neutral-200 bg-white px-3 sm:px-4 py-2.5 sm:py-3 shadow-soft hover:border-gold-400/40 hover:shadow-gold-sm transition-all duration-200"
+                    className="flex items-center gap-2 sm:gap-3 rounded-full sm:rounded-2xl border border-neutral-200 bg-white px-3 sm:px-4 py-2.5 sm:py-3 shadow-soft hover:border-gold-400/40 hover:shadow-gold-sm transition-all duration-200"
                   >
                     <div className="relative h-10 w-10 sm:h-12 sm:w-12 rounded-lg overflow-hidden bg-neutral-100 flex-shrink-0">
                       <Image src={img} alt={name} fill className="object-cover" sizes="48px" unoptimized={!img.startsWith('http')} />
@@ -131,11 +131,11 @@ export default function BlogPostPage() {
             <input
               type="email"
               placeholder="Your email"
-              className="flex-1 rounded-xl border border-neutral-200 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-gold-500/30 focus:border-gold-400/50"
+              className="flex-1 rounded-xl border border-neutral-600 sm:border-2 sm:border-neutral-600 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-600/25 focus:border-neutral-700"
             />
             <button
               type="submit"
-              className="rounded-xl bg-neutral-900 px-6 py-3 text-sm font-medium text-white hover:bg-neutral-800 transition-colors"
+              className="rounded-full sm:rounded-2xl bg-neutral-900 px-6 py-3 text-sm font-medium text-white hover:bg-neutral-800 transition-colors"
             >
               Subscribe
             </button>

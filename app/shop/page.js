@@ -132,7 +132,7 @@ function ShopContent() {
                 id="sort"
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
-                className="rounded-lg sm:rounded-xl border border-neutral-200 bg-white px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-neutral-900"
+                className="rounded-lg sm:rounded-xl border border-neutral-600 sm:border-2 sm:border-neutral-600 bg-white px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-neutral-900"
               >
                 {SORT_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>{o.label}</option>
@@ -238,7 +238,7 @@ function ShopContent() {
                             setTimeout(() => setQuickAddVibrate(null), 400);
                           }
                         }}
-                        className={`mt-2 sm:mt-3 w-full flex items-center justify-center gap-2 rounded-lg sm:rounded-xl border-2 border-neutral-300 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-neutral-900 hover:border-gold-400/60 hover:bg-gold-50/50 transition-colors ${quickAddVibrate === product.id ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'}`}
+                        className={`mt-2 sm:mt-3 w-full flex items-center justify-center gap-2 rounded-full sm:rounded-2xl border-2 border-neutral-300 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-neutral-900 hover:border-gold-400/60 hover:bg-gold-50/50 transition-colors ${quickAddVibrate === product.id ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'}`}
                       >
                         <CartIcon className="w-4 h-4" />
                         Quick add

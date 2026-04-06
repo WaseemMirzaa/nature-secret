@@ -106,7 +106,7 @@ export function CartDrawer() {
             <Logo className="h-6 sm:h-7" />
             <span className="text-xs sm:text-sm font-medium text-neutral-500">Your cart</span>
           </div>
-          <button type="button" onClick={close} className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-neutral-500 hover:text-neutral-900 rounded-xl" aria-label="Close">×</button>
+          <button type="button" onClick={close} className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-neutral-500 hover:text-neutral-900 rounded-full sm:rounded-2xl" aria-label="Close">×</button>
         </div>
         <div className="flex-1 overflow-y-auto p-3 sm:p-4">
           {items.length === 0 ? (
@@ -131,9 +131,9 @@ export function CartDrawer() {
                         {formatPrice(item.price, currency)} × {item.qty}
                       </p>
                       <div className="flex items-center gap-2 mt-2">
-                        <button type="button" onClick={() => updateQty(item.productId, item.variantId, item.qty - 1)} className="w-7 h-7 rounded border border-neutral-300 text-neutral-600">−</button>
+                        <button type="button" onClick={() => updateQty(item.productId, item.variantId, item.qty - 1)} className="w-7 h-7 rounded-full border border-neutral-300 text-neutral-600">−</button>
                         <span className="w-6 text-center text-sm">{item.qty}</span>
-                        <button type="button" onClick={() => updateQty(item.productId, item.variantId, item.qty + 1)} className="w-7 h-7 rounded border border-neutral-300 text-neutral-600">+</button>
+                        <button type="button" onClick={() => updateQty(item.productId, item.variantId, item.qty + 1)} className="w-7 h-7 rounded-full border border-neutral-300 text-neutral-600">+</button>
                         <button type="button" onClick={() => removeItem(item.productId, item.variantId)} className="text-xs text-neutral-500 hover:text-red-600 ml-2">Remove</button>
                       </div>
                     </div>
@@ -154,9 +154,9 @@ export function CartDrawer() {
                 placeholder="Discount code"
                 value={discountCode}
                 onChange={(e) => setDiscountCode(e.target.value)}
-                className="flex-1 rounded-lg sm:rounded-xl border border-neutral-200 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm"
+                className="flex-1 rounded-lg sm:rounded-xl border border-neutral-600 sm:border-2 sm:border-neutral-600 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm"
               />
-              <button type="button" onClick={applyDiscount} className="rounded-lg sm:rounded-xl bg-neutral-900 text-white px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium">Apply</button>
+              <button type="button" onClick={applyDiscount} className="rounded-full sm:rounded-2xl bg-neutral-900 text-white px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium">Apply</button>
             </div>
             {discountError && <p className="text-xs text-red-600">{discountError}</p>}
             {appliedDiscount && !discountError && (
@@ -170,7 +170,7 @@ export function CartDrawer() {
             {discountAmount > 0 && <div className="text-xs sm:text-sm text-green-600">Discount: −{formatPrice(discountAmount, currency)}</div>}
             <div className="text-xs sm:text-sm text-neutral-500">Shipping: {shipping === 0 ? 'Free' : formatPrice(shipping, currency)}</div>
             <div className="text-sm sm:text-base font-semibold text-neutral-900">Total: {formatPrice(totalWithShipping, currency)}</div>
-            <Link href="/checkout" onClick={close} className="block w-full rounded-lg sm:rounded-xl bg-neutral-900 text-white text-center py-2.5 sm:py-3 text-sm font-medium animate-cta-attract hover:animate-none transition">Checkout</Link>
+            <Link href="/checkout" onClick={close} className="block w-full rounded-full sm:rounded-2xl bg-neutral-900 text-white text-center py-2.5 sm:py-3 text-sm font-medium animate-cta-attract hover:animate-none transition">Checkout</Link>
           </div>
         )}
       </div>

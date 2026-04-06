@@ -39,7 +39,7 @@ function ConfirmationContent() {
         <p className="mt-2 text-sm sm:text-base text-neutral-600">We sent a confirmation email to your address.</p>
       )}
       <p className="mt-2 text-sm sm:text-base text-neutral-600">Thank you. We’ll deliver your order and collect payment on delivery.</p>
-      <Link href="/shop" className="mt-4 sm:mt-8 inline-block rounded-xl sm:rounded-2xl bg-neutral-900 px-6 sm:px-8 py-2.5 sm:py-3 text-xs sm:text-sm font-medium text-white">Continue shopping</Link>
+      <Link href="/shop" className="mt-4 sm:mt-8 inline-block rounded-full sm:rounded-2xl bg-neutral-900 px-6 sm:px-8 py-2.5 sm:py-3 text-xs sm:text-sm font-medium text-white">Continue shopping</Link>
     </div>
   );
 }

@@ -345,13 +345,16 @@ export default function CheckoutPage() {
   if (!mounted) return <CustomerPageLoader message="Loading" />;
 
   const fieldClass =
-    'w-full rounded-2xl border border-gold-200/80 bg-gradient-to-b from-white to-gold-50/[0.35] px-2.5 py-2 text-base leading-snug text-neutral-900 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9)] placeholder:text-neutral-400/85 placeholder:text-sm max-sm:placeholder:font-normal transition-all duration-200 hover:border-gold-300/90 hover:shadow-[0_2px_12px_-6px_rgba(212,175,55,0.28)] focus:border-gold-500 focus:bg-white focus:shadow-[0_0_0_3px_rgba(212,175,55,0.16)] focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 sm:border-2 sm:border-gold-200/90 sm:px-3 sm:py-2.5 sm:text-sm sm:leading-snug lg:px-3.5 lg:py-3 lg:text-[0.9375rem]';
+    'w-full rounded-2xl border border-neutral-600 bg-gradient-to-b from-white to-gold-50/[0.35] px-2.5 py-2 text-base leading-snug text-neutral-900 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9)] placeholder:text-neutral-400/85 placeholder:text-sm max-sm:placeholder:font-normal transition-all duration-200 hover:border-neutral-700 hover:shadow-[0_2px_12px_-6px_rgba(0,0,0,0.08)] focus:border-neutral-700 focus:bg-white focus:shadow-[0_0_0_3px_rgba(82,82,82,0.18)] focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 sm:border-2 sm:border-neutral-600 sm:px-3 sm:py-2.5 sm:text-sm sm:leading-snug lg:px-3.5 lg:py-3 lg:text-[0.9375rem]';
 
   const labelClass =
     'block mb-0.5 sm:mb-1 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.12em] sm:tracking-wide text-neutral-600';
 
+  /** Card lift: black-tinted shadow ~2× previous gold weight */
+  const checkoutCardShadow =
+    'shadow-[0_4px_32px_-8px_rgba(0,0,0,0.22),inset_0_1px_0_0_rgba(255,255,255,0.9)] sm:shadow-[0_8px_44px_-12px_rgba(0,0,0,0.26)]';
   const cardSurface =
-    'rounded-[1.75rem] border border-gold-200/45 bg-gradient-to-br from-white via-white to-gold-50/25 shadow-[0_2px_20px_-8px_rgba(0,0,0,0.12),inset_0_1px_0_0_rgba(255,255,255,0.9)] sm:rounded-2xl sm:shadow-[0_4px_24px_-12px_rgba(0,0,0,0.14)]';
+    `rounded-[1.75rem] border-2 border-gold-300/70 bg-gradient-to-br from-white via-white to-gold-50/25 ${checkoutCardShadow} sm:rounded-2xl`;
 
   const sectionTitle =
     'text-[10px] sm:text-xs font-bold text-neutral-900 border-l-[3px] border-gold-500 pl-2 sm:pl-2.5 tracking-tight';
@@ -533,7 +536,7 @@ export default function CheckoutPage() {
 
         <section className={`animate-checkout-enter checkout-enter-delay-2 motion-reduce:animate-none motion-reduce:opacity-100 p-3.5 sm:p-4 ${cardSurface}`}>
           <h2 className={`${sectionTitle} mb-2 sm:mb-2.5`}>Shipping method</h2>
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200/80 bg-gradient-to-br from-neutral-50/90 to-white px-3 py-2.5 sm:px-4 sm:py-3.5 text-xs sm:text-sm">
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-gold-200/90 bg-gradient-to-br from-neutral-50/90 to-white px-3 py-2.5 sm:px-4 sm:py-3.5 text-xs sm:text-sm shadow-[0_3px_18px_-6px_rgba(0,0,0,0.14)]">
             <span className="font-medium text-neutral-800">Standard</span>
             <span className="font-semibold tabular-nums text-neutral-900">
               {shipping === 0 ? 'Free' : formatPrice(shipping, currency)}
@@ -549,7 +552,7 @@ export default function CheckoutPage() {
           <p className="text-[10px] sm:text-xs text-neutral-500 mb-2 sm:mb-3 leading-relaxed">
             All transactions are secure. Pay when your order arrives.
           </p>
-          <div className="rounded-2xl border border-gold-400/45 bg-gold-shine-soft px-3 py-2.5 sm:px-4 sm:py-3.5 text-xs sm:text-sm font-semibold text-neutral-900 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.12)]">
+          <div className="rounded-2xl border-2 border-gold-400/70 bg-gold-100 px-3 py-2.5 sm:px-4 sm:py-3.5 text-xs sm:text-sm font-semibold text-neutral-900">
             Cash on delivery (COD)
           </div>
         </section>
@@ -570,7 +573,7 @@ export default function CheckoutPage() {
             <button
               type="button"
               onClick={applyDiscount}
-              className="shrink-0 self-stretch rounded-full sm:rounded-xl bg-gradient-to-br from-neutral-900 to-neutral-800 px-3.5 sm:px-4 py-2 text-[12px] sm:text-sm font-semibold text-white shadow-md ring-1 ring-gold-500/20 transition hover:scale-[1.02] active:scale-[0.98] motion-reduce:hover:scale-100 touch-manipulation min-w-[4.25rem] sm:min-w-0"
+              className="shrink-0 self-stretch rounded-full sm:rounded-2xl bg-gradient-to-br from-neutral-900 to-neutral-800 px-3.5 sm:px-4 py-2 text-[12px] sm:text-sm font-semibold text-white shadow-md ring-1 ring-gold-500/20 transition hover:scale-[1.02] active:scale-[0.98] motion-reduce:hover:scale-100 touch-manipulation min-w-[4.25rem] sm:min-w-0"
             >
               Apply
             </button>
@@ -653,7 +656,7 @@ export default function CheckoutPage() {
             </ul>
           </section>
 
-        <div className={`border-gold-200/55 bg-gradient-to-br from-white via-gold-50/25 to-white p-3.5 sm:p-4 shadow-[0_6px_28px_-10px_rgba(0,0,0,0.14)] rounded-[1.75rem] sm:rounded-2xl border`}>
+        <div className={`border-2 border-gold-300/70 bg-gradient-to-br from-white via-gold-50/25 to-white p-3.5 sm:p-4 rounded-[1.75rem] sm:rounded-2xl ${checkoutCardShadow}`}>
           <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-neutral-600">
             <div className="flex justify-between gap-2">
               <span>Subtotal</span>
@@ -721,7 +724,7 @@ export default function CheckoutPage() {
       </form>
 
       <div
-        className="fixed bottom-0 left-0 right-0 z-40 border-t border-gold-200/40 bg-gradient-to-t from-gold-50/95 via-white/98 to-white/98 backdrop-blur-xl px-3 pt-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] shadow-[0_-8px_36px_-12px_rgba(0,0,0,0.14)] lg:hidden rounded-t-[1.75rem]"
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-gold-300/70 bg-gradient-to-t from-gold-50/95 via-white/98 to-white/98 backdrop-blur-xl px-3 pt-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] shadow-[0_-12px_48px_-12px_rgba(0,0,0,0.22)] lg:hidden rounded-t-[1.75rem]"
         role="region"
         aria-label="Order total and submit"
       >

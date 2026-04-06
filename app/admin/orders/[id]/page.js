@@ -152,7 +152,7 @@ export default function AdminOrderDetailPage() {
         <button
           type="button"
           onClick={() => generateInvoicePDF(order, productsMap, currency)}
-          className="rounded-xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium"
+          className="rounded-full sm:rounded-2xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium"
         >
           Download invoice
         </button>

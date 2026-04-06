@@ -67,7 +67,7 @@ export default function AdminProductsPage() {
     <div>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-neutral-900">Products</h1>
-        <Link href="/admin/products/new" className="rounded-xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium">Add product</Link>
+        <Link href="/admin/products/new" className="rounded-full sm:rounded-2xl bg-neutral-900 text-white px-4 py-2 text-sm font-medium">Add product</Link>
       </div>
       {listError && <p className="mt-2 text-sm text-amber-700 bg-amber-50 px-4 py-2 rounded-xl">{listError}</p>}
       <div className="mt-4 flex flex-wrap gap-4">

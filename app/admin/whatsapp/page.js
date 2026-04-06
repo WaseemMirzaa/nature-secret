@@ -121,7 +121,7 @@ export default function AdminWhatsAppPage() {
               type="button"
               onClick={handleRelink}
               disabled={relinking}
-              className="mt-3 rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+              className="mt-3 rounded-full sm:rounded-2xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
             >
               {relinking ? 'Resetting…' : 'Reset WhatsApp session'}
             </button>
@@ -141,7 +141,7 @@ export default function AdminWhatsAppPage() {
               type="button"
               onClick={handleRelink}
               disabled={relinking}
-              className="mt-4 rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+              className="mt-4 rounded-full sm:rounded-2xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
             >
               {relinking ? 'Resetting…' : 'Resend QR'}
             </button>
@@ -183,7 +183,7 @@ export default function AdminWhatsAppPage() {
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         {message && <p className="text-sm text-green-700">{message}</p>}
-        <button type="submit" disabled={saving} className="rounded-xl bg-neutral-900 px-6 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50">
+        <button type="submit" disabled={saving} className="rounded-full sm:rounded-2xl bg-neutral-900 px-6 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50">
           {saving ? 'Saving…' : 'Save'}
         </button>
       </form>
