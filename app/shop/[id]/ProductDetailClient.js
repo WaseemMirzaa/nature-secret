@@ -393,7 +393,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
             </div>
             <p className="text-lg sm:text-xl font-semibold text-neutral-900 tabular-nums leading-tight">
               {(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice) && (
-                <span className="text-neutral-400 line-through mr-1.5 sm:mr-2 text-sm sm:text-base font-medium">{formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}</span>
+                <span className="text-neutral-500 line-through mr-1.5 sm:mr-2 text-sm sm:text-base font-medium">{formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}</span>
               )}
               {formatPrice(price, currency)}
             </p>
@@ -420,7 +420,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
             </div>
             <p className="text-2xl xl:text-[1.75rem] font-semibold text-neutral-900 pt-1 tabular-nums">
               {(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice) && (
-                <span className="text-neutral-400 line-through mr-2 text-lg xl:text-xl">{formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}</span>
+                <span className="text-neutral-500 line-through mr-2 text-lg xl:text-xl">{formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}</span>
               )}
               {formatPrice(price, currency)}
             </p>
@@ -906,7 +906,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
                 {stickyCompareLineTotal != null &&
                   stickyCompareLineTotal > stickyLineTotal &&
                   Number.isFinite(stickyCompareLineTotal) && (
-                    <span className="block text-[11px] text-neutral-400 line-through tabular-nums leading-tight">
+                    <span className="block text-[11px] text-neutral-500 line-through tabular-nums leading-tight">
                       {formatPrice(stickyCompareLineTotal, currency)}
                     </span>
                   )}
@@ -958,7 +958,7 @@ export default function ProductDetailClient({ slugOrId, initialProduct: initialF
           <div className="max-w-7xl mx-auto w-full flex flex-wrap items-center justify-between gap-4 xl:gap-6">
             <p className="text-lg xl:text-xl font-semibold text-neutral-900 tabular-nums">
               {(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice) && (
-                <span className="text-neutral-400 line-through text-sm mr-2">{formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}</span>
+                <span className="text-neutral-500 line-through text-sm mr-2">{formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}</span>
               )}
               {formatPrice(price, currency)}
             </p>

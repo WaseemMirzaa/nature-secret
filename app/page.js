@@ -1,5 +1,6 @@
 import HomeContent from '@/components/HomeContent';
 import { fetchHomePageData } from '@/lib/fetchHomeServer';
+import { getHomeLcpPreloadHref } from '@/lib/homeLcpPreload';
 
 export const metadata = {
   title: 'Nature Secret | Skincare & Botanical Body Care | Pakistan',
@@ -38,9 +39,11 @@ const JSON_LD = {
 
 export default async function HomePage() {
   const { products, categories, slider, homeContent } = await fetchHomePageData();
+  const lcpHref = getHomeLcpPreloadHref(products, slider);
 
   return (
     <>
+      {lcpHref ? <link rel="preload" as="image" href={lcpHref} fetchPriority="high" /> : null}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <HomeContent
         initialProducts={products}

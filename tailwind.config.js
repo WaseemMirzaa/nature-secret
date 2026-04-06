@@ -62,17 +62,18 @@ module.exports = {
       keyframes: {
         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
         slideUp: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-        ctaPulse: { '0%, 100%': { transform: 'scale(1)', boxShadow: '0 0 0 0 rgba(212, 168, 74, 0.4)' }, '50%': { transform: 'scale(1.02)', boxShadow: '0 0 0 6px rgba(212, 168, 74, 0.15)' } },
+        /** Prefer transform-only (composited) — avoid animating box-shadow on mobile (PSI / jank). */
+        ctaPulse: { '0%, 100%': { transform: 'scale(1)' }, '50%': { transform: 'scale(1.02)' } },
         ctaAttract: {
-          '0%, 100%': { transform: 'scale(1) translateY(0)', boxShadow: '0 4px 14px rgba(0,0,0,0.25)' },
-          '50%': { transform: 'scale(1.08) translateY(-4px)', boxShadow: '0 12px 28px rgba(0,0,0,0.35), 0 0 0 4px rgba(212, 168, 74, 0.5), 0 0 24px 8px rgba(212, 168, 74, 0.35)' },
+          '0%, 100%': { transform: 'scale(1) translateY(0)' },
+          '50%': { transform: 'scale(1.06) translateY(-3px)' },
         },
         ctaBounce: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-3px)' } },
         ctaShimmer: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.92' } },
-        ctaGlow: { '0%, 100%': { boxShadow: '0 0 0 0 rgba(28, 25, 23, 0.3)' }, '50%': { boxShadow: '0 0 20px 2px rgba(212, 168, 74, 0.25)' } },
+        ctaGlow: { '0%, 100%': { opacity: '1', transform: 'scale(1)' }, '50%': { opacity: '0.92', transform: 'scale(1.01)' } },
         ctaLift: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-2px)' } },
         vibrate: { '0%, 100%': { transform: 'translateX(0) scale(1)' }, '15%': { transform: 'translateX(-4px) scale(1.02)' }, '35%': { transform: 'translateX(4px) scale(0.98)' }, '55%': { transform: 'translateX(-3px) scale(1.01)' }, '75%': { transform: 'translateX(3px) scale(0.99)' }, '90%': { transform: 'translateX(-1px) scale(1)' } },
-        goldPulse: { '0%, 100%': { boxShadow: '0 4px 14px rgba(203,168,71,0.35)', transform: 'scale(1)' }, '50%': { boxShadow: '0 6px 24px rgba(203,168,71,0.5), 0 0 0 4px rgba(203,168,71,0.2)', transform: 'scale(1.02)' } },
+        goldPulse: { '0%, 100%': { transform: 'scale(1)' }, '50%': { transform: 'scale(1.03)' } },
         staggerIn: { '0%': { opacity: '0', transform: 'translateY(12px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
       },
     },

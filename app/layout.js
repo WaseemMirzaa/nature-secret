@@ -4,7 +4,19 @@ import { Providers } from '@/components/Providers';
 import { StoreLayout } from '@/components/StoreLayout';
 import { META_LANDING_SNAPSHOT_SCRIPT } from '@/lib/meta-pixel-gate';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
+
+/** Safe origin for `<link rel="preconnect">` (API / uploads). No-op if env unset or invalid. */
+function getApiOriginForPreconnect() {
+  const raw = process.env.NEXT_PUBLIC_API_URL || '';
+  if (!raw.trim()) return null;
+  try {
+    const u = new URL(raw);
+    return `${u.protocol}//${u.host}`;
+  } catch {
+    return null;
+  }
+}
 
 export const metadata = {
   title: 'Nature Secret | Skincare & Botanical Body Care',
@@ -63,10 +75,17 @@ function versionRefreshScript(appVersion) {
 export default function RootLayout({ children }) {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
   const appVersion = process.env.NEXT_PUBLIC_APP_VERSION || '';
+  const apiOrigin = getApiOriginForPreconnect();
   return (
     <html lang="en" className={inter.variable}>
       <head>
         <meta name="api-url" content={apiUrl} />
+        {apiOrigin ? (
+          <>
+            <link rel="preconnect" href={apiOrigin} crossOrigin="" />
+            <link rel="dns-prefetch" href={apiOrigin} />
+          </>
+        ) : null}
         <link rel="icon" href="/assets/nature-secret-logo.svg" type="image/svg+xml" />
         <link rel="manifest" href="/manifest.json" />
       </head>

@@ -546,7 +546,7 @@ export default function CheckoutPage() {
                         </div>
                         <p className="text-xs sm:text-sm font-medium text-neutral-900 tabular-nums">
                           {variant?.compareAtPrice && (
-                            <span className="line-through text-neutral-400 text-[10px] sm:text-xs mr-1">{formatPrice(variant.compareAtPrice * i.qty, currency)}</span>
+                            <span className="line-through text-neutral-500 text-[10px] sm:text-xs mr-1">{formatPrice(variant.compareAtPrice * i.qty, currency)}</span>
                           )}
                           {formatPrice(lineTotal, currency)}
                         </p>

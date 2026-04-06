@@ -218,11 +218,11 @@ function ShopContent() {
                     </Link>
                     <div className="mt-1 flex items-center gap-2">
                       <span className="text-sm text-gold-500">{'★'.repeat(5)}</span>
-                      <span className="text-xs text-neutral-400">({product.reviewCount})</span>
+                      <span className="text-xs text-neutral-500">({product.reviewCount})</span>
                     </div>
                     <p className="mt-1 text-xs sm:text-sm text-neutral-600">
                       {compareAtPrice && (
-                        <span className="line-through text-neutral-400 mr-2">{formatPrice(compareAtPrice, 'PKR')}</span>
+                        <span className="line-through text-neutral-500 mr-2">{formatPrice(compareAtPrice, 'PKR')}</span>
                       )}
                       {formatPrice(price, 'PKR')}
                     </p>

@@ -127,7 +127,7 @@ export function CartDrawer() {
                       <p className="font-medium text-neutral-900 text-sm sm:text-base truncate">{displayName}</p>
                       {variant && <p className="text-[11px] sm:text-xs text-neutral-500">{variant.name}</p>}
                       <p className="text-xs sm:text-sm text-neutral-600 mt-1">
-                        {variant?.compareAtPrice && <span className="line-through text-neutral-400 mr-1">{formatPrice(variant.compareAtPrice, currency)}</span>}
+                        {variant?.compareAtPrice && <span className="line-through text-neutral-500 mr-1">{formatPrice(variant.compareAtPrice, currency)}</span>}
                         {formatPrice(item.price, currency)} × {item.qty}
                       </p>
                       <div className="flex items-center gap-2 mt-2">

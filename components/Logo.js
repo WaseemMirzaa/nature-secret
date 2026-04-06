@@ -15,6 +15,8 @@ export function Logo({ className = 'h-8', link = true }) {
     <img
       src={LOGO_SRC}
       alt="Nature Secret"
+      width={2091}
+      height={1121}
       className={`w-auto object-contain object-left ${className}`}
     />
   );
