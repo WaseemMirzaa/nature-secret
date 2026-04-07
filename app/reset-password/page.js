@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Logo } from '@/components/Logo';
 import { customerResetPassword, formatApiError } from '@/lib/api';
 import { getFirebaseAuth, getFirebaseAuthErrorMessage, MIN_PASSWORD_LENGTH } from '@/lib/firebase';
-import { InlineLoader } from '@/components/ui/PageLoader';
+import { InlineLoader, Spinner } from '@/components/ui/PageLoader';
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -119,8 +119,14 @@ function ResetPasswordForm() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-full sm:rounded-2xl bg-neutral-900 py-3.5 text-sm font-semibold text-white hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:ring-offset-2 disabled:opacity-50 transition"
+                    aria-busy={loading}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-full sm:rounded-2xl bg-neutral-900 py-3.5 text-sm font-semibold text-white hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:ring-offset-2 disabled:opacity-50 transition"
                   >
+                    {loading ? (
+                      <span aria-hidden>
+                        <Spinner className="h-4 w-4 border-white/35 border-t-white" />
+                      </span>
+                    ) : null}
                     {loading ? 'Updating…' : 'Update password'}
                   </button>
                 </form>

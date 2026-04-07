@@ -5,6 +5,7 @@ import Link from '@/components/Link';
 import { Logo } from '@/components/Logo';
 import { customerForgotPassword, formatApiError } from '@/lib/api';
 import { getFirebaseAuth, getFirebaseAuthErrorMessage } from '@/lib/firebase';
+import { Spinner } from '@/components/ui/PageLoader';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -81,8 +82,14 @@ export default function ForgotPasswordPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-full sm:rounded-2xl bg-neutral-900 py-3.5 text-sm font-semibold text-white hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:ring-offset-2 disabled:opacity-50 transition"
+                    aria-busy={loading}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-full sm:rounded-2xl bg-neutral-900 py-3.5 text-sm font-semibold text-white hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:ring-offset-2 disabled:opacity-50 transition"
                   >
+                    {loading ? (
+                      <span aria-hidden>
+                        <Spinner className="h-4 w-4 border-white/35 border-t-white" />
+                      </span>
+                    ) : null}
                     {loading ? 'Sending…' : 'Send reset link'}
                   </button>
                 </form>

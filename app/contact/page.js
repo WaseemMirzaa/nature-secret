@@ -6,7 +6,7 @@ import { Logo } from '@/components/Logo';
 import { getContactSettings, createSupportTicket, formatApiError } from '@/lib/api';
 import { DEFAULT_CONTACT } from '@/lib/constants';
 import { useCustomerStore } from '@/lib/store';
-import { InlineLoader } from '@/components/ui/PageLoader';
+import { InlineLoader, Spinner } from '@/components/ui/PageLoader';
 import { getWhatsAppHref, handleWhatsAppClick, normalizeWhatsAppDigits } from '@/lib/whatsappLink';
 
 export default function ContactPage() {
@@ -137,7 +137,17 @@ export default function ContactPage() {
                 />
                 {submitError && <p className="text-xs text-red-600">{submitError}</p>}
                 {submitDone && <p className="text-xs text-green-700">Ticket submitted. We&apos;ll reply soon.</p>}
-                <button type="submit" disabled={submitLoading} className="w-full rounded-full sm:rounded-2xl bg-neutral-900 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50">
+                <button
+                  type="submit"
+                  disabled={submitLoading}
+                  aria-busy={submitLoading}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-full sm:rounded-2xl bg-neutral-900 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+                >
+                  {submitLoading ? (
+                    <span aria-hidden>
+                      <Spinner className="h-4 w-4 border-white/35 border-t-white" />
+                    </span>
+                  ) : null}
                   {submitLoading ? 'Sending…' : 'Submit'}
                 </button>
               </form>

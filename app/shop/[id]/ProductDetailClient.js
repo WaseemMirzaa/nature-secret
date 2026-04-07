@@ -28,7 +28,7 @@ import {
 } from '@/lib/api';
 import { compressReviewMediaFile } from '@/lib/compressReviewMedia';
 import { getDefaultHeroImageSrcForProduct } from '@/lib/productImageResolve';
-import { InlineLoader } from '@/components/ui/PageLoader';
+import { InlineLoader, Spinner } from '@/components/ui/PageLoader';
 
 const isUuid = (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 
@@ -167,6 +167,8 @@ export default function ProductDetailClient({
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [qty, setQty] = useState(1);
   const [orderNowVibrate, setOrderNowVibrate] = useState(false);
+  const [orderNowNavigating, setOrderNowNavigating] = useState(false);
+  const orderNowNavBusyRef = useRef(false);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const router = useRouter();
   const [reviewName, setReviewName] = useState('');
@@ -297,9 +299,7 @@ export default function ProductDetailClient({
     getReviews(product.id).then(setReviews).catch(() => setReviews([]));
   }, [product?.id, slugOrId, initialFromServer, initialReviews]);
 
-  const addToCart = useCartStore((s) => s.addItem);
   const addItemIfNew = useCartStore((s) => s.addItemIfNew);
-  const cartItems = useCartStore((s) => s.items);
   const openCart = useCartOpenStore((s) => s.open);
   const wishlist = useWishlistStore((s) => s.productIds);
   const toggleWishlist = useWishlistStore((s) => s.toggle);
@@ -396,29 +396,52 @@ export default function ProductDetailClient({
     if (!line) return;
     const added = addItemIfNew(line);
     openCart();
-    if (added) trackAddToCart(product, line.price / 100, effectiveQty);
+    if (added) trackAddToCart(product, line.price / 100, effectiveQty, currency);
   }
 
-  function handleOrderNow() {
+  /** Sync line to cart + analytics; false if payload invalid. */
+  function syncOrderNowLineToCart() {
     const line = getCartLinePayload();
-    if (!line) return;
-    const vid = line.variantId;
-    const alreadyInCart = cartItems.some(
-      (i) => i.productId === product.id && (i.variantId ?? '') === (vid ?? ''),
-    );
-    if (!alreadyInCart) {
-      addToCart(line);
-      trackAddToCart(product, line.price / 100, effectiveQty);
-    }
+    if (!line) return false;
+    const added = addItemIfNew(line);
+    if (added) trackAddToCart(product, line.price / 100, effectiveQty, currency);
+    return true;
+  }
+
+  /** Loader + retry (cart sync then navigate) on timeout/error — all viewports. */
+  async function handleOrderNowNavigate() {
+    if (orderNowNavBusyRef.current) return;
+    orderNowNavBusyRef.current = true;
+    setOrderNowNavigating(true);
+    const maxAttempts = 3;
+    const navTimeoutMs = 15000;
     try {
-      const p = router.push('/checkout');
-      if (p && typeof p.then === 'function') {
-        p.catch(() => {
-          if (typeof window !== 'undefined') window.location.assign('/checkout');
-        });
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        if (!syncOrderNowLineToCart()) return;
+        try {
+          const p = router.push('/checkout');
+          if (p && typeof p.then === 'function') {
+            await Promise.race([
+              p,
+              new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('nav-timeout')), navTimeoutMs);
+              }),
+            ]);
+          } else if (typeof window !== 'undefined') {
+            window.location.assign('/checkout');
+          }
+          return;
+        } catch {
+          if (attempt === maxAttempts - 1) {
+            if (typeof window !== 'undefined') window.location.assign('/checkout');
+            return;
+          }
+          await new Promise((r) => setTimeout(r, 400));
+        }
       }
-    } catch {
-      if (typeof window !== 'undefined') window.location.assign('/checkout');
+    } finally {
+      orderNowNavBusyRef.current = false;
+      setOrderNowNavigating(false);
     }
   }
 
@@ -659,12 +682,14 @@ export default function ProductDetailClient({
                 <>
                   <button
                     type="button"
+                    disabled={orderNowNavigating}
                     onClick={() => {
+                      if (orderNowNavigating) return;
                       handleAddToCart();
                       setAddCartVibrate(true);
                       setTimeout(() => setAddCartVibrate(false), 400);
                     }}
-                    className={`w-full rounded-full sm:rounded-2xl bg-neutral-900 py-2.5 lg:py-3 text-xs font-semibold text-white hover:bg-neutral-800 transition shadow-md ${
+                    className={`w-full rounded-full sm:rounded-2xl bg-neutral-900 py-2.5 lg:py-3 text-xs font-semibold text-white hover:bg-neutral-800 transition shadow-md disabled:opacity-50 disabled:pointer-events-none ${
                       addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
                     }`}
                   >
@@ -672,16 +697,26 @@ export default function ProductDetailClient({
                   </button>
                   <button
                     type="button"
+                    disabled={orderNowNavigating}
+                    aria-busy={orderNowNavigating}
                     onClick={() => {
-                      handleOrderNow();
+                      if (orderNowNavigating) return;
                       setOrderNowVibrate(true);
                       setTimeout(() => setOrderNowVibrate(false), 400);
+                      void handleOrderNowNavigate();
                     }}
-                    className={`w-full rounded-full sm:rounded-2xl bg-gold-500 py-2.5 lg:py-3 text-xs font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-md checkout-cta-animated cta-shimmer-gold ${
-                      orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
+                    className={`w-full rounded-full sm:rounded-2xl bg-gold-500 py-2.5 lg:py-3 text-xs font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-md checkout-cta-animated cta-shimmer-gold disabled:opacity-90 disabled:pointer-events-none ${
+                      orderNowVibrate && !orderNowNavigating ? 'animate-vibrate' : !orderNowNavigating ? 'animate-gold-pulse hover:animate-none' : ''
                     }`}
                   >
-                    <span className="relative z-10">Order now — arrives in 3–7 days</span>
+                    <span className="relative z-10 inline-flex items-center justify-center gap-1.5">
+                      {orderNowNavigating ? (
+                        <span aria-hidden>
+                          <Spinner className="h-3.5 w-3.5 border-neutral-900/30 border-t-neutral-900" />
+                        </span>
+                      ) : null}
+                      Order Now
+                    </span>
                   </button>
                 </>
               )}
@@ -1014,8 +1049,14 @@ export default function ProductDetailClient({
             <button
               type="submit"
               disabled={reviewSubmitting || !reviewBody.trim()}
-              className="mt-2 sm:mt-3 lg:mt-4 inline-flex items-center justify-center rounded-full sm:rounded-2xl bg-neutral-900 px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 text-xs sm:text-sm lg:text-base font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
+              aria-busy={reviewSubmitting}
+              className="mt-2 sm:mt-3 lg:mt-4 inline-flex items-center justify-center gap-2 rounded-full sm:rounded-2xl bg-neutral-900 px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 text-xs sm:text-sm lg:text-base font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
             >
+              {reviewSubmitting ? (
+                <span aria-hidden>
+                  <Spinner className="h-3.5 w-3.5 sm:h-4 sm:w-4 border-white/35 border-t-white" />
+                </span>
+              ) : null}
               {reviewSubmitting ? 'Submitting…' : 'Submit review'}
             </button>
             </form>
@@ -1188,12 +1229,14 @@ export default function ProductDetailClient({
             <div className="grid grid-cols-2 gap-1.5 pt-0.5">
               <button
                 type="button"
+                disabled={orderNowNavigating}
                 onClick={() => {
+                  if (orderNowNavigating) return;
                   handleAddToCart();
                   setAddCartVibrate(true);
                   setTimeout(() => setAddCartVibrate(false), 400);
                 }}
-                className={`min-h-[2.5rem] flex items-center justify-center rounded-full sm:rounded-2xl bg-neutral-900 px-1.5 text-[11px] font-semibold text-white hover:bg-neutral-800 transition shadow-sm ${
+                className={`min-h-[2.5rem] flex items-center justify-center rounded-full sm:rounded-2xl bg-neutral-900 px-1.5 text-[11px] font-semibold text-white hover:bg-neutral-800 transition shadow-sm disabled:opacity-50 disabled:pointer-events-none ${
                   addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
                 }`}
               >
@@ -1201,17 +1244,29 @@ export default function ProductDetailClient({
               </button>
               <button
                 type="button"
+                disabled={orderNowNavigating}
+                aria-busy={orderNowNavigating}
                 onClick={() => {
-                  handleOrderNow();
+                  if (orderNowNavigating) return;
                   setOrderNowVibrate(true);
                   setTimeout(() => setOrderNowVibrate(false), 400);
+                  void handleOrderNowNavigate();
                 }}
-                className={`min-h-[2.5rem] flex flex-col items-center justify-center gap-0 rounded-full sm:rounded-2xl bg-gold-500 px-1 py-0.5 text-center text-[11px] font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-sm leading-tight checkout-cta-animated cta-shimmer-gold ${
-                  orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
+                className={`min-h-[2.5rem] flex flex-col items-center justify-center gap-0 rounded-full sm:rounded-2xl bg-gold-500 px-1 py-0.5 text-center text-[11px] font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-sm leading-tight checkout-cta-animated cta-shimmer-gold disabled:opacity-90 disabled:pointer-events-none ${
+                  orderNowVibrate && !orderNowNavigating ? 'animate-vibrate' : !orderNowNavigating ? 'animate-gold-pulse hover:animate-none' : ''
                 }`}
               >
-                <span className="relative z-10">Order now</span>
-                <span className="relative z-10 text-[9px] font-medium text-neutral-800/90">Arrives in 3–7 days</span>
+                <span className="relative z-10 inline-flex items-center justify-center gap-1.5">
+                  {orderNowNavigating ? (
+                    <span aria-hidden>
+                      <Spinner className="h-3.5 w-3.5 border-neutral-900/30 border-t-neutral-900" />
+                    </span>
+                  ) : null}
+                  Order Now
+                </span>
+                {!orderNowNavigating ? (
+                  <span className="relative z-10 text-[9px] font-medium text-neutral-800/90">Arrives in 3–7 days</span>
+                ) : null}
               </button>
             </div>
           </div>
@@ -1237,12 +1292,14 @@ export default function ProductDetailClient({
             <div className="flex items-center gap-3 flex-1 justify-end min-w-[280px]">
               <button
                 type="button"
+                disabled={orderNowNavigating}
                 onClick={() => {
+                  if (orderNowNavigating) return;
                   handleAddToCart();
                   setAddCartVibrate(true);
                   setTimeout(() => setAddCartVibrate(false), 400);
                 }}
-                className={`rounded-full sm:rounded-2xl bg-neutral-900 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-neutral-800 transition shadow-md min-w-[108px] ${
+                className={`rounded-full sm:rounded-2xl bg-neutral-900 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-neutral-800 transition shadow-md min-w-[108px] disabled:opacity-50 disabled:pointer-events-none ${
                   addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
                 }`}
               >
@@ -1250,16 +1307,26 @@ export default function ProductDetailClient({
               </button>
               <button
                 type="button"
+                disabled={orderNowNavigating}
+                aria-busy={orderNowNavigating}
                 onClick={() => {
-                  handleOrderNow();
+                  if (orderNowNavigating) return;
                   setOrderNowVibrate(true);
                   setTimeout(() => setOrderNowVibrate(false), 400);
+                  void handleOrderNowNavigate();
                 }}
-                className={`rounded-full sm:rounded-2xl bg-gold-500 px-3.5 py-1.5 text-xs font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-md min-w-[92px] checkout-cta-animated cta-shimmer-gold ${
-                  orderNowVibrate ? 'animate-vibrate' : 'animate-gold-pulse hover:animate-none'
+                className={`rounded-full sm:rounded-2xl bg-gold-500 px-3.5 py-1.5 text-xs font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-md min-w-[92px] checkout-cta-animated cta-shimmer-gold disabled:opacity-90 disabled:pointer-events-none ${
+                  orderNowVibrate && !orderNowNavigating ? 'animate-vibrate' : !orderNowNavigating ? 'animate-gold-pulse hover:animate-none' : ''
                 }`}
               >
-                <span className="relative z-10">Buy now</span>
+                <span className="relative z-10 inline-flex items-center justify-center gap-1.5">
+                  {orderNowNavigating ? (
+                    <span aria-hidden>
+                      <Spinner className="h-3.5 w-3.5 border-neutral-900/30 border-t-neutral-900" />
+                    </span>
+                  ) : null}
+                  Buy now
+                </span>
               </button>
             </div>
           </div>

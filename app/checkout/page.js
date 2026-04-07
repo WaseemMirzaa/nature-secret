@@ -18,7 +18,7 @@ import {
 import { formatPrice } from '@/lib/currency';
 import { createOrder as apiCreateOrder } from '@/lib/api';
 import { useProductsAndCategories } from '@/lib/useApiData';
-import { CustomerPageLoader } from '@/components/ui/PageLoader';
+import { CustomerPageLoader, Spinner } from '@/components/ui/PageLoader';
 import {
   getDiscountAmountForCode,
   getSessionDiscountCode,
@@ -383,9 +383,6 @@ export default function CheckoutPage() {
           <h1 className="text-base sm:text-lg lg:text-xl font-bold text-neutral-900 tracking-tight">
             Complete your order
           </h1>
-          <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs lg:text-sm text-neutral-600 leading-relaxed max-w-md">
-            Your order will arrive within 3 to 7 days.
-          </p>
         </div>
       </div>
       <form ref={formRef} id="checkout-form" onSubmit={handleSubmit}>
@@ -534,18 +531,12 @@ export default function CheckoutPage() {
               {shipping === 0 ? 'Free' : formatPrice(shipping, currency)}
             </span>
           </div>
-          <p className="mt-1.5 sm:mt-2 text-[10px] sm:text-xs text-neutral-500 leading-relaxed">
-            {shipping === 0 ? 'Free shipping on this order — delivery in 3–7 days.' : 'Standard delivery in 3–7 days.'}
-          </p>
         </section>
 
         <section className={`animate-checkout-enter checkout-enter-delay-3 motion-reduce:animate-none motion-reduce:opacity-100 p-3.5 sm:p-4 ${cardSurface}`}>
-          <h2 className={`${sectionTitle} mb-1`}>Payment</h2>
-          <p className="text-[10px] sm:text-xs text-neutral-500 mb-2 sm:mb-3 leading-relaxed">
-            All transactions are secure. Pay when your order arrives (usually within 3–7 days).
-          </p>
+          <h2 className={`${sectionTitle} mb-2 sm:mb-3`}>Payment</h2>
           <div className="rounded-2xl border-0 bg-gold-100 px-3 py-2.5 sm:px-4 sm:py-3.5 text-xs sm:text-sm font-semibold text-neutral-900 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.07)]">
-            Cash on delivery (COD) · arrives in 3–7 days
+            Cash on delivery (COD)
           </div>
         </section>
 
@@ -688,8 +679,8 @@ export default function CheckoutPage() {
               {formatPrice(grandTotal, currency)}
             </p>
           </div>
-          <p className="mt-3 text-[10px] sm:text-xs text-center text-neutral-500 leading-snug lg:hidden">
-            Arrives in 3–7 days · Pay on delivery (COD) · Secure checkout
+          <p className="mt-3 text-[10px] sm:text-xs text-center text-neutral-500 leading-snug">
+            Arrives in 3–7 days · Pay on delivery (COD)
           </p>
         </div>
 
@@ -706,8 +697,13 @@ export default function CheckoutPage() {
               type="submit"
               disabled={placing}
               aria-busy={placing}
-              className={`${ctaBase} w-full min-h-[3rem] touch-manipulation`}
+              className={`${ctaBase} w-full min-h-[3rem] touch-manipulation inline-flex items-center justify-center gap-2`}
             >
+              {placing ? (
+                <span aria-hidden>
+                  <Spinner className="h-4 w-4 border-white/35 border-t-white" />
+                </span>
+              ) : null}
               {placing ? 'Placing order…' : 'Complete order'}
             </button>
             {placing && (

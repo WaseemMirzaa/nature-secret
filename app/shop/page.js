@@ -86,7 +86,7 @@ function ShopContent() {
       image: (variant.images && variant.images[0]) || variant.image || product.images?.[0],
     });
     openCart();
-    if (added) trackAddToCart(product, variant.price / 100, 1);
+    if (added) trackAddToCart(product, variant.price / 100, 1, currency);
   }
 
   return (

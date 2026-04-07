@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from '@/components/Link';
 import { getAdminContactSettings, updateAdminContactSettings, getAdminWhatsAppQR, relinkAdminWhatsApp, formatApiError } from '@/lib/api';
-import { InlineLoader } from '@/components/ui/PageLoader';
+import { InlineLoader, Spinner } from '@/components/ui/PageLoader';
 
 function whatsappUrl(number) {
   const n = (number || '').replace(/\D/g, '');
@@ -141,8 +141,14 @@ export default function AdminWhatsAppPage() {
               type="button"
               onClick={handleRelink}
               disabled={relinking}
-              className="mt-4 rounded-full sm:rounded-2xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+              aria-busy={relinking}
+              className="mt-4 inline-flex items-center justify-center gap-2 rounded-full sm:rounded-2xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
             >
+              {relinking ? (
+                <span aria-hidden>
+                  <Spinner className="h-4 w-4 border-white/35 border-t-white" />
+                </span>
+              ) : null}
               {relinking ? 'Resetting…' : 'Resend QR'}
             </button>
           </>
@@ -183,7 +189,17 @@ export default function AdminWhatsAppPage() {
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         {message && <p className="text-sm text-green-700">{message}</p>}
-        <button type="submit" disabled={saving} className="rounded-full sm:rounded-2xl bg-neutral-900 px-6 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50">
+        <button
+          type="submit"
+          disabled={saving}
+          aria-busy={saving}
+          className="inline-flex items-center justify-center gap-2 rounded-full sm:rounded-2xl bg-neutral-900 px-6 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+        >
+          {saving ? (
+            <span aria-hidden>
+              <Spinner className="h-4 w-4 border-white/35 border-t-white" />
+            </span>
+          ) : null}
           {saving ? 'Saving…' : 'Save'}
         </button>
       </form>

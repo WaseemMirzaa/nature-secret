@@ -6,7 +6,7 @@ import { useCustomerStore, useAuthModalStore } from '@/lib/store';
 import { Logo } from '@/components/Logo';
 import { customerFirebaseLogin, formatApiError } from '@/lib/api';
 import { getFirebaseAuth, getFirebaseAuthErrorMessage, MIN_PASSWORD_LENGTH } from '@/lib/firebase';
-import { CustomerPageLoader } from '@/components/ui/PageLoader';
+import { CustomerPageLoader, Spinner } from '@/components/ui/PageLoader';
 
 function LoginForm() {
   const router = useRouter();
@@ -93,7 +93,17 @@ function LoginForm() {
           </p>
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <button type="submit" disabled={loading} className="w-full rounded-full sm:rounded-2xl bg-neutral-900 py-3 text-sm font-medium text-white disabled:opacity-50">
+        <button
+          type="submit"
+          disabled={loading}
+          aria-busy={loading}
+          className="w-full inline-flex items-center justify-center gap-2 rounded-full sm:rounded-2xl bg-neutral-900 py-3 text-sm font-medium text-white disabled:opacity-50"
+        >
+          {loading ? (
+            <span aria-hidden>
+              <Spinner className="h-4 w-4 border-white/35 border-t-white" />
+            </span>
+          ) : null}
           {loading ? 'Signing in…' : 'Sign in'}
         </button>
       </form>
