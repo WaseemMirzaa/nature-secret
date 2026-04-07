@@ -96,6 +96,25 @@ function scrubMedicalTerms(input = '') {
   return text;
 }
 
+/** PDP Order Now: build cart line from latest ref snapshot (avoids stale closure while view finishes loading). */
+function buildOrderNowLineFromCtx(ctx) {
+  if (!ctx?.product?.id) return null;
+  const p = ctx.product;
+  const v = ctx.variant;
+  const eq = Math.max(1, Math.min(99, Number(ctx.qtyEffective) || 1));
+  const linePrice = v?.price ?? p?.price;
+  if (linePrice == null || !Number.isFinite(Number(linePrice))) return null;
+  const image = (v?.images && v.images[0]) || v?.image || p?.images?.[0];
+  return {
+    productId: p.id,
+    variantId: v?.id,
+    price: linePrice,
+    name: p.name,
+    image,
+    qty: eq,
+  };
+}
+
 export default function ProductDetailClient({
   slugOrId,
   initialProduct: initialFromServer,
@@ -169,6 +188,13 @@ export default function ProductDetailClient({
   const [orderNowVibrate, setOrderNowVibrate] = useState(false);
   const [orderNowNavigating, setOrderNowNavigating] = useState(false);
   const orderNowNavBusyRef = useRef(false);
+  const orderNowLiveRef = useRef({
+    productLoading: true,
+    product: null,
+    variant: null,
+    qtyEffective: 1,
+    currency: 'PKR',
+  });
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const router = useRouter();
   const [reviewName, setReviewName] = useState('');
@@ -268,6 +294,14 @@ export default function ProductDetailClient({
   const price = variant?.price ?? product?.price;
   const productDisplayName = product?.name ?? product?.slug ?? 'Product';
   const currency = useCurrencyStore((s) => s.currency);
+  const effectiveQtyLive = Math.max(1, Math.min(99, Number(qty) || 1));
+  orderNowLiveRef.current = {
+    productLoading,
+    product,
+    variant,
+    qtyEffective: effectiveQtyLive,
+    currency,
+  };
 
   useEffect(() => {
     if (!product) return;
@@ -399,40 +433,47 @@ export default function ProductDetailClient({
     if (added) trackAddToCart(product, line.price / 100, effectiveQty, currency);
   }
 
-  /** Sync line to cart + analytics; false if payload invalid. */
-  function syncOrderNowLineToCart() {
-    const line = getCartLinePayload();
-    if (!line) return false;
-    const added = addItemIfNew(line);
-    if (added) trackAddToCart(product, line.price / 100, effectiveQty, currency);
-    return true;
-  }
-
-  /** Loader + retry (cart sync then navigate) on timeout/error — all viewports. */
+  /** Loader + retry; waits for live PDP data (ref) so checkout still runs after loading settles. */
   async function handleOrderNowNavigate() {
     if (orderNowNavBusyRef.current) return;
     orderNowNavBusyRef.current = true;
     setOrderNowNavigating(true);
-    const maxAttempts = 3;
+    const maxNavAttempts = 3;
     const navTimeoutMs = 15000;
+    const readyDeadlineMs = 25000;
+    const readyStarted = Date.now();
     try {
-      for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        if (!syncOrderNowLineToCart()) return;
+      while (Date.now() - readyStarted < readyDeadlineMs) {
+        const ctx = orderNowLiveRef.current;
+        if (!ctx.productLoading && buildOrderNowLineFromCtx(ctx)) break;
+        await new Promise((r) => setTimeout(r, 80));
+      }
+      for (let attempt = 0; attempt < maxNavAttempts; attempt++) {
+        const ctx = orderNowLiveRef.current;
+        const line = buildOrderNowLineFromCtx(ctx);
+        const p = ctx.product;
+        if (line && p) {
+          const added = addItemIfNew(line);
+          if (added) trackAddToCart(p, line.price / 100, line.qty, ctx.currency);
+        }
         try {
-          const p = router.push('/checkout');
-          if (p && typeof p.then === 'function') {
+          const navP = router.push('/checkout');
+          if (navP && typeof navP.then === 'function') {
             await Promise.race([
-              p,
+              navP,
               new Promise((_, reject) => {
                 setTimeout(() => reject(new Error('nav-timeout')), navTimeoutMs);
               }),
             ]);
+            if (typeof window !== 'undefined' && !/^\/checkout(\/|$)/.test(window.location.pathname)) {
+              window.location.assign('/checkout');
+            }
           } else if (typeof window !== 'undefined') {
             window.location.assign('/checkout');
           }
           return;
         } catch {
-          if (attempt === maxAttempts - 1) {
+          if (attempt === maxNavAttempts - 1) {
             if (typeof window !== 'undefined') window.location.assign('/checkout');
             return;
           }
