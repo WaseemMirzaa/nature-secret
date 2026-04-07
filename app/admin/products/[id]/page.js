@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from '@/components/Link';
 import { useRouter, useParams } from 'next/navigation';
 import { useProductsStore } from '@/lib/store';
@@ -12,6 +12,8 @@ import {
   getAdminReviews,
   setProductRating,
   approveReview,
+  approveAllPendingReviewsForProduct,
+  bulkImportPendingReviews,
   createAdminReview,
   updateAdminReview,
   deleteAdminReview,
@@ -22,6 +24,24 @@ import { Spinner } from '@/components/ui/PageLoader';
 const emptyVariant = () => ({ id: `v-${Date.now()}`, name: '', volume: '', price: 0, compareAtPrice: null, images: [] });
 const emptyFaq = () => ({ q: '', a: '' });
 const emptyProductBadge = () => ({ label: '', imageUrl: '', href: '' });
+/** Parse seed-style JSON: array or `{ "reviews": [...], "productId"?: ignored }`. */
+function parseBulkReviewsJson(text) {
+  const t = String(text || '').trim();
+  if (!t) throw new Error('Paste JSON or choose a file.');
+  let parsed;
+  try {
+    parsed = JSON.parse(t);
+  } catch {
+    throw new Error('Invalid JSON.');
+  }
+  let rows;
+  if (Array.isArray(parsed)) rows = parsed;
+  else if (parsed && typeof parsed === 'object' && Array.isArray(parsed.reviews)) rows = parsed.reviews;
+  else throw new Error('Expected a JSON array or { "reviews": [ { "name", "review", "rating" } ] }');
+  if (!rows.length) throw new Error('No reviews in JSON.');
+  return rows;
+}
+
 const demoBadges = [
   { label: '100% Organic', imageUrl: 'https://img.shields.io/badge/100%25-Organic-2e7d32?style=for-the-badge' },
   { label: '100% Natural', imageUrl: 'https://img.shields.io/badge/100%25-Natural-388e3c?style=for-the-badge' },
@@ -64,6 +84,7 @@ export default function EditProductPage() {
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [bulkApproving, setBulkApproving] = useState(false);
   const [customerReviews, setCustomerReviews] = useState([]);
   const [liveReviews, setLiveReviews] = useState([]);
   const [liveAuthor, setLiveAuthor] = useState('');
@@ -72,6 +93,10 @@ export default function EditProductPage() {
   const [liveSort, setLiveSort] = useState(0);
   const [liveMedia, setLiveMedia] = useState([]);
   const [liveSaving, setLiveSaving] = useState(false);
+  const [bulkJsonText, setBulkJsonText] = useState('');
+  const [bulkImportBusy, setBulkImportBusy] = useState(false);
+  const [bulkImportFeedback, setBulkImportFeedback] = useState('');
+  const bulkFileInputRef = useRef(null);
 
   const apiBase = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') : '';
   async function handleImageUpload(e, index) {
@@ -750,13 +775,122 @@ export default function EditProductPage() {
         </div>
 
         <div className="mt-8">
-          <h3 className="text-sm font-medium text-neutral-800 mb-2">Customer reviews (submitted on site)</h3>
+          <div className="mb-4 rounded-xl border border-dashed border-neutral-300 bg-white p-3 sm:p-4">
+            <p className="text-sm font-medium text-neutral-800 mb-1">Bulk import customer reviews (pending)</p>
+            <p className="text-xs text-neutral-500 mb-2">
+              Same format as the seed file: a JSON array or{' '}
+              <code className="text-[10px] bg-neutral-100 px-1 rounded break-all">
+                {`{ "reviews": [ { "name", "review", "rating" } ] }`}
+              </code>
+              . Optional <code className="text-[10px] bg-neutral-100 px-1 rounded">productId</code> in the file is ignored; this
+              product is used. Max 500 rows. You can edit or approve each entry below after import.
+            </p>
+            <input
+              ref={bulkFileInputRef}
+              type="file"
+              accept=".json,application/json"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                  setBulkJsonText(String(reader.result || ''));
+                  setBulkImportFeedback(`Loaded ${file.name}. Click “Import pending” when ready.`);
+                };
+                reader.onerror = () => setBulkImportFeedback('Could not read file.');
+                reader.readAsText(file, 'UTF-8');
+                e.target.value = '';
+              }}
+            />
+            <div className="flex flex-wrap gap-2 mb-2">
+              <button
+                type="button"
+                onClick={() => bulkFileInputRef.current?.click()}
+                className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-800 hover:bg-neutral-50"
+              >
+                Choose JSON file
+              </button>
+              <button
+                type="button"
+                disabled={bulkImportBusy || !product?.id}
+                onClick={async () => {
+                  if (!product?.id) return;
+                  setBulkImportBusy(true);
+                  setBulkImportFeedback('');
+                  try {
+                    const rows = parseBulkReviewsJson(bulkJsonText);
+                    const res = await bulkImportPendingReviews(product.id, rows);
+                    const n = res?.inserted ?? 0;
+                    setBulkImportFeedback(`Imported ${n} pending review(s). Approve or edit below.`);
+                    setBulkJsonText('');
+                    await refreshProductReviews();
+                  } catch (err) {
+                    setBulkImportFeedback(formatApiError(err));
+                  } finally {
+                    setBulkImportBusy(false);
+                  }
+                }}
+                className="rounded-lg bg-neutral-900 text-white px-3 py-1.5 text-xs font-medium hover:bg-neutral-800 disabled:opacity-50"
+              >
+                {bulkImportBusy ? 'Importing…' : 'Import pending from box'}
+              </button>
+            </div>
+            <textarea
+              value={bulkJsonText}
+              onChange={(e) => setBulkJsonText(e.target.value)}
+              rows={5}
+              placeholder={`[\n  { "name": "Ali", "review": "Great oil.", "rating": 5 }\n]`}
+              className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-xs font-mono text-neutral-900 placeholder:text-neutral-400"
+            />
+            {bulkImportFeedback ? (
+              <p className={`mt-2 text-xs ${bulkImportFeedback.startsWith('Imported') || bulkImportFeedback.startsWith('Loaded') ? 'text-emerald-700' : 'text-red-600'}`}>
+                {bulkImportFeedback}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <h3 className="text-sm font-medium text-neutral-800">Customer reviews (submitted on site)</h3>
+            {product && customerReviews.some((r) => !r.approved) ? (
+              <button
+                type="button"
+                disabled={bulkApproving}
+                onClick={async () => {
+                  if (!product?.id) return;
+                  const n = customerReviews.filter((r) => !r.approved).length;
+                  if (!window.confirm(`Approve all ${n} pending customer reviews?`)) return;
+                  setBulkApproving(true);
+                  try {
+                    await approveAllPendingReviewsForProduct(product.id);
+                    await refreshProductReviews();
+                    const list = await getAdminReviews({ productId: product.id });
+                    const arr = Array.isArray(list) ? list : [];
+                    const userApproved = arr.filter((r) => r.collection === 'user' && r.approved);
+                    const approvedN = userApproved.length;
+                    setReviewCount(approvedN);
+                    if (approvedN > 0) {
+                      const avg = userApproved.reduce((s, r) => s + (Number(r.rating) || 0), 0) / approvedN;
+                      setRating(Math.round(avg * 100) / 100);
+                    }
+                  } catch (_) {
+                    /* toast optional */
+                  } finally {
+                    setBulkApproving(false);
+                  }
+                }}
+                className="rounded-lg bg-emerald-700 text-white px-3 py-1.5 text-xs font-medium hover:bg-emerald-600 disabled:opacity-50"
+              >
+                {bulkApproving ? 'Approving…' : `Approve all pending (${customerReviews.filter((r) => !r.approved).length})`}
+              </button>
+            ) : null}
+          </div>
           {reviewsLoading ? (
             <p className="text-sm text-neutral-500">Loading reviews…</p>
           ) : customerReviews.length === 0 ? (
             <p className="text-sm text-neutral-500">No customer reviews yet.</p>
           ) : (
-            <ul className="space-y-2 max-h-56 overflow-y-auto rounded-xl border border-neutral-200 p-2">
+            <ul className="space-y-2 max-h-[min(24rem,50vh)] overflow-y-auto rounded-xl border border-neutral-200 p-2">
               {customerReviews.map((r) => (
                 <li key={r.id} className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 text-sm">
                   <div className="min-w-0 flex-1">

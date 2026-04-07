@@ -49,6 +49,19 @@ export class AdminReviewsController {
     return { ok: true };
   }
 
+  @Post('product/:productId/approve-all-pending')
+  @StaffOrAdmin()
+  async approveAllPending(@Param('productId') productId: string) {
+    return this.service.approveAllPendingUserReviewsForProduct(productId);
+  }
+
+  /** Body: `{ "reviews": [ { "name", "review", "rating" } ] }` or a top-level array (same as seed JSON). */
+  @Post('product/:productId/bulk-import-pending')
+  @StaffOrAdmin()
+  async bulkImportPending(@Param('productId') productId: string, @Body() body: unknown) {
+    return this.service.importBulkPendingUserReviews(productId, body);
+  }
+
   @Patch(':id/assign')
   @StaffOrAdmin()
   async assign(@Param('id') id: string, @Body() body: { productId: string }) {

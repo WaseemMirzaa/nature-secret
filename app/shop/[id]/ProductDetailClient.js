@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useState, useMemo, useEffect, useLayoutEffect, useRef } from 'react';
 import Link from '@/components/Link';
@@ -29,67 +30,19 @@ import {
 import { compressReviewMediaFile } from '@/lib/compressReviewMedia';
 import { getDefaultHeroImageSrcForProduct } from '@/lib/productImageResolve';
 import { InlineLoader, Spinner } from '@/components/ui/PageLoader';
+import { ReviewMediaBlock } from '@/components/product/ReviewMediaBlock';
+
+const ProductReviewsMarquee = dynamic(
+  () => import('@/components/product/ProductReviewsMarquee'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-40 rounded-2xl bg-neutral-100/50 animate-pulse motion-reduce:animate-none" aria-hidden />
+    ),
+  },
+);
 
 const isUuid = (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
-
-function getVideoPresentation(url) {
-  if (!url || typeof url !== 'string') return null;
-  const u = url.trim();
-  try {
-    const parsed = new URL(u);
-    if (parsed.hostname.includes('youtu.be')) {
-      const id = parsed.pathname.replace(/^\//, '').split('/')[0];
-      if (id) return { kind: 'embed', src: `https://www.youtube-nocookie.com/embed/${id}` };
-    }
-    if (parsed.hostname.includes('youtube.com')) {
-      const id = parsed.searchParams.get('v');
-      if (id) return { kind: 'embed', src: `https://www.youtube-nocookie.com/embed/${id}` };
-      const short = parsed.pathname.match(/\/embed\/([^/?]+)/);
-      if (short) return { kind: 'embed', src: `https://www.youtube-nocookie.com/embed/${short[1]}` };
-    }
-    if (parsed.hostname.includes('vimeo.com')) {
-      const m = parsed.pathname.match(/\/(\d+)/);
-      if (m) return { kind: 'embed', src: `https://player.vimeo.com/video/${m[1]}` };
-    }
-  } catch {
-    if (/\.(mp4|webm|ogg)(\?|$)/i.test(u)) return { kind: 'native', src: u };
-    return null;
-  }
-  if (/\.(mp4|webm|ogg)(\?|$)/i.test(u)) return { kind: 'native', src: u };
-  return { kind: 'native', src: u };
-}
-
-function ReviewMediaBlock({ item, resolveImageUrl }) {
-  const rawUrl = item?.url;
-  if (!rawUrl) return null;
-  const isVideo = item.type === 'video';
-  if (!isVideo) {
-    const imgSrc = resolveImageUrl(rawUrl) || rawUrl;
-    return (
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-neutral-100">
-        <Image src={imgSrc} alt="" fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
-      </div>
-    );
-  }
-  const pres = getVideoPresentation(rawUrl);
-  if (!pres) return null;
-  if (pres.kind === 'embed') {
-    return (
-      <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
-        <iframe
-          title="Review video"
-          src={pres.src}
-          className="absolute inset-0 h-full w-full"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-        />
-      </div>
-    );
-  }
-  return (
-    <video src={pres.src} controls playsInline className="w-full rounded-lg bg-black max-h-[280px]" />
-  );
-}
 
 function scrubMedicalTerms(input = '') {
   const text = String(input || '');
@@ -182,7 +135,6 @@ export default function ProductDetailClient({
   const [zoom, setZoom] = useState(false);
   const [addCartVibrate, setAddCartVibrate] = useState(false);
   const [reviews, setReviews] = useState(() => (Array.isArray(initialReviews) ? initialReviews : []));
-  const [reviewsExpanded, setReviewsExpanded] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [qty, setQty] = useState(1);
   const [orderNowVibrate, setOrderNowVibrate] = useState(false);
@@ -204,6 +156,8 @@ export default function ProductDetailClient({
   const [reviewMessage, setReviewMessage] = useState('');
   const [reviewFiles, setReviewFiles] = useState([]);
   const purchasePanelRef = useRef(null);
+  const reviewsMarqueeHostRef = useRef(null);
+  const [reviewsMarqueeLoad, setReviewsMarqueeLoad] = useState(false);
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [isLg, setIsLg] = useState(false);
   const [productDisclaimerTitle, setProductDisclaimerTitle] = useState(
@@ -275,11 +229,71 @@ export default function ProductDetailClient({
   const customProductBadges = Array.isArray(product?.productBadges)
     ? product.productBadges.filter((b) => String(b?.imageUrl || '').trim())
     : [];
-  const variantImageList = (variant?.images && variant.images.length) ? variant.images : (variant?.image ? [variant.image] : product?.images || []);
+  const resolvedVariantImages = useMemo(() => {
+    const list =
+      variant?.images && variant.images.length
+        ? variant.images
+        : variant?.image
+          ? [variant.image]
+          : product?.images || [];
+    const out = [];
+    for (const url of list) {
+      const r = resolveImageUrl(url);
+      if (r) out.push(r);
+    }
+    if (!out.length) {
+      const fb = resolveImageUrl(product?.images?.[0]) || '/assets/nature-secret-logo.svg';
+      return [fb];
+    }
+    return out;
+  }, [variant?.id, variant?.images, variant?.image, product?.images]);
+
+  const productGalleryPreloadUrls = useMemo(() => {
+    if (!product) return [];
+    const set = new Set();
+    const add = (u) => {
+      if (!u) return;
+      const r = resolveImageUrl(u);
+      if (r && !String(r).includes('nature-secret-logo')) set.add(r);
+    };
+    (product.images || []).forEach(add);
+    for (const v of product.variants || []) {
+      (v.images || []).forEach(add);
+      add(v.image);
+    }
+    return [...set];
+  }, [product]);
+
+  useEffect(() => {
+    if (!productGalleryPreloadUrls.length) return;
+    const imgs = productGalleryPreloadUrls.slice(0, 32).map((src) => {
+      const img = new Image();
+      img.decoding = 'async';
+      if ('fetchPriority' in img) img.fetchPriority = 'low';
+      img.src = src;
+      return img;
+    });
+    return () => {
+      imgs.forEach((el) => {
+        el.src = '';
+      });
+    };
+  }, [productGalleryPreloadUrls]);
+
   useEffect(() => { setSelectedImageIndex(0); }, [variant?.id]);
   useEffect(() => { setQty(1); }, [variant?.id]);
-  const rawMain = variantImageList[selectedImageIndex] || variantImageList[0] || product?.images?.[0] || '';
-  const mainImage = resolveImageUrl(rawMain) || '/assets/nature-secret-logo.svg';
+
+  useEffect(() => {
+    setSelectedImageIndex((i) => {
+      if (resolvedVariantImages.length <= 0) return 0;
+      return Math.min(i, resolvedVariantImages.length - 1);
+    });
+  }, [resolvedVariantImages.length]);
+
+  const mainImage =
+    resolvedVariantImages[selectedImageIndex] ??
+    resolvedVariantImages[0] ??
+    '/assets/nature-secret-logo.svg';
   const defaultHeroAbs = product ? getDefaultHeroImageSrcForProduct(product) : '';
   const serverHeroValid =
     !!serverHeroImage &&
@@ -333,6 +347,31 @@ export default function ProductDetailClient({
     getReviews(product.id).then(setReviews).catch(() => setReviews([]));
   }, [product?.id, slugOrId, initialFromServer, initialReviews]);
 
+  /** Refetch approved reviews periodically and on tab focus (e.g. after admin approves). */
+  useEffect(() => {
+    if (!product?.id) return;
+    const pid = product.id;
+    const refresh = () => {
+      getReviews(pid)
+        .then((list) => {
+          if (Array.isArray(list)) setReviews(list);
+        })
+        .catch(() => {});
+    };
+    const intervalMs = 45000;
+    const id = setInterval(refresh, intervalMs);
+    const onVis = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, [product?.id]);
+
   const addItemIfNew = useCartStore((s) => s.addItemIfNew);
   const openCart = useCartOpenStore((s) => s.open);
   const wishlist = useWishlistStore((s) => s.productIds);
@@ -377,10 +416,23 @@ export default function ProductDetailClient({
     [userReviewsList]
   );
   const primaryReviews = fiveStarReviews.length > 0 ? fiveStarReviews : userReviewsList;
-  const reviewPreviewCount = isLg ? 2 : 3;
-  const visibleReviews = primaryReviews
-    ? (reviewsExpanded ? primaryReviews : primaryReviews.slice(0, reviewPreviewCount))
-    : [];
+
+  useEffect(() => {
+    setReviewsMarqueeLoad(false);
+  }, [product?.id]);
+
+  useEffect(() => {
+    const el = reviewsMarqueeHostRef.current;
+    if (!el || primaryReviews.length === 0) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) setReviewsMarqueeLoad(true);
+      },
+      { rootMargin: '200px 0px', threshold: 0.01 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [primaryReviews.length, product?.id]);
 
   if (productLoading) {
     return (
@@ -546,22 +598,41 @@ export default function ProductDetailClient({
                 zoom ? 'scale-110' : ''
               }`}
             >
-              {serverHeroValid ? (
-                serverHeroImage
-              ) : (
-                <Image
-                  src={mainImage}
-                  alt={productDisplayName}
-                  fill
-                  className="object-contain"
-                  sizes={PRODUCT_HERO_IMAGE_SIZES}
-                  priority={clientHeroNeedsPriority}
-                  fetchPriority={clientHeroNeedsPriority ? 'high' : 'low'}
-                  quality={PRODUCT_HERO_IMAGE_QUALITY}
-                  decoding={clientHeroNeedsPriority ? 'sync' : 'async'}
-                  loading={clientHeroNeedsPriority ? 'eager' : 'lazy'}
-                />
-              )}
+              {resolvedVariantImages.map((src, i) => {
+                const isActive = i === selectedImageIndex;
+                return (
+                  <div
+                    key={`${variant?.id ?? 'p'}-${i}-${src}`}
+                    className={`absolute inset-0 transition-opacity duration-200 ease-out ${
+                      isActive ? 'z-[1] opacity-100' : 'z-0 opacity-0 pointer-events-none'
+                    }`}
+                    aria-hidden={!isActive}
+                  >
+                    {i === 0 && serverHeroValid ? (
+                      serverHeroImage
+                    ) : (
+                      <Image
+                        src={src}
+                        alt={i === 0 ? productDisplayName : `${productDisplayName} — ${i + 1}`}
+                        fill
+                        className="object-contain"
+                        sizes={PRODUCT_HERO_IMAGE_SIZES}
+                        priority={isActive && i === 0 && !serverHeroValid && clientHeroNeedsPriority}
+                        fetchPriority={
+                          isActive && i === 0 && (serverHeroValid || clientHeroNeedsPriority)
+                            ? 'high'
+                            : 'low'
+                        }
+                        quality={PRODUCT_HERO_IMAGE_QUALITY}
+                        decoding={
+                          isActive && i === 0 && !serverHeroValid && clientHeroNeedsPriority ? 'sync' : 'async'
+                        }
+                        loading="eager"
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
             <button
               type="button"
@@ -573,29 +644,26 @@ export default function ProductDetailClient({
             </button>
           </div>
           <div className="mt-1.5 sm:mt-3 lg:mt-5 flex gap-1.5 sm:gap-2 lg:gap-3 overflow-x-auto pb-0.5 sm:pb-1 lg:pb-0">
-            {variantImageList.map((url, i) => {
-              const resolved = resolveImageUrl(url);
-              return resolved ? (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setSelectedImageIndex(i)}
-                  className={`relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 sm:h-20 sm:w-20 lg:h-[4.75rem] lg:w-[4.75rem] sm:rounded-xl ${selectedImageIndex === i ? 'border-neutral-900 ring-2 ring-neutral-400' : 'border-neutral-300'}`}
-                >
-                  <Image
-                    src={resolved}
-                    alt={`${productDisplayName} ${i + 1}`}
-                    width={80}
-                    height={80}
-                    className="h-full w-full object-contain"
-                    sizes="(max-width: 639px) 56px, (max-width: 1023px) 80px, 76px"
-                    quality={65}
-                    loading="lazy"
-                    fetchPriority="low"
-                  />
-                </button>
-              ) : null;
-            })}
+            {resolvedVariantImages.map((resolved, i) => (
+              <button
+                key={`${variant?.id ?? 'p'}-t-${i}`}
+                type="button"
+                onClick={() => setSelectedImageIndex(i)}
+                className={`relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 sm:h-20 sm:w-20 lg:h-[4.75rem] lg:w-[4.75rem] sm:rounded-xl ${selectedImageIndex === i ? 'border-neutral-900 ring-2 ring-neutral-400' : 'border-neutral-300'}`}
+              >
+                <Image
+                  src={resolved}
+                  alt={`${productDisplayName} ${i + 1}`}
+                  width={80}
+                  height={80}
+                  className="h-full w-full object-contain"
+                  sizes="(max-width: 639px) 56px, (max-width: 1023px) 80px, 76px"
+                  quality={65}
+                  loading="eager"
+                  fetchPriority="low"
+                />
+              </button>
+            ))}
           </div>
         </div>
 
@@ -1102,45 +1170,23 @@ export default function ProductDetailClient({
             </button>
             </form>
           </div>
-          <div>
+          <div ref={reviewsMarqueeHostRef}>
             {primaryReviews && primaryReviews.length > 0 ? (
               <div className="space-y-3 sm:space-y-4 lg:space-y-5">
                 <p className="text-xs sm:text-sm lg:text-base font-medium text-neutral-700">
                   Recent reviews{fiveStarReviews.length > 0 ? ' (5-star highlights)' : ''}
                 </p>
-                {visibleReviews.map((r) => (
-                  <div key={r.id} className="rounded-lg sm:rounded-xl border border-neutral-100 bg-neutral-50/50 p-3 sm:p-4 lg:p-5">
-                    {Array.isArray(r.media) && r.media.length > 0 ? (
-                      <div className="space-y-2 mb-2 sm:mb-3">
-                        {r.media.map((m, mi) => (
-                          <ReviewMediaBlock
-                            key={`${r.id}-um-${mi}`}
-                            item={m}
-                            resolveImageUrl={resolveImageUrl}
-                          />
-                        ))}
-                      </div>
-                    ) : null}
-                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 lg:gap-2.5 mb-1.5 sm:mb-2 lg:mb-2.5">
-                      <span className="text-gold-600 text-sm sm:text-base lg:text-lg">{'★'.repeat(Math.min(5, r.rating || 0))}</span>
-                      <span className="text-neutral-400 text-sm sm:text-base lg:text-lg">{'★'.repeat(5 - Math.min(5, r.rating || 0))}</span>
-                      <span className="text-xs sm:text-sm lg:text-base font-medium text-neutral-700">{r.authorName}</span>
-                    </div>
-                    <p className="text-xs sm:text-sm lg:text-[15px] text-neutral-600 leading-relaxed lg:leading-[1.65]">{scrubMedicalTerms(r.body)}</p>
-                  </div>
-                ))}
-                {primaryReviews.length > reviewPreviewCount && (
-                  <button
-                    type="button"
-                    onClick={() => setReviewsExpanded((v) => !v)}
-                    className="text-xs sm:text-sm lg:text-base font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/50 pb-0.5"
-                  >
-                    {reviewsExpanded
-                      ? 'View less'
-                      : isLg
-                        ? `View all reviews (${primaryReviews.length - reviewPreviewCount} more)`
-                        : `View more reviews (${primaryReviews.length - reviewPreviewCount} more)`}
-                  </button>
+                {reviewsMarqueeLoad ? (
+                  <ProductReviewsMarquee
+                    reviews={primaryReviews}
+                    resolveImageUrl={resolveImageUrl}
+                    scrubMedicalTerms={scrubMedicalTerms}
+                  />
+                ) : (
+                  <div
+                    className="h-40 rounded-2xl bg-neutral-100/50 animate-pulse motion-reduce:animate-none"
+                    aria-hidden
+                  />
                 )}
               </div>
             ) : (

@@ -1,0 +1,6 @@
+{
+  "productId": "PASTE-YOUR-PRODUCT-UUID-HERE",
+  "reviews": [
+    { "name": "Example", "review": "Copy this file to reviews-batch.json or another path and pass --file=.", "rating": 5 }
+  ]
+}

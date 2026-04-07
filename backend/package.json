@@ -14,6 +14,7 @@
     "migration:run:prod": "node ./node_modules/typeorm/cli.js migration:run -d dist/database/data-source.js",
     "migration:generate": "npm run typeorm -- migration:generate -d src/database/data-source.ts",
     "db:setup": "npx ts-node -r tsconfig-paths/register src/db-sync-and-seed.ts",
+    "db:seed:reviews": "npx ts-node -r tsconfig-paths/register src/seed-reviews-batch.ts",
     "db:setup:prod": "node dist/db-sync-and-seed.js",
     "db:sync-seed": "npm run db:setup",
     "seed": "npm run db:setup",

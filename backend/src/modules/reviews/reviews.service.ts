@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, IsNull } from 'typeorm';
 import { Review } from '../../entities/review.entity';
@@ -154,6 +154,70 @@ export class ReviewsService {
       await this.updateProductReviewStats(review.productId);
     }
     return saved;
+  }
+
+  /**
+   * Import many customer reviews as pending (`user`, `approved: false`).
+   * Accepts `{ reviews: [...] }` or a raw array; each item: `{ name, review, rating }`.
+   */
+  async importBulkPendingUserReviews(productId: string, payload: unknown): Promise<{ inserted: number }> {
+    const product = await this.productRepo.findOne({ where: { id: productId } });
+    if (!product) throw new BadRequestException('Product not found');
+
+    let rows: Array<{ name?: string; review?: string; rating?: number }>;
+    if (Array.isArray(payload)) {
+      rows = payload;
+    } else if (payload && typeof payload === 'object' && Array.isArray((payload as { reviews?: unknown }).reviews)) {
+      rows = (payload as { reviews: typeof rows }).reviews;
+    } else {
+      throw new BadRequestException('Expected a JSON array or { "reviews": [ { "name", "review", "rating" } ] }');
+    }
+
+    const MAX = 500;
+    if (rows.length > MAX) {
+      throw new BadRequestException(`Maximum ${MAX} reviews per import`);
+    }
+    if (rows.length === 0) {
+      throw new BadRequestException('No reviews to import');
+    }
+
+    let inserted = 0;
+    const baseOrder = await this.reviewRepo.count({ where: { productId, collection: 'user' } });
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const authorName = String(row.name || 'Customer').slice(0, 255);
+      const body = String(row.review || '').trim();
+      if (!body) continue;
+      const rating = Math.min(5, Math.max(1, Number(row.rating) || 5));
+      const sortOrder = Math.min(999, baseOrder + inserted);
+      const entity = this.reviewRepo.create({
+        productId,
+        authorName,
+        body,
+        rating,
+        collection: 'user',
+        approved: false,
+        sortOrder,
+        media: null,
+      });
+      await this.reviewRepo.save(entity);
+      inserted += 1;
+    }
+
+    return { inserted };
+  }
+
+  /** Approve all pending `user` reviews for a product; refreshes aggregate rating/count. */
+  async approveAllPendingUserReviewsForProduct(productId: string): Promise<{ approved: number }> {
+    const pending = await this.reviewRepo.find({
+      where: { productId, collection: 'user', approved: false },
+    });
+    for (const r of pending) {
+      r.approved = true;
+      await this.reviewRepo.save(r);
+    }
+    await this.updateProductReviewStats(productId);
+    return { approved: pending.length };
   }
 
   async setProductRating(productId: string, rating: number, reviewCount?: number): Promise<void> {
