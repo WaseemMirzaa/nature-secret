@@ -70,7 +70,7 @@ function ShopContent() {
     router.replace(buildPathWithStoredAttribution(`/shop/${productPath(p)}`));
   }, [apiLoading, resolvedCategory, filtered, router]);
 
-  const addToCart = useCartStore((s) => s.addItem);
+  const addItemIfNew = useCartStore((s) => s.addItemIfNew);
   const openCart = useCartOpenStore((s) => s.open);
   const wishlist = useWishlistStore((s) => s.productIds);
   const toggleWishlist = useWishlistStore((s) => s.toggle);
@@ -78,7 +78,7 @@ function ShopContent() {
   const [quickAddVibrate, setQuickAddVibrate] = useState(null);
 
   function handleQuickAdd(product, variant) {
-    addToCart({
+    const added = addItemIfNew({
       productId: product.id,
       variantId: variant.id,
       price: variant.price,
@@ -86,7 +86,7 @@ function ShopContent() {
       image: (variant.images && variant.images[0]) || variant.image || product.images?.[0],
     });
     openCart();
-    trackAddToCart(product, variant.price / 100, 1);
+    if (added) trackAddToCart(product, variant.price / 100, 1);
   }
 
   return (

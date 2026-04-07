@@ -298,6 +298,7 @@ export default function ProductDetailClient({
   }, [product?.id, slugOrId, initialFromServer, initialReviews]);
 
   const addToCart = useCartStore((s) => s.addItem);
+  const addItemIfNew = useCartStore((s) => s.addItemIfNew);
   const cartItems = useCartStore((s) => s.items);
   const openCart = useCartOpenStore((s) => s.open);
   const wishlist = useWishlistStore((s) => s.productIds);
@@ -393,9 +394,9 @@ export default function ProductDetailClient({
   function handleAddToCart() {
     const line = getCartLinePayload();
     if (!line) return;
-    addToCart(line);
+    const added = addItemIfNew(line);
     openCart();
-    trackAddToCart(product, line.price / 100, effectiveQty);
+    if (added) trackAddToCart(product, line.price / 100, effectiveQty);
   }
 
   function handleOrderNow() {
