@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useMemo, useEffect, useLayoutEffect, useRef } from 'react';
 import Link from '@/components/Link';
-import Image from 'next/image';
+import Image, { getImageProps } from 'next/image';
 import { useProductsStore, useCartStore, useCartOpenStore, useWishlistStore, useCurrencyStore } from '@/lib/store';
 import { useBreadcrumbLabel } from '@/lib/BreadcrumbContext';
 import { PRODUCT_HERO_IMAGE_QUALITY, PRODUCT_HERO_IMAGE_SIZES, SHIPPING_POLICY, RETURN_POLICY } from '@/lib/constants';
@@ -276,6 +276,43 @@ export default function ProductDetailClient({
     ? product.productBadges.filter((b) => String(b?.imageUrl || '').trim())
     : [];
   const variantImageList = (variant?.images && variant.images.length) ? variant.images : (variant?.image ? [variant.image] : product?.images || []);
+  const galleryResolvedUrls = useMemo(() => {
+    const list = (variant?.images && variant.images.length) ? variant.images : (variant?.image ? [variant.image] : product?.images || []);
+    return list.map((u) => resolveImageUrl(u)).filter(Boolean);
+  }, [product?.id, variant?.id, variant?.images, variant?.image, product?.images]);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !galleryResolvedUrls.length) return;
+    const unique = [...new Set(galleryResolvedUrls)];
+    const links = [];
+    for (const href of unique) {
+      try {
+        const { props } = getImageProps({
+          src: href,
+          alt: '',
+          width: 1200,
+          height: 1200,
+          sizes: PRODUCT_HERO_IMAGE_SIZES,
+          quality: PRODUCT_HERO_IMAGE_QUALITY,
+        });
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'image';
+        link.href = props.src;
+        if (props.srcSet) {
+          link.setAttribute('imagesrcset', props.srcSet);
+          link.setAttribute('imagesizes', props.sizes || PRODUCT_HERO_IMAGE_SIZES);
+        }
+        document.head.appendChild(link);
+        links.push(link);
+      } catch {
+        const img = new Image();
+        img.src = href;
+      }
+    }
+    return () => {
+      for (const l of links) l.remove();
+    };
+  }, [galleryResolvedUrls]);
   useEffect(() => { setSelectedImageIndex(0); }, [variant?.id]);
   useEffect(() => { setQty(1); }, [variant?.id]);
   const rawMain = variantImageList[selectedImageIndex] || variantImageList[0] || product?.images?.[0] || '';
@@ -542,7 +579,7 @@ export default function ProductDetailClient({
             onMouseLeave={() => setZoom(false)}
           >
             <div
-              className={`absolute inset-0 transition-transform duration-300 [transform-origin:center] ${
+              className={`absolute inset-0 transition-transform duration-150 [transform-origin:center] ${
                 zoom ? 'scale-110' : ''
               }`}
             >
@@ -556,10 +593,10 @@ export default function ProductDetailClient({
                   className="object-contain"
                   sizes={PRODUCT_HERO_IMAGE_SIZES}
                   priority={clientHeroNeedsPriority}
-                  fetchPriority={clientHeroNeedsPriority ? 'high' : 'low'}
+                  fetchPriority="high"
                   quality={PRODUCT_HERO_IMAGE_QUALITY}
-                  decoding={clientHeroNeedsPriority ? 'sync' : 'async'}
-                  loading={clientHeroNeedsPriority ? 'eager' : 'lazy'}
+                  decoding="async"
+                  loading="eager"
                 />
               )}
             </div>
@@ -590,7 +627,7 @@ export default function ProductDetailClient({
                     className="h-full w-full object-contain"
                     sizes="(max-width: 639px) 56px, (max-width: 1023px) 80px, 76px"
                     quality={65}
-                    loading="lazy"
+                    loading="eager"
                     fetchPriority="low"
                   />
                 </button>
