@@ -151,6 +151,25 @@ export class AnalyticsService {
     return { deleted: Number(result.affected) || 0 };
   }
 
+  /** Remove every analytics event row (admin wipe). */
+  async deleteAllAnalyticsEvents(): Promise<{ deleted: number }> {
+    const result = await this.repo.createQueryBuilder().delete().from(AnalyticsEvent).execute();
+    return { deleted: Number(result.affected) || 0 };
+  }
+
+  /** Null Meta attribution columns on all rows that have any (events kept; Meta dashboards empty). */
+  async clearAllMetaAttributionGlobally(): Promise<{ updated: number }> {
+    const result = await this.repo
+      .createQueryBuilder()
+      .update(AnalyticsEvent)
+      .set({ campaignId: null, adsetId: null, adId: null })
+      .where(
+        `((campaignId IS NOT NULL AND TRIM(campaignId) != '') OR (adsetId IS NOT NULL AND TRIM(adsetId) != '') OR (adId IS NOT NULL AND TRIM(adId) != ''))`,
+      )
+      .execute();
+    return { updated: Number(result.affected) || 0 };
+  }
+
   async getLoggedInVisitors(params: { from?: Date; to?: Date; page?: number; limit?: number }) {
     const page = Math.max(1, params.page || 1);
     const limit = Math.min(100, Math.max(1, params.limit || 50));

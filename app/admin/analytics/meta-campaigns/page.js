@@ -6,6 +6,7 @@ import {
   getAdminMetaCampaignAnalytics,
   getAdminMetaPurchaseExport,
   postAdminMetaClearAttribution,
+  postAdminMetaClearAllAttribution,
   formatApiError,
 } from '@/lib/api';
 import { InlineLoader } from '@/components/ui/PageLoader';
@@ -704,6 +705,27 @@ export default function AdminMetaCampaignsPage() {
     }
   }, [buildIsoRange, tab, pickCampaigns, pickAdsets, pickAds, load]);
 
+  const handleClearAllMetaAttribution = useCallback(async () => {
+    if (
+      !window.confirm(
+        'Remove Meta campaign, ad set, and ad IDs from every analytics event in the database? Events stay in Visitor analytics; this Meta report stays empty until new attributed traffic is recorded.',
+      )
+    ) {
+      return;
+    }
+    setClearBusy(true);
+    setClearMessage(null);
+    try {
+      const res = await postAdminMetaClearAllAttribution();
+      setClearMessage(`Cleared Meta IDs on ${Number(res?.updated) || 0} event row(s) (entire table).`);
+      await load();
+    } catch (e) {
+      alert(formatApiError(e, 'Clear failed'));
+    } finally {
+      setClearBusy(false);
+    }
+  }, [load]);
+
   const handleExportActivityTable = useCallback(() => {
     const metricsCols = ACTIVITY_METRICS.filter((m) => !m.fromRow).map((m) => ({ key: m.ev, header: m.label }));
     const idCols =
@@ -838,6 +860,14 @@ export default function AdminMetaCampaignsPage() {
             className="rounded-xl border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-50 min-h-[44px] disabled:opacity-50"
           >
             {clearBusy ? 'Working…' : 'Clear using checked table rows'}
+          </button>
+          <button
+            type="button"
+            disabled={clearBusy || loading}
+            onClick={handleClearAllMetaAttribution}
+            className="rounded-xl border-2 border-red-400 bg-red-100 px-4 py-2 text-sm font-semibold text-red-950 hover:bg-red-200 min-h-[44px] disabled:opacity-50"
+          >
+            {clearBusy ? 'Working…' : 'Clear all Meta attribution data'}
           </button>
         </div>
         {clearMessage ? <p className="mt-2 text-xs font-medium text-neutral-800">{clearMessage}</p> : null}

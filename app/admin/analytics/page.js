@@ -7,7 +7,7 @@ import { formatAttributionLine, getAttributionFromSessionEvents } from '@/lib/at
 import { formatSessionEventBreakdown } from '@/lib/analytics-labels';
 import { TableSkeleton, InlineLoader } from '@/components/ui/PageLoader';
 import { useAdminAnalyticsEvents } from '@/lib/useAdminAnalyticsEvents';
-import { deleteAdminAnalyticsSession } from '@/lib/api';
+import { deleteAdminAnalyticsSession, deleteAdminAnalyticsEventsAll } from '@/lib/api';
 
 const PAGE_SIZE = 50;
 
@@ -24,6 +24,28 @@ export default function AdminAnalyticsPage() {
     to: dateTo || undefined,
   });
   const [deletingId, setDeletingId] = useState(null);
+  const [clearAllBusy, setClearAllBusy] = useState(false);
+
+  const handleClearAllAnalytics = useCallback(async () => {
+    if (
+      !window.confirm(
+        'Delete ALL visitor analytics events in the database? This cannot be undone. Meta campaign pages will also have nothing to show until new events arrive.',
+      )
+    ) {
+      return;
+    }
+    setClearAllBusy(true);
+    try {
+      const res = await deleteAdminAnalyticsEventsAll();
+      const n = Number(res?.deleted) || 0;
+      alert(`Deleted ${n} analytics event row(s).`);
+      refetch();
+    } catch (e) {
+      alert(e?.message || 'Clear failed');
+    } finally {
+      setClearAllBusy(false);
+    }
+  }, [refetch]);
 
   const handleDeleteSession = useCallback(
     async (sid) => {
@@ -229,9 +251,17 @@ export default function AdminAnalyticsPage() {
       <h1 className="text-2xl font-semibold text-neutral-900">Visitor analytics</h1>
       <p className="mt-1 text-sm text-neutral-500">See how visitors use your site: pages viewed, products seen, cart and orders.</p>
       <p className="mt-1 text-xs text-neutral-400">Data is stored on the server (last 90 days if no dates selected).</p>
-      <div className="mt-4 flex flex-wrap gap-4">
+      <div className="mt-4 flex flex-wrap gap-4 items-end">
         <input type="datetime-local" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="rounded-xl border border-neutral-200 px-4 py-2 text-sm" />
         <input type="datetime-local" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="rounded-xl border border-neutral-200 px-4 py-2 text-sm" />
+        <button
+          type="button"
+          disabled={clearAllBusy || eventsLoading}
+          onClick={handleClearAllAnalytics}
+          className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-800 hover:bg-red-100 disabled:opacity-50 min-h-[44px]"
+        >
+          {clearAllBusy ? 'Clearing…' : 'Clear all analytics data'}
+        </button>
       </div>
       {eventsError && (
         <p className="mt-3 text-sm text-red-600">Could not load analytics. Check admin login and API.</p>

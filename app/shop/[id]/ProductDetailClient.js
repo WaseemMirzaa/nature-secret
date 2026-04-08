@@ -32,6 +32,17 @@ import { InlineLoader, Spinner } from '@/components/ui/PageLoader';
 
 const isUuid = (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 
+function ProductRatingSummary({ product, starClassName = '', countClassName = '', className = 'flex flex-wrap items-center justify-end gap-x-1' }) {
+  const r = Math.min(5, Math.round(Number(product?.rating) || 0));
+  return (
+    <div className={className}>
+      <span className={`text-gold-600 ${starClassName}`}>{'★'.repeat(r)}</span>
+      <span className={`text-neutral-300 ${starClassName}`}>{'★'.repeat(5 - r)}</span>
+      <span className={`text-neutral-500 ${countClassName}`}>({product?.reviewCount ?? 0} reviews)</span>
+    </div>
+  );
+}
+
 function getVideoPresentation(url) {
   if (!url || typeof url !== 'string') return null;
   const u = url.trim();
@@ -639,17 +650,22 @@ export default function ProductDetailClient({
         <div className="min-w-0 space-y-2 sm:space-y-3 lg:space-y-5 xl:space-y-6">
           {/* Mobile / tablet: rating + price + controls */}
           <div className="lg:hidden space-y-1.5 sm:space-y-2.5">
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              <span className="text-gold-600 text-sm sm:text-base">{'★'.repeat(Math.min(5, Math.round(Number(product.rating) || 0)))}</span>
-              <span className="text-neutral-300 text-sm sm:text-base">{'★'.repeat(5 - Math.min(5, Math.round(Number(product.rating) || 0)))}</span>
-              <span className="text-[11px] sm:text-xs text-neutral-500">({product.reviewCount} reviews)</span>
-            </div>
             <p className="text-lg sm:text-xl font-semibold text-neutral-900 tabular-nums leading-tight">
               {(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice) && (
                 <span className="text-neutral-500 line-through mr-1.5 sm:mr-2 text-sm sm:text-base font-medium">{formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}</span>
               )}
               {formatPrice(price, currency)}
             </p>
+            {product.inventory === 0 ? (
+              <div className="pt-1">
+                <ProductRatingSummary
+                  product={product}
+                  starClassName="text-sm sm:text-base"
+                  countClassName="text-[11px] sm:text-xs"
+                  className="flex flex-wrap items-center gap-1"
+                />
+              </div>
+            ) : null}
           </div>
 
           {/* Desktop: purchase column (scrolls with page; disclaimer lives below FAQ in main column) */}
@@ -665,11 +681,6 @@ export default function ProductDetailClient({
                   {product.badgeSub && <span className="rounded-full border border-gold-500/60 bg-gold-50 px-3 py-1 text-xs font-medium text-neutral-900">{product.badgeSub}</span>}
                 </div>
               )}
-            </div>
-            <div className="flex flex-wrap items-center gap-2 lg:gap-2.5 pt-0.5">
-              <span className="text-gold-600 text-lg xl:text-xl">{'★'.repeat(Math.min(5, Math.round(Number(product.rating) || 0)))}</span>
-              <span className="text-neutral-300 text-lg xl:text-xl">{'★'.repeat(5 - Math.min(5, Math.round(Number(product.rating) || 0)))}</span>
-              <span className="text-sm text-neutral-500">({product.reviewCount} reviews)</span>
             </div>
             <p className="text-2xl xl:text-[1.75rem] font-semibold text-neutral-900 pt-1 tabular-nums">
               {(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice) && (
@@ -694,25 +705,39 @@ export default function ProductDetailClient({
                 </button>
               </div>
             )}
-            {product.variants?.length > 1 && (
-              <div className="pt-1 lg:pt-2">
-                <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Size / Variant</p>
-                <div className="flex flex-wrap gap-2 lg:gap-2.5">
-                  {product.variants.map((v) => (
-                    <button
-                      key={v.id}
-                      type="button"
-                      onClick={() => setSelectedVariant(v)}
-                      className={`rounded-full sm:rounded-2xl border-2 px-4 py-2 text-sm font-medium transition ${
-                        variant?.id === v.id ? 'border-neutral-900 bg-neutral-900 text-white shadow-sm' : 'border-neutral-200 text-neutral-700 hover:border-neutral-300 bg-white'
-                      }`}
-                    >
-                      {v.name}
-                    </button>
-                  ))}
+            <div className="pt-1 lg:pt-2">
+              <div className="flex flex-wrap items-start justify-between gap-3 xl:gap-4">
+                {product.variants?.length > 1 ? (
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Size / Variant</p>
+                    <div className="flex flex-wrap gap-2 lg:gap-2.5">
+                      {product.variants.map((v) => (
+                        <button
+                          key={v.id}
+                          type="button"
+                          onClick={() => setSelectedVariant(v)}
+                          className={`rounded-full sm:rounded-2xl border-2 px-4 py-2 text-sm font-medium transition ${
+                            variant?.id === v.id ? 'border-neutral-900 bg-neutral-900 text-white shadow-sm' : 'border-neutral-200 text-neutral-700 hover:border-neutral-300 bg-white'
+                          }`}
+                        >
+                          {v.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="min-w-0 flex-1" aria-hidden />
+                )}
+                <div className="shrink-0 pt-0.5 text-right lg:max-w-[11rem] xl:max-w-none">
+                  <ProductRatingSummary
+                    product={product}
+                    starClassName="text-lg xl:text-xl leading-none"
+                    countClassName="text-sm mt-1 sm:mt-0 sm:ml-1"
+                    className="flex flex-col items-end gap-0 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-x-1"
+                  />
                 </div>
               </div>
-            )}
+            </div>
             <div className="pt-0.5 lg:pt-1">
               <label
                 htmlFor={`product-qty-${formFieldSuffix}`}
@@ -1228,25 +1253,37 @@ export default function ProductDetailClient({
           aria-label="Purchase options"
         >
           <div className="mx-auto max-w-7xl flex flex-col gap-1.5">
-            {product.variants?.length > 1 && (
-              <div>
-                <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider mb-0.5">Size / Variant</p>
-                <div className="flex flex-wrap gap-1">
-                  {product.variants.map((v) => (
-                    <button
-                      key={v.id}
-                      type="button"
-                      onClick={() => setSelectedVariant(v)}
-                      className={`rounded-full sm:rounded-2xl border px-2 py-1 text-[11px] font-medium transition ${
-                        variant?.id === v.id ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-300 text-neutral-700 bg-white'
-                      }`}
-                    >
-                      {v.name}
-                    </button>
-                  ))}
-                </div>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                {product.variants?.length > 1 ? (
+                  <>
+                    <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider mb-0.5">Size / Variant</p>
+                    <div className="flex flex-wrap gap-1">
+                      {product.variants.map((v) => (
+                        <button
+                          key={v.id}
+                          type="button"
+                          onClick={() => setSelectedVariant(v)}
+                          className={`rounded-full sm:rounded-2xl border px-2 py-1 text-[11px] font-medium transition ${
+                            variant?.id === v.id ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-300 text-neutral-700 bg-white'
+                          }`}
+                        >
+                          {v.name}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                ) : null}
               </div>
-            )}
+              <div className="shrink-0 pl-1 text-right max-w-[42%] sm:max-w-none">
+                <ProductRatingSummary
+                  product={product}
+                  starClassName="text-[11px] leading-none"
+                  countClassName="text-[9px] leading-tight mt-0.5"
+                  className="flex flex-col items-end gap-0"
+                />
+              </div>
+            </div>
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 min-w-0">
                 <label
@@ -1359,14 +1396,22 @@ export default function ProductDetailClient({
           aria-label="Quick purchase"
         >
           <div className="max-w-7xl mx-auto w-full flex flex-wrap items-center justify-between gap-4 xl:gap-6">
-            <p className="text-lg xl:text-xl font-semibold text-neutral-900 tabular-nums">
-              {(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice) && (
-                <span className="text-neutral-500 line-through text-sm mr-2">
-                  {formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}
-                </span>
-              )}
-              {formatPrice(price, currency)}
-            </p>
+            <div className="flex flex-wrap items-center gap-4 xl:gap-6 min-w-0">
+              <p className="text-lg xl:text-xl font-semibold text-neutral-900 tabular-nums">
+                {(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice) && (
+                  <span className="text-neutral-500 line-through text-sm mr-2">
+                    {formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}
+                  </span>
+                )}
+                {formatPrice(price, currency)}
+              </p>
+              <ProductRatingSummary
+                product={product}
+                starClassName="text-sm xl:text-base"
+                countClassName="text-xs text-neutral-500"
+                className="hidden sm:flex"
+              />
+            </div>
             <div className="flex items-center gap-3 flex-1 justify-end min-w-[280px]">
               <button
                 type="button"

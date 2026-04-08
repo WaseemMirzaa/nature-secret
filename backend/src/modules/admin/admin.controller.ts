@@ -131,6 +131,18 @@ export class AdminController {
     return this.analyticsService.clearMetaAttributionTargets(dto);
   }
 
+  @Post('analytics/meta-campaigns/clear-all-attribution')
+  @AdminOnly()
+  async analyticsClearAllMetaAttribution() {
+    return this.analyticsService.clearAllMetaAttributionGlobally();
+  }
+
+  @Delete('analytics/events')
+  @AdminOnly()
+  async analyticsDeleteAllEvents() {
+    return this.analyticsService.deleteAllAnalyticsEvents();
+  }
+
   @Delete('analytics/sessions/:sessionId')
   @AdminOnly()
   async analyticsDeleteSession(@Param('sessionId') sessionId: string) {
