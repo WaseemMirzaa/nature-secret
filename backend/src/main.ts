@@ -23,6 +23,11 @@ async function bootstrap() {
     logErr('Failed to create app (check DB env: MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE)', e);
     throw e;
   }
+  /** So `req.ip` and `X-Forwarded-For` resolve to the real client behind nginx / Cloudflare / load balancer (Meta CAPI `client_ip_address`). Set `TRUST_PROXY=false` to disable. */
+  const expressApp = app.getHttpAdapter().getInstance() as express.Express & { set?: (k: string, v: unknown) => void };
+  if (typeof expressApp?.set === 'function' && process.env.TRUST_PROXY !== 'false') {
+    expressApp.set('trust proxy', 1);
+  }
   // Health check – no DB (try both in case proxy only forwards /api/v1)
   const healthHandler = (req: express.Request, res: express.Response) => {
     log(`Health check ${req.method} ${req.path || req.url}`);

@@ -53,11 +53,14 @@ No product **name** or **description** in any parameter. Purchase is the **only*
 
 ---
 
-### EMQ (Events Manager)
+### EMQ — operational checklist (code + infra)
 
-- Turn on **Automatic Advanced Matching** for the Pixel (Events Manager → Settings).
-- **Test Events:** use your test code; confirm `user_data` shows **fbp**, **fbc**, **client_user_agent**, **client_ip_address**, **external_id** (hashed on CAPI) on ViewContent / AddToCart / InitiateCheckout / Purchase as applicable.
-- **Optional (policy):** hashed **em** / **ph** on upper-funnel events (e.g. InitiateCheckout) increases EMQ but requires consent/legal approval — not enabled by default here.
+- **API behind a proxy:** the backend sets **Express `trust proxy`** (one hop) so **`client_ip_address`** on CAPI uses the real visitor IP from **`X-Forwarded-For`**, **`CF-Connecting-IP`**, or **`True-Client-IP`** when present. Set env **`TRUST_PROXY=false`** only if the API is reached directly with no proxy (e.g. local debugging).
+- **Env:** **`META_PIXEL_ID`**, **`META_CONVERSIONS_ACCESS_TOKEN`** on the server must match the Pixel you use in production.
+- **Test Events:** use your test code in Events Manager; confirm **`user_data`** includes **fbp**, **fbc**, **client_user_agent**, **client_ip_address**, **external_id** (hashed on CAPI where applicable) on key events.
+- **Catalog:** set **Advertising ID** on products used in catalog/ads so **`content_ids`** align with Meta’s catalog.
+- **Dedup:** Pixel and CAPI should share the same **`event_id`** for paired standard events (this app does that for AddToCart / InitiateCheckout / Purchase).
+- **Optional (policy):** hashed **em** / **ph** on upper-funnel (e.g. InitiateCheckout) can lift EMQ further — requires consent/legal approval; not enabled by default here.
 
 ### AddToCart CAPI consistency
 

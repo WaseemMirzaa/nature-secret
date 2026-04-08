@@ -107,6 +107,38 @@ export class MetaConversionsService {
     return Math.max(0, Math.round(x));
   }
 
+  /** First public IP from header (Cloudflare / Akamai / generic proxies). */
+  private firstForwardedIp(header: string | string[] | undefined): string | undefined {
+    const raw = Array.isArray(header) ? header[0] : header;
+    if (!raw || typeof raw !== 'string') return undefined;
+    const first = raw.split(',')[0].trim().replace(/^::ffff:/, '');
+    if (!first || first.length > 45) return undefined;
+    if (/^[\d.:a-fA-F%]+$/.test(first)) return first.split('%')[0].slice(0, 45);
+    return undefined;
+  }
+
+  /** Meta `user_data.client_ip_address` — prefer relay override, then CF / true-client-ip / XFF / Express `req.ip` (needs `trust proxy` in main.ts). */
+  private resolveClientIpForCapi(dto: MetaCapiDto, req?: Request): string | undefined {
+    const fromDto = this.firstForwardedIp(dto.clientIpAddress);
+    if (fromDto) return fromDto;
+    if (!req) return undefined;
+    const h = req.headers;
+    const cf = this.firstForwardedIp(h['cf-connecting-ip']);
+    if (cf) return cf;
+    const trueClient = this.firstForwardedIp(h['true-client-ip']);
+    if (trueClient) return trueClient;
+    const xff = this.firstForwardedIp(h['x-forwarded-for']);
+    if (xff) return xff;
+    const expressReq = req as Request & { ip?: string };
+    if (expressReq.ip) {
+      const ip = String(expressReq.ip).replace(/^::ffff:/, '').slice(0, 45);
+      if (/^[\d.:a-fA-F]+$/.test(ip)) return ip;
+    }
+    const ra = req.socket?.remoteAddress?.replace(/^::ffff:/, '');
+    if (ra && /^[\d.:a-fA-F]+$/.test(ra)) return ra.slice(0, 45);
+    return undefined;
+  }
+
   async send(
     dto: MetaCapiDto,
     req?: Request,
@@ -164,13 +196,8 @@ export class MetaConversionsService {
     const ua = dto.clientUserAgent || (req?.headers?.['user-agent'] as string | undefined);
     if (ua) user_data.client_user_agent = ua.slice(0, 512);
 
-    const ip =
-      dto.clientIpAddress ||
-      (typeof req?.headers?.['x-forwarded-for'] === 'string'
-        ? req.headers['x-forwarded-for'].split(',')[0].trim()
-        : undefined) ||
-      req?.socket?.remoteAddress;
-    if (ip && /^[\d.:a-fA-F]+$/.test(ip)) user_data.client_ip_address = ip.slice(0, 45);
+    const ip = this.resolveClientIpForCapi(dto, req);
+    if (ip) user_data.client_ip_address = ip;
 
     const ids = (dto.contentIds ?? []).map((id) => String(id));
     const contentTypeRaw = (dto.contentType || 'product').toString().trim().slice(0, 50);
