@@ -7,6 +7,8 @@ import { SettingsService } from '../settings/settings.service';
 import { SupportService } from '../support/support.service';
 import { AnalyticsService } from '../analytics/analytics.service';
 import { MetaAttributionClearDto } from '../analytics/dto/meta-attribution-clear.dto';
+import { CategoriesService } from '../categories/categories.service';
+import { CreateCategoryDto, UpdateCategoryDto } from '../categories/dto/admin-category.dto';
 import { CreateProductDto, UpdateProductDto } from '../products/dto/product.dto';
 import { CreateBlogPostDto, UpdateBlogPostDto } from './dto/blog.dto';
 import { AdminJwtAuthGuard } from '../../common/guards/admin-jwt.guard';
@@ -24,6 +26,7 @@ export class AdminController {
     private settingsService: SettingsService,
     private supportService: SupportService,
     private analyticsService: AnalyticsService,
+    private categoriesService: CategoriesService,
   ) {}
 
   @Get('analytics/events')
@@ -186,6 +189,30 @@ export class AdminController {
   ) {
     await this.settingsService.setContent(body);
     return this.settingsService.getContent();
+  }
+
+  @Get('categories')
+  @AdminOnly()
+  async adminCategories() {
+    return this.categoriesService.findAll();
+  }
+
+  @Post('categories')
+  @AdminOnly()
+  async adminCreateCategory(@Body() dto: CreateCategoryDto) {
+    return this.categoriesService.create(dto);
+  }
+
+  @Patch('categories/:id')
+  @AdminOnly()
+  async adminUpdateCategory(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
+    return this.categoriesService.update(id, dto);
+  }
+
+  @Delete('categories/:id')
+  @AdminOnly()
+  async adminDeleteCategory(@Param('id') id: string) {
+    return this.categoriesService.remove(id);
   }
 
   @Get('dashboard')

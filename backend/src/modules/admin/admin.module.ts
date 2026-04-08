@@ -15,6 +15,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { SettingsModule } from '../settings/settings.module';
 import { SupportModule } from '../support/support.module';
 import { AnalyticsModule } from '../analytics/analytics.module';
+import { CategoriesModule } from '../categories/categories.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     SettingsModule,
     SupportModule,
     AnalyticsModule,
+    CategoriesModule,
   ],
   controllers: [AdminController, AdminProductUploadController, AdminBlogUploadController],
   providers: [AdminService],

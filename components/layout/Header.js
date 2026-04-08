@@ -7,7 +7,9 @@ import { Logo } from '@/components/Logo';
 import { CartIcon } from '@/components/icons/CartIcon';
 import { HeartIcon } from '@/components/icons/HeartIcon';
 import { MenuIcon } from '@/components/icons/MenuIcon';
-import { overlayHistoryDismissIfTop, overlayHistoryOpen } from '@/lib/overlayHistory';
+import { overlayHistoryDismissIfTop, overlayHistoryDismissForNavigation, overlayHistoryOpen } from '@/lib/overlayHistory';
+import { useProductsStore } from '@/lib/store';
+import { useProductsAndCategories } from '@/lib/useApiData';
 
 const MOBILE_NAV_OVERLAY_ID = 'nsMobileNav';
 
@@ -18,6 +20,13 @@ export function Header() {
   const closeMenu = useCallback(() => {
     overlayHistoryDismissIfTop(MOBILE_NAV_OVERLAY_ID, () => setMenuOpen(false));
   }, []);
+
+  const closeMenuAfterNav = useCallback(() => {
+    overlayHistoryDismissForNavigation(MOBILE_NAV_OVERLAY_ID, () => setMenuOpen(false));
+  }, []);
+
+  const storeProducts = useProductsStore((s) => s.products);
+  const { categories } = useProductsAndCategories(storeProducts);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -45,8 +54,18 @@ export function Header() {
             <nav className="hidden md:flex items-center gap-10">
               <Link href="/" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Home</Link>
               <Link href="/shop" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Shop</Link>
-              <Link href="/shop?category=herbal-oils" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Botanical oils</Link>
-              <Link href="/shop?category=skin-care" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Skin Care</Link>
+              {Array.isArray(categories) &&
+                categories.map((c) =>
+                  c?.slug ? (
+                    <Link
+                      key={c.id || c.slug}
+                      href={`/shop?category=${encodeURIComponent(c.slug)}`}
+                      className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5"
+                    >
+                      {c.name || c.slug}
+                    </Link>
+                  ) : null,
+                )}
               <Link href="/blog" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Blog</Link>
               <Link href="/contact" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Contact</Link>
               {customer ? (
@@ -95,16 +114,27 @@ export function Header() {
         {menuOpen && (
           <div className="md:hidden border-t border-neutral-200 bg-white">
             <nav className="flex flex-col gap-0 px-3 py-3">
-              <Link href="/" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenu}>Home</Link>
-              <Link href="/shop" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenu}>Shop</Link>
-              <Link href="/shop?category=herbal-oils" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenu}>Botanical oils</Link>
-              <Link href="/shop?category=skin-care" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenu}>Skin Care</Link>
-              <Link href="/blog" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenu}>Blog</Link>
-              <Link href="/contact" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenu}>Contact</Link>
+              <Link href="/" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenuAfterNav}>Home</Link>
+              <Link href="/shop" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenuAfterNav}>Shop</Link>
+              {Array.isArray(categories) &&
+                categories.map((c) =>
+                  c?.slug ? (
+                    <Link
+                      key={c.id || c.slug}
+                      href={`/shop?category=${encodeURIComponent(c.slug)}`}
+                      className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100"
+                      onClick={closeMenuAfterNav}
+                    >
+                      {c.name || c.slug}
+                    </Link>
+                  ) : null,
+                )}
+              <Link href="/blog" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenuAfterNav}>Blog</Link>
+              <Link href="/contact" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenuAfterNav}>Contact</Link>
               {customer ? (
                 <>
-                  <Link href="/account" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenu}>Account</Link>
-                  <Link href="/support" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenu}>Support</Link>
+                  <Link href="/account" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenuAfterNav}>Account</Link>
+                  <Link href="/support" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenuAfterNav}>Support</Link>
                   <button type="button" className="py-2.5 text-sm text-left text-neutral-600 hover:text-gold-600 font-medium w-full border-b border-neutral-100" onClick={() => { useCustomerStore.getState().logout(); closeMenu(); window.location.href = '/'; }}>Log out</button>
                 </>
               ) : (

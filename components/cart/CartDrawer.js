@@ -18,7 +18,7 @@ import {
 import { formatPrice } from '@/lib/currency';
 import { Logo } from '@/components/Logo';
 import { useProductsAndCategories } from '@/lib/useApiData';
-import { overlayHistoryDismissIfTop, overlayHistoryOpen } from '@/lib/overlayHistory';
+import { overlayHistoryDismissIfTop, overlayHistoryDismissForNavigation, overlayHistoryOpen } from '@/lib/overlayHistory';
 
 const OVERLAY_ID = 'nsCart';
 
@@ -29,6 +29,10 @@ export function CartDrawer() {
 
   const closeCart = useCallback(() => {
     overlayHistoryDismissIfTop(OVERLAY_ID, close);
+  }, [close]);
+
+  const closeCartForCheckoutNav = useCallback(() => {
+    overlayHistoryDismissForNavigation(OVERLAY_ID, close);
   }, [close]);
 
   useEffect(() => {
@@ -191,7 +195,7 @@ export function CartDrawer() {
             {discountAmount > 0 && <div className="text-xs sm:text-sm text-green-600">Discount: −{formatPrice(discountAmount, currency)}</div>}
             <div className="text-xs sm:text-sm text-neutral-500">Shipping: {shipping === 0 ? 'Free' : formatPrice(shipping, currency)}</div>
             <div className="text-sm sm:text-base font-semibold text-neutral-900">Total: {formatPrice(totalWithShipping, currency)}</div>
-            <Link href="/checkout" onClick={closeCart} className="block w-full rounded-full sm:rounded-2xl bg-neutral-900 text-white text-center py-2.5 sm:py-3 text-sm font-medium animate-cta-attract hover:animate-none transition">Checkout</Link>
+            <Link href="/checkout" onClick={closeCartForCheckoutNav} className="block w-full rounded-full sm:rounded-2xl bg-neutral-900 text-white text-center py-2.5 sm:py-3 text-sm font-medium animate-cta-attract hover:animate-none transition">Checkout</Link>
           </div>
         )}
       </div>

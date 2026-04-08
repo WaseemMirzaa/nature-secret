@@ -3,7 +3,7 @@
 import Link from '@/components/Link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { overlayHistoryDismissIfTop, overlayHistoryOpen } from '@/lib/overlayHistory';
+import { overlayHistoryDismissIfTop, overlayHistoryDismissForNavigation, overlayHistoryOpen } from '@/lib/overlayHistory';
 import { Logo } from '@/components/Logo';
 import { PageLoader } from '@/components/ui/PageLoader';
 import { AdminRealtimeProvider } from '@/context/AdminRealtimeContext';
@@ -13,6 +13,7 @@ const ADMIN_MOBILE_OVERLAY_ID = 'nsAdminMobileNav';
 const ADMIN_NAV = [
   { href: '/admin', label: 'Dashboard', adminOnly: true },
   { href: '/admin/products', label: 'Products', adminOnly: true },
+  { href: '/admin/categories', label: 'Shop categories', adminOnly: true },
   { href: '/admin/orders', label: 'Orders', adminOnly: false },
   { href: '/admin/customers', label: 'Customers', adminOnly: true },
   { href: '/admin/order-notifications', label: 'Order notifications', adminOnly: true },
@@ -25,11 +26,11 @@ const ADMIN_NAV = [
   { href: '/admin/analytics/meta-campaigns', label: 'Meta campaigns', adminOnly: true },
 ];
 
-function NavSidebar({ pathname, auth, onNavClick, onLogout }) {
+function NavSidebar({ pathname, auth, onNavClickNav, onLogout }) {
   return (
     <>
       <div className="p-4 sm:p-6 border-b border-neutral-200">
-        <Link href="/admin" className="block" onClick={onNavClick}>
+        <Link href="/admin" className="block" onClick={onNavClickNav}>
           <Logo className="h-8" link={false} />
         </Link>
         <p className="text-xs text-neutral-500 mt-1">Admin</p>
@@ -39,7 +40,7 @@ function NavSidebar({ pathname, auth, onNavClick, onLogout }) {
           <Link
             key={item.href}
             href={item.href}
-            onClick={onNavClick}
+            onClick={onNavClickNav}
             className={`block rounded-xl px-4 py-3 text-sm font-medium transition min-h-[44px] flex items-center ${
               pathname === item.href ? 'bg-neutral-900 text-white' : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
             }`}
@@ -72,6 +73,10 @@ export default function AdminLayout({ children }) {
 
   const closeMobileMenu = useCallback(() => {
     overlayHistoryDismissIfTop(ADMIN_MOBILE_OVERLAY_ID, () => setMobileMenuOpen(false));
+  }, []);
+
+  const closeMobileMenuAfterNav = useCallback(() => {
+    overlayHistoryDismissForNavigation(ADMIN_MOBILE_OVERLAY_ID, () => setMobileMenuOpen(false));
   }, []);
 
   useEffect(() => {
@@ -135,12 +140,12 @@ export default function AdminLayout({ children }) {
       </div>
       {/* Sidebar: drawer on mobile, fixed on md+ */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-black/30" aria-hidden onClick={closeMobileMenu} />
+        <div className="md:hidden fixed inset-0 z-[45] bg-black/30" aria-hidden onClick={closeMobileMenu} />
       )}
-      <aside className={`w-64 max-w-[85vw] md:max-w-none md:w-56 border-r border-neutral-200 bg-white flex flex-col fixed md:static inset-y-0 left-0 z-40 transform transition-transform duration-200 ease-out md:transform-none pt-14 md:pt-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+      <aside className={`w-64 max-w-[85vw] md:max-w-none md:w-56 border-r border-neutral-200 bg-white flex flex-col fixed md:static inset-y-0 left-0 z-50 transform transition-transform duration-200 ease-out md:transform-none pt-14 md:pt-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <button type="button" onClick={closeMobileMenu} className="md:hidden absolute top-4 right-4 p-2 min-w-[44px] min-h-[44px] rounded-xl text-neutral-500 hover:bg-neutral-100" aria-label="Close menu">×</button>
         <div className="flex-1 overflow-y-auto flex flex-col">
-          <NavSidebar pathname={pathname} auth={auth} onNavClick={closeMobileMenu} onLogout={() => { localStorage.removeItem('nature_secret_admin'); closeMobileMenu(); router.replace('/admin/login'); }} />
+          <NavSidebar pathname={pathname} auth={auth} onNavClickNav={closeMobileMenuAfterNav} onLogout={() => { localStorage.removeItem('nature_secret_admin'); closeMobileMenu(); router.replace('/admin/login'); }} />
         </div>
       </aside>
       <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 min-w-0">{children}</main>

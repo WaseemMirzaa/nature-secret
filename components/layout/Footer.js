@@ -1,12 +1,16 @@
- 'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import Link from '@/components/Link';
 import { Logo } from '@/components/Logo';
 import { FooterContact } from '@/components/FooterContact';
 import { getContentSettings } from '@/lib/api';
+import { useProductsStore } from '@/lib/store';
+import { useProductsAndCategories } from '@/lib/useApiData';
 
 export function Footer() {
+  const storeProducts = useProductsStore((s) => s.products);
+  const { categories } = useProductsAndCategories(storeProducts);
   const [footerDisclaimer, setFooterDisclaimer] = useState(
     'Nature Secret sells cosmetic and body-care products for external use. Website content describes look, feel, and everyday routines—not health or treatment claims.',
   );
@@ -42,8 +46,19 @@ export function Footer() {
             <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-gold-700/90">Shop</h3>
             <ul className="mt-3 sm:mt-4 space-y-2 sm:space-y-3">
               <li><Link href="/shop" className="text-xs sm:text-sm text-neutral-600 hover:text-gold-700 transition-colors">All products</Link></li>
-              <li><Link href="/shop?category=herbal-oils" className="text-xs sm:text-sm text-neutral-600 hover:text-gold-700 transition-colors">Botanical oils</Link></li>
-              <li><Link href="/shop?category=skin-care" className="text-xs sm:text-sm text-neutral-600 hover:text-gold-700 transition-colors">Skin Care</Link></li>
+              {Array.isArray(categories) &&
+                categories.map((c) =>
+                  c?.slug ? (
+                    <li key={c.id || c.slug}>
+                      <Link
+                        href={`/shop?category=${encodeURIComponent(c.slug)}`}
+                        className="text-xs sm:text-sm text-neutral-600 hover:text-gold-700 transition-colors"
+                      >
+                        {c.name || c.slug}
+                      </Link>
+                    </li>
+                  ) : null,
+                )}
             </ul>
           </div>
           <div>
