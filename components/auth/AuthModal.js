@@ -1,36 +1,20 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCustomerStore, useAuthModalStore } from '@/lib/store';
 import { Logo } from '@/components/Logo';
 import { customerFirebaseLogin, customerForgotPassword, formatApiError } from '@/lib/api';
 import { getFirebaseAuth, getFirebaseAuthErrorMessage, MIN_PASSWORD_LENGTH } from '@/lib/firebase';
-import { overlayHistoryDismissIfTop, overlayHistoryOpen } from '@/lib/overlayHistory';
 import { Spinner } from '@/components/ui/PageLoader';
-
-const OVERLAY_ID = 'nsAuth';
 
 export function AuthModal() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { open, mode, close } = useAuthModalStore();
-  const modalWasOpenRef = useRef(false);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (!open) {
-      modalWasOpenRef.current = false;
-      return;
-    }
-    if (!modalWasOpenRef.current) {
-      overlayHistoryOpen(OVERLAY_ID, () => useAuthModalStore.getState().close());
-    }
-    modalWasOpenRef.current = true;
-  }, [open]);
 
   const closeModal = useCallback(() => {
-    overlayHistoryDismissIfTop(OVERLAY_ID, close);
+    close();
   }, [close]);
   const login = useCustomerStore((s) => s.login);
   const [email, setEmail] = useState('');
@@ -99,7 +83,7 @@ export function AuthModal() {
       const raw = localStorage.getItem('nature_secret_customer');
       const customer = raw ? JSON.parse(raw) : null;
       login(customer || { email: email.trim(), name: name.trim() || email.trim().split('@')[0] });
-      overlayHistoryDismissIfTop(OVERLAY_ID, close);
+      close();
       setEmail('');
       setPassword('');
       setName('');

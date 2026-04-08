@@ -67,7 +67,6 @@ export function Header() {
                   ) : null,
                 )}
               <Link href="/blog" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Blog</Link>
-              <Link href="/contact" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Contact</Link>
               {customer ? (
                 <>
                   <Link href="/account" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors">Account</Link>
@@ -130,7 +129,6 @@ export function Header() {
                   ) : null,
                 )}
               <Link href="/blog" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenuAfterNav}>Blog</Link>
-              <Link href="/contact" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenuAfterNav}>Contact</Link>
               {customer ? (
                 <>
                   <Link href="/account" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenuAfterNav}>Account</Link>
