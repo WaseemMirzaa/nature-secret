@@ -153,6 +153,9 @@ export class MetaConversionsService {
         const extHash = extNorm ? this.hashNormalizedPII(extNorm, 64) : null;
         if (extHash) user_data.external_id = [extHash];
       }
+    } else if (dto.externalId?.trim()) {
+      const ext = dto.externalId.trim().slice(0, 64);
+      if (ext) user_data.external_id = [this.sha256Hex(ext)];
     }
 
     if (dto.fbp) user_data.fbp = dto.fbp;

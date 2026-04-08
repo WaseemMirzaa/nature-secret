@@ -9,7 +9,6 @@ import { getDiscountCodes } from '@/lib/store';
 import {
   metaPurchaseFiredStorageKey,
   metaContentId,
-  metaPixelAdvertisingId,
   trackCheckoutPageView,
   trackInitiateCheckout,
   trackPlaceOrderClick,
@@ -122,15 +121,10 @@ export default function CheckoutPage() {
   };
 
   const getProduct = (id) => (Array.isArray(products) ? products.find((p) => p.id === id) : null);
-  /** CAPI + custom Pixel / internal store */
-  const metaIdForProduct = (productId) => {
+  /** Meta Pixel + CAPI: Advertising ID when set, else product UUID (`metaContentId`). */
+  const catalogIdForProduct = (productId) => {
     const p = getProduct(productId);
-    return p ? metaContentId(p) : String(productId);
-  };
-  /** Meta standard Pixel content_ids only */
-  const pixelStdIdForProduct = (productId) => {
-    const p = getProduct(productId);
-    return p ? metaPixelAdvertisingId(p) : '';
+    return p ? metaContentId(p) : '';
   };
   const metaCategoryIdForProduct = (productId) => {
     const p = getProduct(productId);
@@ -147,8 +141,8 @@ export default function CheckoutPage() {
   /** Meta InitiateCheckout: cart / totals only — not on every form keystroke. */
   useEffect(() => {
     if (!mounted || items.length === 0) return;
-    const contentIds = items.map((i) => pixelStdIdForProduct(i.productId)).filter(Boolean);
-    const customContentIds = items.map((i) => metaIdForProduct(i.productId));
+    const contentIds = items.map((i) => catalogIdForProduct(i.productId)).filter(Boolean);
+    const customContentIds = contentIds;
     const categoryIds = Array.from(
       new Set(items.map((i) => metaCategoryIdForProduct(i.productId)).filter(Boolean)),
     );
@@ -158,9 +152,9 @@ export default function CheckoutPage() {
     lastInitiateCheckoutKeyRef.current = key;
     const numItems = items.reduce((n, i) => n + (i.qty || 1), 0);
     const standardContents =
-      items.length > 0 && items.every((i) => Boolean(pixelStdIdForProduct(i.productId)))
+      items.length > 0 && items.every((i) => Boolean(catalogIdForProduct(i.productId)))
         ? items.map((i) => ({
-            id: pixelStdIdForProduct(i.productId),
+            id: catalogIdForProduct(i.productId),
             quantity: Math.max(1, Number(i.qty) || 1),
           }))
         : null;
@@ -177,7 +171,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (!mounted || items.length === 0) return;
-    const contentIds = items.map((i) => pixelStdIdForProduct(i.productId)).filter(Boolean);
+    const contentIds = items.map((i) => catalogIdForProduct(i.productId)).filter(Boolean);
     const phoneDigits = String(form.phone || '').replace(/\D/g, '');
     const key = `${currency}|${grandTotal}|${contentIds.join(',')}|${form.email || ''}|${phoneDigits}`;
     if (lastCheckoutViewKeyRef.current === key) return;
@@ -266,7 +260,7 @@ export default function CheckoutPage() {
       trackPlaceOrderClick(
         formattedTotal,
         formattedCurrency,
-        items.map((i) => pixelStdIdForProduct(i.productId)).filter(Boolean),
+        items.map((i) => catalogIdForProduct(i.productId)).filter(Boolean),
       );
       const res = await apiCreateOrder(orderPayload);
       orderId = res?.id;
@@ -277,16 +271,16 @@ export default function CheckoutPage() {
       setOrderError(err?.body?.message || err?.message || 'Failed to place order. Please try again.');
       return;
     }
-    const purchaseContentIds = items.map((i) => metaIdForProduct(i.productId));
-    const purchasePixelStdIds = items.map((i) => pixelStdIdForProduct(i.productId)).filter(Boolean);
+    const purchaseContentIds = items.map((i) => catalogIdForProduct(i.productId)).filter(Boolean);
+    const purchasePixelStdIds = items.map((i) => catalogIdForProduct(i.productId)).filter(Boolean);
     const purchaseCategoryIds = Array.from(
       new Set(items.map((i) => metaCategoryIdForProduct(i.productId)).filter(Boolean)),
     );
     const purchaseNumItems = items.reduce((n, i) => n + (i.qty || 1), 0);
     const purchaseStandardContents =
-      items.length > 0 && items.every((i) => Boolean(pixelStdIdForProduct(i.productId)))
+      items.length > 0 && items.every((i) => Boolean(catalogIdForProduct(i.productId)))
         ? items.map((i) => ({
-            id: pixelStdIdForProduct(i.productId),
+            id: catalogIdForProduct(i.productId),
             quantity: Math.max(1, Number(i.qty) || 1),
           }))
         : null;

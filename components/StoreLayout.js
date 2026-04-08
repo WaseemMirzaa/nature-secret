@@ -10,6 +10,7 @@ import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { BreadcrumbProvider } from '@/lib/BreadcrumbContext';
 import { trackPageView } from '@/lib/analytics';
 import { captureAttributionFromUrl } from '@/lib/attribution';
+import { captureFbclidFromUrl } from '@/lib/metaCapiIdentifiers';
 import { useCustomerStore } from '@/lib/store';
 
 const CartDrawer = dynamic(() => import('@/components/cart/CartDrawer').then((m) => m.CartDrawer), { ssr: false });
@@ -24,11 +25,15 @@ function StoreAttributionEffects({ pathname, isAdmin }) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     captureAttributionFromUrl();
+    captureFbclidFromUrl();
   }, [pathname, searchKey]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const onUrl = () => captureAttributionFromUrl();
+    const onUrl = () => {
+      captureAttributionFromUrl();
+      captureFbclidFromUrl();
+    };
     window.addEventListener('hashchange', onUrl);
     window.addEventListener('popstate', onUrl);
     return () => {

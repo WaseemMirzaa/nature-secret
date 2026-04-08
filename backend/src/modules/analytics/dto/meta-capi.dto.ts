@@ -194,4 +194,10 @@ export class MetaCapiDto {
   @IsString()
   @MaxLength(64)
   testEventCode?: string;
+
+  /** Non-purchase relay: plain id from browser; server SHA256 into `user_data.external_id`. Purchase uses `orderId` on server. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  externalId?: string;
 }
