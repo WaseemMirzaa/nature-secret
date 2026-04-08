@@ -104,7 +104,6 @@ export default function HomeContent({
   }, [initialCategories.length]);
 
   useEffect(() => {
-    if (ssrSlides.length > 0) return;
     let cancelled = false;
     getSlider()
       .then((list) => {
@@ -114,28 +113,30 @@ export default function HomeContent({
         if (mapped.length === 0) setSliderError(true);
       })
       .catch(() => {
-        if (!cancelled) {
-          setSliderError(true);
-          setClientSlider([]);
-        }
+        if (!cancelled) setSliderError(true);
       });
     return () => {
       cancelled = true;
     };
-  }, [ssrSlides.length]);
+  }, []);
 
   useEffect(() => {
-    if (homeContent?.homeHeroIntro) return;
     let cancelled = false;
     getContentSettings()
       .then((r) => {
-        if (!cancelled && r?.homeHeroIntro) setHomeContent(r);
+        if (cancelled || !r || typeof r !== 'object') return;
+        setHomeContent({
+          homeHeroIntro: r.homeHeroIntro ?? '',
+          homeStoryLabel: r.homeStoryLabel ?? '',
+          homeStoryHeading: r.homeStoryHeading ?? '',
+          homeStoryHtml: r.homeStoryHtml ?? '',
+        });
       })
       .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [homeContent?.homeHeroIntro]);
+  }, []);
 
   const home = useMemo(() => {
     if (homeContent?.homeHeroIntro) return homeContent;
