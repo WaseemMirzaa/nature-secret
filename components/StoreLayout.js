@@ -8,7 +8,6 @@ import { NsPromoBanner } from '@/components/NsPromoBanner';
 import { Footer } from '@/components/layout/Footer';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { BreadcrumbProvider } from '@/lib/BreadcrumbContext';
-import { trackPageView } from '@/lib/analytics';
 import { captureAttributionFromUrl } from '@/lib/attribution';
 import { captureFbclidFromUrl } from '@/lib/metaCapiIdentifiers';
 import { useCustomerStore } from '@/lib/store';
@@ -45,7 +44,16 @@ function StoreAttributionEffects({ pathname, isAdmin }) {
   useEffect(() => {
     if (typeof window === 'undefined' || isAdmin || !pathname) return;
     if (pathname.startsWith('/checkout')) return;
-    trackPageView(pathname);
+    const path = pathname;
+    /** Defer `lib/analytics` (~CAPI + Meta helpers) off first paint / main bundle for this layout. */
+    const run = () => {
+      import('@/lib/analytics')
+        .then(({ trackPageView }) => trackPageView(path))
+        .catch(() => {});
+    };
+    const ric = window.requestIdleCallback;
+    if (typeof ric === 'function') ric(run, { timeout: 2500 });
+    else window.setTimeout(run, 200);
   }, [pathname, isAdmin]);
 
   return null;

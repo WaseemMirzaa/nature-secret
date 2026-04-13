@@ -93,7 +93,7 @@ export function Header() {
               >
                 <CartIcon className="w-5 h-5" />
                 {totalQty > 0 && (
-                  <span className="absolute top-1 right-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-gold-500 px-1 text-[10px] font-semibold text-white shadow-gold-sm">
+                  <span className="absolute top-1 right-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-neutral-900 px-1 text-[10px] font-semibold text-white shadow-sm">
                     {totalQty}
                   </span>
                 )}

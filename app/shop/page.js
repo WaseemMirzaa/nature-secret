@@ -10,6 +10,7 @@ import { useCartStore, useCartOpenStore, useWishlistStore, useCurrencyStore } fr
 import { CartIcon } from '@/components/icons/CartIcon';
 import { HeartIcon } from '@/components/icons/HeartIcon';
 import { trackAddToCart, trackAddToWishlist } from '@/lib/analytics';
+import { metaDebug, isMetaDebugEnabled } from '@/lib/metaDebug';
 import { formatPrice } from '@/lib/currency';
 import { resolveImageUrl, productPath } from '@/lib/api';
 import { buildPathWithStoredAttribution } from '@/lib/attribution';
@@ -86,7 +87,16 @@ function ShopContent() {
       image: (variant.images && variant.images[0]) || variant.image || product.images?.[0],
     });
     openCart();
-    if (added) trackAddToCart(product, variant.price / 100, 1, currency);
+    if (added) {
+      trackAddToCart(product, variant.price / 100, 1, currency);
+    } else if (isMetaDebugEnabled()) {
+      metaDebug('handleQuickAdd', {
+        skipped: true,
+        reason: 'Line already in cart',
+        productId: product.id,
+        variantId: variant.id,
+      });
+    }
   }
 
   return (

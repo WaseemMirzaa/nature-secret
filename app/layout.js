@@ -1,11 +1,18 @@
 import './globals.css';
+import Script from 'next/script';
 import { Inter } from 'next/font/google';
 import { Providers } from '@/components/Providers';
 import { StoreLayout } from '@/components/StoreLayout';
 import { META_LANDING_SNAPSHOT_SCRIPT } from '@/lib/meta-pixel-gate';
 import { networkRetryInlineScript } from '@/lib/networkRetry';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
+  adjustFontFallback: true,
+  preload: true,
+});
 
 /** Safe origin for `<link rel="preconnect">` (API / uploads). No-op if env unset or invalid. */
 function getApiOriginForPreconnect() {
@@ -72,6 +79,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={inter.variable}>
       <head>
+        {/* Register before `/_next/static/` links/scripts parse so chunk/CSS 404 triggers retry. */}
+        <script dangerouslySetInnerHTML={{ __html: networkRetryInlineScript() }} />
         <meta name="api-url" content={apiUrl} />
         {appVersion ? <meta name="ns-app-version" content={appVersion} /> : null}
         {apiOrigin ? (
@@ -85,9 +94,11 @@ export default function RootLayout({ children }) {
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className="min-h-screen flex flex-col font-sans">
+        {/* Recovery: Meta gate snapshot; deploy version refresh; chunk/network/RSC → reload (listener in <head>, lib/networkRetry.js). */}
         <script id="meta-landing-snapshot" dangerouslySetInnerHTML={{ __html: META_LANDING_SNAPSHOT_SCRIPT }} />
-        <script dangerouslySetInnerHTML={{ __html: versionRefreshScript(appVersion) }} />
-        <script dangerouslySetInnerHTML={{ __html: networkRetryInlineScript() }} />
+        {appVersion ? (
+          <Script id="ns-app-version-check" strategy="lazyOnload" dangerouslySetInnerHTML={{ __html: versionRefreshScript(appVersion) }} />
+        ) : null}
         <Providers>
           <StoreLayout>{children}</StoreLayout>
         </Providers>

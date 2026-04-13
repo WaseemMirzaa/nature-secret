@@ -3,23 +3,25 @@
 @tailwind utilities;
 
 :root {
-  /* Default page canvas — rgb(250, 250, 249); pair with bg-white sections for contrast */
-  --bg: #fafaf9;
-  --fg: #1c1917;
-  --gold: #d4af37;
-  --gold-mid: #b8962e;
-  --gold-rgb: 212 175 55;
-  --gold-soft: rgba(212, 175, 55, 0.14);
-  --gold-border: rgba(212, 175, 55, 0.38);
-  --gold-shine: linear-gradient(
-    135deg,
-    #fffef8 0%,
-    #f5e6a8 22%,
-    #d4af37 45%,
-    #f4e8a1 56%,
-    #c9a227 82%,
-    #8b6914 100%
-  );
+  /* White page canvas; accent cream + brand gold for highlights only */
+  --bg: #ffffff;
+  --fg: #0a0a0a;
+  --accent-cream-rgb: 253 244 213;
+  --brand-gold-rgb: 207 176 79;
+  --brand-gold: rgb(var(--brand-gold-rgb));
+  --brand-gold-hover: rgb(184 154 58);
+  --brand-gold-active: rgb(165 138 48);
+  --gold: var(--brand-gold);
+  --gold-mid: rgb(165 138 48);
+  --gold-rgb: var(--brand-gold-rgb);
+  --gold-soft: rgb(var(--brand-gold-rgb) / 0.14);
+  --gold-border: rgb(var(--brand-gold-rgb) / 0.45);
+  --gold-shine: linear-gradient(135deg, #fffef8 0%, rgb(var(--brand-gold-rgb)) 50%, #a68a30 100%);
+}
+
+::selection {
+  background-color: rgb(var(--brand-gold-rgb) / 0.28);
+  color: var(--fg);
 }
 
 html {
@@ -29,6 +31,7 @@ body {
   @apply text-neutral-900 antialiased;
   background-color: var(--bg);
   font-feature-settings: "rlig" 1, "calt" 1;
+  letter-spacing: -0.01em;
   overflow-x: hidden;
 }
 
@@ -40,68 +43,196 @@ body {
   .text-balance {
     text-wrap: balance;
   }
-}
-
-@keyframes checkoutCtaShimmer {
-  0% {
-    transform: translateX(-130%);
+  /** Headlines: same Inter as body — use `font-semibold` in markup for authority */
+  .font-display {
+    font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.03em;
   }
-  100% {
-    transform: translateX(130%);
+  /** Soft radial light — hero / key sections */
+  .bg-section-ambient {
+    background-color: var(--bg);
+    background-image:
+      radial-gradient(ellipse 90% 65% at 100% 0%, rgb(var(--brand-gold-rgb) / 0.08), transparent 52%),
+      radial-gradient(ellipse 75% 50% at 0% 100%, rgba(255, 255, 255, 0.95), transparent 48%),
+      radial-gradient(ellipse 55% 42% at 35% 0%, rgb(var(--accent-cream-rgb) / 0.35), transparent 46%);
+  }
+  /** Editorial frame: inset hairline on media */
+  .frame-media-inset {
+    box-shadow:
+      inset 0 0 0 1px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+  /** RGB(253,244,213) — promo bar, discount fields, soft highlights */
+  .bg-accent-cream {
+    background-color: rgb(var(--accent-cream-rgb));
+  }
+  .bg-accent-cream-soft {
+    background-color: rgb(var(--accent-cream-rgb) / 0.55);
+  }
+  .bg-brand-gold {
+    background-color: rgb(var(--brand-gold-rgb));
+  }
+  .border-brand-gold {
+    border-color: rgb(var(--brand-gold-rgb));
   }
 }
 
 @layer components {
-  .checkout-cta-animated {
-    @apply relative isolate overflow-hidden;
+  /** Primary CTA — charcoal on light canvas (class name kept for compatibility). */
+  .btn-gold-primary {
+    position: relative;
+    color: #fafafa;
+    font-weight: 600;
+    background-color: #0a0a0a;
+    background-image: none;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow:
+      0 4px 18px -6px rgba(0, 0, 0, 0.35),
+      0 0 0 1px rgba(0, 0, 0, 0.08);
   }
-  .checkout-cta-animated::before {
-    content: '';
+  .btn-gold-primary:hover:not(:disabled) {
+    background-color: #262626;
+    border-color: rgba(255, 255, 255, 0.16);
+  }
+  .btn-gold-primary:active:not(:disabled) {
+    background-color: #171717;
+  }
+  .btn-gold-primary:disabled {
+    opacity: 0.88;
+    filter: none;
+  }
+
+  /** Product detail — Order Now (black, matches PDP variant selected) */
+  .btn-pdp-order-now {
+    position: relative;
+    color: #fafafa;
+    font-weight: 600;
+    background-color: #171717;
+    background-image: none;
+    border: 1px solid rgba(0, 0, 0, 0.45);
+    box-shadow:
+      0 4px 18px -6px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.06);
+  }
+  .btn-pdp-order-now:hover:not(:disabled) {
+    background-color: #262626;
+    border-color: rgba(0, 0, 0, 0.5);
+  }
+  .btn-pdp-order-now:active:not(:disabled) {
+    background-color: #0a0a0a;
+  }
+  .btn-pdp-order-now:disabled {
+    opacity: 0.85;
+    filter: none;
+  }
+
+  /** PDP variant chip — selected (black, matches Order Now) */
+  .variant-pdp-selected {
+    border-color: rgba(0, 0, 0, 0.35);
+    background-color: #171717;
+    color: #fafafa;
+    box-shadow:
+      0 2px 14px -4px rgba(0, 0, 0, 0.35),
+      0 0 0 1px rgba(255, 255, 255, 0.06);
+  }
+
+  /** Frosted cream + specular highlight (checkout shipping/payment, PDP limited-stock, etc.) */
+  .ns-accent-glass {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background: linear-gradient(
+      168deg,
+      rgb(255 255 255 / 0.48) 0%,
+      rgb(var(--accent-cream-rgb) / 0.42) 42%,
+      rgb(var(--accent-cream-rgb) / 0.82) 100%
+    );
+    backdrop-filter: blur(12px) saturate(1.12);
+    -webkit-backdrop-filter: blur(12px) saturate(1.12);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.75),
+      inset 0 -1px 0 rgb(255 255 255 / 0.18),
+      0 0 0 1px rgb(var(--brand-gold-rgb) / 0.24),
+      0 10px 32px -16px rgb(var(--brand-gold-rgb) / 0.38),
+      0 2px 10px -4px rgba(0, 0, 0, 0.07);
+  }
+  .ns-accent-glass::after {
+    content: "";
     position: absolute;
     inset: 0;
-    z-index: 0;
-    pointer-events: none;
     border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
     background: linear-gradient(
-      105deg,
-      transparent 38%,
-      rgba(255, 252, 245, 0.16) 50%,
-      transparent 62%
+      115deg,
+      transparent 36%,
+      rgb(255 255 255 / 0.28) 49%,
+      transparent 58%
     );
-    transform: translateX(-130%);
-    /* Explicit longhand so the sweep loops forever (no single-play / ease “stall”). */
-    animation-name: checkoutCtaShimmer;
-    animation-duration: 2.8s;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-    animation-fill-mode: none;
-    will-change: transform;
+    opacity: 0.88;
   }
-  @media (prefers-reduced-motion: reduce) {
-    .checkout-cta-animated::before {
-      animation-name: none;
-      will-change: auto;
+  @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+    .ns-accent-glass {
+      background-color: rgb(var(--accent-cream-rgb));
+      backdrop-filter: none;
+    }
+    .ns-accent-glass::after {
+      opacity: 0.55;
     }
   }
-  .checkout-cta-animated:disabled::before {
-    animation: none;
-    opacity: 0;
-  }
-  /** Same sweep as checkout CTA; brighter band for gold `bg-gold-500` buttons. */
-  .checkout-cta-animated.cta-shimmer-gold::before {
+
+  /** PDP customer trust — frosted white glass + specular (pair with black text) */
+  .ns-trust-glass {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     background: linear-gradient(
-      105deg,
-      transparent 34%,
-      rgba(255, 255, 255, 0.38) 50%,
-      transparent 66%
+      168deg,
+      rgb(255 255 255 / 0.62) 0%,
+      rgb(255 255 255 / 0.34) 44%,
+      rgb(250 250 249 / 0.82) 100%
     );
+    backdrop-filter: blur(14px) saturate(1.06);
+    -webkit-backdrop-filter: blur(14px) saturate(1.06);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      inset 0 -1px 0 rgb(255 255 255 / 0.22),
+      0 0 0 1px rgb(0 0 0 / 0.06),
+      0 12px 40px -22px rgb(0 0 0 / 0.14),
+      0 2px 12px -4px rgb(0 0 0 / 0.06);
+  }
+  .ns-trust-glass::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+    background: linear-gradient(
+      115deg,
+      transparent 36%,
+      rgb(255 255 255 / 0.45) 49%,
+      transparent 60%
+    );
+    opacity: 0.7;
+  }
+  @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+    .ns-trust-glass {
+      background: linear-gradient(to bottom, #ffffff, #fafaf9);
+      backdrop-filter: none;
+    }
+    .ns-trust-glass::after {
+      opacity: 0.5;
+    }
   }
 }
 
-/* Premium focus ring */
+/* Premium focus ring — gold-tinted accent */
 *:focus-visible {
-  @apply outline-none ring-2 ring-neutral-800 ring-offset-2;
-  --tw-ring-offset-color: var(--bg);
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--bg),
+    0 0 0 4px rgb(var(--brand-gold-rgb) / 0.45);
 }
 
 /* Prevent horizontal overflow on small screens — inputs only (iOS zoom); buttons use explicit text-* */
@@ -146,7 +277,7 @@ html {
   color: #1c1917;
 }
 .product-description a {
-  color: #967d25;
+  color: #404040;
   text-decoration: none;
 }
 .product-description a:hover {

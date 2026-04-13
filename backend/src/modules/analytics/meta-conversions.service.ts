@@ -150,7 +150,7 @@ export class MetaConversionsService {
     }
 
     const user_data: Record<string, string | string[]> = {};
-    const isPurchaseEvent = dto.eventName === 'Purchase' || dto.eventName === 'NS_EV_PRCHS_SUCCESS';
+    const isPurchaseEvent = dto.eventName === 'Purchase';
     const isOrderVoidEvent = dto.eventName === 'NS_EV_ORDER_VOID';
 
     if (isOrderVoidEvent) {

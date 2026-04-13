@@ -25,8 +25,17 @@ export function ChunkLoadErrorHandler({ children }) {
   }, []);
 
   useEffect(() => {
-    const onLoad = () => clearPageLoadRetryState();
-    window.addEventListener('load', onLoad);
+    const onLoad = () => {
+      clearPageLoadRetryState();
+      try {
+        delete window.__NS_PAGE_RELOAD_QUEUED__;
+      } catch (_) {}
+    };
+    if (typeof document !== 'undefined' && document.readyState === 'complete') {
+      onLoad();
+    } else {
+      window.addEventListener('load', onLoad);
+    }
     return () => window.removeEventListener('load', onLoad);
   }, []);
 
@@ -34,6 +43,11 @@ export function ChunkLoadErrorHandler({ children }) {
     if (!retryUi) return undefined;
     const { nextCount, first } = retryUi;
     const t = setTimeout(() => {
+      if (typeof window !== 'undefined' && window.__NS_PAGE_RELOAD_QUEUED__) {
+        handlingRef.current = false;
+        return;
+      }
+      if (typeof window !== 'undefined') window.__NS_PAGE_RELOAD_QUEUED__ = true;
       try {
         sessionStorage.setItem(NS_PAGE_LOAD_RETRY_KEY, JSON.stringify({ count: nextCount, first }));
         sessionStorage.removeItem(LEGACY_CHUNK_KEY);
@@ -46,7 +60,7 @@ export function ChunkLoadErrorHandler({ children }) {
 
   useEffect(() => {
     function scheduleRetry() {
-      if (typeof window === 'undefined' || window.location.pathname === '/404') return;
+      if (typeof window === 'undefined') return;
       if (handlingRef.current) return;
       const data = readPageLoadRetryState();
       const now = Date.now();
@@ -74,7 +88,11 @@ export function ChunkLoadErrorHandler({ children }) {
       if (!msg && t && t.tagName === 'LINK' && t.href) {
         msg = `Failed to load stylesheet ${t.href}`;
       }
-      if (isRecoverablePageLoadError(msg)) scheduleRetry();
+      const staticUrl =
+        t && (t.tagName === 'SCRIPT' ? t.src : t.tagName === 'LINK' ? t.href : '');
+      const isNextStaticTarget =
+        typeof staticUrl === 'string' && staticUrl.includes('/_next/static/');
+      if (isRecoverablePageLoadError(msg) || isNextStaticTarget) scheduleRetry();
     };
     const onReject = (event) => {
       const msg = stringifyErrorReason(event?.reason);
@@ -93,7 +111,7 @@ export function ChunkLoadErrorHandler({ children }) {
   }
 
   if (retryUi) {
-    return <PageLoadRetryLoader />;
+    return <PageLoadRetryLoader attempt={retryUi.nextCount} max={MAX_PAGE_LOAD_RETRIES} />;
   }
 
   return <>{children}</>;

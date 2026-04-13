@@ -28,12 +28,12 @@ export default function HomeBelowFold({
         featuredCategories={featuredCategories}
         products={products}
       />
-      <section className="py-7 sm:py-11 lg:py-28 bg-white">
+      <section className="border-t border-b border-neutral-200/40 bg-gradient-to-b from-white via-neutral-50/40 to-white py-12 sm:py-16 lg:py-28">
         <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="inline-block w-10 h-px bg-gold-400/50 mb-4 sm:mb-5" aria-hidden />
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-3 sm:mb-4">{home.homeStoryLabel}</p>
-            <h2 className="text-xl sm:text-3xl lg:text-4xl font-semibold text-neutral-900 tracking-tight leading-snug">
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="mx-auto mb-5 h-px w-12 bg-gradient-to-r from-transparent via-neutral-300 to-transparent sm:mb-6" aria-hidden />
+            <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-500 mb-3 sm:mb-4">{home.homeStoryLabel}</p>
+            <h2 className="font-display text-2xl sm:text-3xl lg:text-[2.5rem] font-semibold text-neutral-900 leading-snug text-balance">
               {home.homeStoryHeading}
             </h2>
             <div
@@ -50,11 +50,11 @@ export default function HomeBelowFold({
 function HomeBestsellersSection({ productsError, bestsellerProducts }) {
   if (productsError && bestsellerProducts.length === 0) {
     return (
-      <section className="py-7 sm:py-11 lg:py-28 bg-white">
+      <section className="py-10 sm:py-14 lg:py-24 bg-page-canvas border-y border-neutral-200/40">
         <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
-          <div className="rounded-2xl border border-neutral-200 bg-neutral-50/50 p-6 sm:p-12 text-center">
+          <div className="rounded-2xl border border-neutral-200/80 bg-white p-6 sm:p-12 text-center shadow-sm">
             <p className="text-neutral-600">Unable to load products right now. Try again later.</p>
-            <Link href="/shop" className="mt-4 inline-block text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/40 pb-0.5">View shop</Link>
+            <Link href="/shop" className="mt-4 inline-block text-sm font-medium text-neutral-900 border-b border-neutral-900/30 pb-0.5 hover:border-neutral-900">View shop</Link>
           </div>
         </div>
       </section>
@@ -63,15 +63,21 @@ function HomeBestsellersSection({ productsError, bestsellerProducts }) {
   if (bestsellerProducts.length === 0) return null;
 
   return (
-    <section className="py-7 sm:py-11 lg:py-28 bg-white">
+    <section className="py-10 sm:py-14 lg:py-24 bg-page-canvas border-y border-neutral-200/40">
       <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
-        <div className="flex items-end justify-between mb-4 sm:mb-10 lg:mb-12">
+        <div className="flex items-end justify-between mb-4 sm:mb-10 lg:mb-12 gap-4">
           <div>
-            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Curated</p>
-            <h2 className="text-xl sm:text-3xl font-semibold text-neutral-900 mt-0.5 sm:mt-1 tracking-tight">Bestsellers</h2>
+            <p className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
+              <span className="h-px w-6 bg-neutral-900/25" aria-hidden />
+              Curated
+            </p>
+            <h2 className="font-display mt-0.5 text-xl font-semibold text-neutral-900 sm:mt-1 sm:text-3xl">Bestsellers</h2>
             <p className="mt-1 text-xs sm:text-sm text-neutral-500 leading-snug">Botanical body care and skincare, most loved by our community</p>
           </div>
-          <Link href="/shop" className="text-sm font-medium text-neutral-900 border-b-2 border-gold-500/40 pb-0.5 hover:border-gold-500 transition-colors whitespace-nowrap flex-shrink-0">
+          <Link
+            href="/shop"
+            className="btn-gold-primary shrink-0 inline-flex items-center justify-center rounded-full px-6 py-2.5 text-sm text-white transition hover:shadow-lg"
+          >
             View all
           </Link>
         </div>
@@ -88,8 +94,8 @@ function HomeBestsellersSection({ productsError, bestsellerProducts }) {
             const compareAtPrice =
               variants.length > 1 ? defaultVariant?.compareAtPrice : product.compareAtPrice;
             return (
-              <Link key={product.id} href={`/shop/${productPath(product)}`} className="group group/card">
-                <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-100 relative ring-1 ring-neutral-200/80 group-hover/card:ring-gold-400/40 transition-all duration-300 shadow-soft group-hover/card:shadow-gold-sm">
+              <Link key={product.id} href={`/shop/${productPath(product)}`} className="group group/card block">
+                <div className="relative aspect-[3/4] overflow-hidden rounded-[1.35rem] border border-neutral-200/60 bg-neutral-100 shadow-card transition-all duration-500 frame-media-inset group-hover/card:border-neutral-400 group-hover/card:shadow-lift-lg">
                   <Image
                     src={img}
                     alt={name}
@@ -103,14 +109,14 @@ function HomeBestsellersSection({ productsError, bestsellerProducts }) {
                     decoding="async"
                   />
                   {product.badge && (
-                    <span className="absolute top-3 left-3 rounded-full bg-neutral-900 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white ring-1 ring-gold-500/60 shadow-gold-sm">
+                    <span className="absolute top-3 left-3 rounded-full border border-neutral-900/12 bg-accent-cream px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-900 shadow-sm">
                       {product.badge}
                     </span>
                   )}
                 </div>
                 <div className="mt-2 sm:mt-4">
-                  <p className="font-medium text-neutral-900 group-hover/card:text-gold-700 transition-colors">{name}</p>
-                  <p className="mt-1 text-sm font-medium text-gold-700/90">
+                  <p className="font-medium text-neutral-900 group-hover/card:text-neutral-700 transition-colors">{name}</p>
+                  <p className="mt-1 text-sm font-medium text-neutral-800">
                     {compareAtPrice && <span className="line-through text-neutral-500 mr-2">{formatPrice(compareAtPrice, 'PKR')}</span>}
                     {formatPrice(price, 'PKR')}
                   </p>
@@ -127,7 +133,7 @@ function HomeBestsellersSection({ productsError, bestsellerProducts }) {
 function HomeFeaturedCategoriesSection({ productsError, featuredCategories, products }) {
   if (productsError && featuredCategories.length === 0) {
     return (
-      <section className="py-7 sm:py-11 lg:py-28 bg-page-canvas">
+      <section className="py-10 sm:py-14 lg:py-24 bg-page-canvas">
         <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
           <div className="rounded-2xl border border-neutral-200 bg-white p-6 sm:p-12 text-center">
             <p className="text-neutral-600">Unable to load collections. Try again later.</p>
@@ -139,15 +145,15 @@ function HomeFeaturedCategoriesSection({ productsError, featuredCategories, prod
   if (featuredCategories.length === 0) return null;
 
   return (
-    <section className="py-7 sm:py-11 lg:py-28 bg-page-canvas">
+    <section className="py-10 sm:py-14 lg:py-24 bg-page-canvas">
       <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
-        <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-1.5 sm:mb-2">Explore</p>
-        <h2 className="text-xl sm:text-3xl font-semibold text-neutral-900 mb-4 sm:mb-10 lg:mb-12 tracking-tight">Collections</h2>
+        <p className="text-[10px] sm:text-xs font-medium uppercase tracking-[0.2em] text-neutral-500 mb-1.5 sm:mb-2">Explore</p>
+        <h2 className="font-display mb-4 text-xl font-semibold text-neutral-900 sm:mb-10 sm:text-3xl lg:mb-12">Collections</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5 lg:gap-8">
           {featuredCategories.map((cat) => {
             const firstProduct = Array.isArray(products) ? products.find((p) => p.categoryId === cat.id) : null;
             return (
-              <Link key={cat.id} href={`/shop?category=${encodeURIComponent(cat.slug)}`} className="group block rounded-2xl overflow-hidden bg-white shadow-premium ring-1 ring-neutral-200/60 hover:ring-gold-400/30 transition-all duration-300">
+              <Link key={cat.id} href={`/shop?category=${encodeURIComponent(cat.slug)}`} className="group block rounded-2xl overflow-hidden border border-neutral-200/70 bg-white transition-all duration-500 hover:border-neutral-300 hover:shadow-[0_24px_48px_-28px_rgba(0,0,0,0.14)]">
                 <div className="aspect-[4/3] relative">
                   {firstProduct?.images?.[0] ? (
                     <Image
@@ -161,12 +167,12 @@ function HomeFeaturedCategoriesSection({ productsError, featuredCategories, prod
                       decoding="async"
                     />
                   ) : (
-                    <div className="absolute inset-0 bg-neutral-200" />
+                    <div className="absolute inset-0 bg-neutral-200/50" />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent group-hover:from-black/70 transition" />
                   <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
                     <h3 className="text-lg sm:text-xl font-semibold">{cat.name}</h3>
-                    <span className="text-sm text-gold-200 mt-1 inline-flex items-center gap-1">Explore <span className="group-hover:translate-x-0.5 transition-transform">→</span></span>
+                    <span className="text-sm text-white/90 mt-1 inline-flex items-center gap-1">Explore <span className="group-hover:translate-x-0.5 transition-transform">→</span></span>
                   </div>
                 </div>
               </Link>

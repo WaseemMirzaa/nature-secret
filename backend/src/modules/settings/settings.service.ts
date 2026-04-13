@@ -9,9 +9,6 @@ const DEFAULTS: Record<string, string> = {
   contact_emails: 'support@naturesecret.pk',
   footer_disclaimer:
     'Nature Secret sells cosmetic and body-care products for external use. Website content describes look, feel, and everyday routines—not health or treatment claims.',
-  product_disclaimer_title: 'Important Note',
-  product_disclaimer_text:
-    'Cosmetic body oil for external use only. Not a drug. Individual experience may vary. Patch test before wider use.',
   home_hero_intro:
     'Premium botanical skincare and body oils for a calm routine. Nature Secret PX Oil is a relaxing massage oil—comforting neck, muscles, and joints when they feel tired or tight after long days.',
   home_story_label: 'Our story',
@@ -28,6 +25,12 @@ export class SettingsService {
   async get(key: string): Promise<string | null> {
     const row = await this.repo.findOne({ where: { key } });
     return row?.value ?? DEFAULTS[key] ?? null;
+  }
+
+  /** DB value only (no DEFAULTS). Missing row → `null`. */
+  async getStored(key: string): Promise<string | null> {
+    const row = await this.repo.findOne({ where: { key } });
+    return row?.value ?? null;
   }
 
   async set(key: string, value: string): Promise<void> {
@@ -56,16 +59,16 @@ export class SettingsService {
   async getContent() {
     const [
       footerDisclaimer,
-      productDisclaimerTitle,
-      productDisclaimerText,
+      productDisclaimerTitleStored,
+      productDisclaimerTextStored,
       homeHeroIntro,
       homeStoryLabel,
       homeStoryHeading,
       homeStoryHtml,
     ] = await Promise.all([
       this.get('footer_disclaimer'),
-      this.get('product_disclaimer_title'),
-      this.get('product_disclaimer_text'),
+      this.getStored('product_disclaimer_title'),
+      this.getStored('product_disclaimer_text'),
       this.get('home_hero_intro'),
       this.get('home_story_label'),
       this.get('home_story_heading'),
@@ -73,8 +76,9 @@ export class SettingsService {
     ]);
     return {
       footerDisclaimer: footerDisclaimer || DEFAULTS.footer_disclaimer,
-      productDisclaimerTitle: productDisclaimerTitle || DEFAULTS.product_disclaimer_title,
-      productDisclaimerText: productDisclaimerText || DEFAULTS.product_disclaimer_text,
+      /** Optional PDP fallback — empty until set in Admin → Content. */
+      productDisclaimerTitle: productDisclaimerTitleStored ?? '',
+      productDisclaimerText: productDisclaimerTextStored ?? '',
       homeHeroIntro: homeHeroIntro || DEFAULTS.home_hero_intro,
       homeStoryLabel: homeStoryLabel || DEFAULTS.home_story_label,
       homeStoryHeading: homeStoryHeading || DEFAULTS.home_story_heading,

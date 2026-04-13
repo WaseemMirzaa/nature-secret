@@ -46,24 +46,24 @@ export function NsPromoBanner() {
 
   return (
     <div
-      className="border-b-2 border-gold-400/90 bg-gradient-to-r from-amber-100 via-gold-100 to-amber-100 px-3 py-3 sm:py-3.5 text-center shadow-[0_4px_18px_-4px_rgba(180,83,9,0.35)]"
+      className="border-b border-neutral-900/10 bg-accent-cream px-3 py-2.5 sm:py-3 text-center"
       role="status"
       aria-live="polite"
     >
-      <p className="text-sm sm:text-base text-neutral-900 leading-snug font-medium">
-        <span className="font-bold text-gold-950">
+      <p className="text-xs sm:text-sm text-neutral-800 leading-relaxed font-medium tracking-tight">
+        <span className="font-semibold text-neutral-900">
           Offer for our first customers available for {NS_PROMO_DURATION_HOURS} hours
         </span>
-        <span className="text-neutral-600"> — </span>
-        <span className="tabular-nums font-bold text-gold-900 text-base sm:text-lg">{formatCountdown(seconds)}</span>
-        <span className="text-neutral-700 font-semibold"> left this visit</span>
-        <span className="text-neutral-600"> · </span>
-        <span className="text-neutral-800">
+        <span className="text-neutral-500"> — </span>
+        <span className="tabular-nums font-semibold text-neutral-900 text-sm sm:text-base">{formatCountdown(seconds)}</span>
+        <span className="text-neutral-600 font-medium"> left this visit</span>
+        <span className="text-neutral-400"> · </span>
+        <span className="text-neutral-700">
           Use code{' '}
-          <span className="font-mono font-bold tracking-wide text-gold-950 bg-white/80 px-1.5 py-0.5 rounded border border-gold-300/80">
+          <span className="font-mono font-semibold tracking-wide text-neutral-900 bg-white border border-neutral-900/12 px-1.5 py-0.5 rounded-sm shadow-sm">
             {NS_PROMO_CODE}
           </span>{' '}
-          at checkout for <span className="font-semibold text-gold-950">Rs 150 off</span>
+          at checkout for <span className="font-semibold text-neutral-900">Rs 150 off</span>
         </span>
       </p>
     </div>

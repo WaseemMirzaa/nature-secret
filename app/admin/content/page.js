@@ -22,8 +22,8 @@ export default function AdminContentSettingsPage() {
     getAdminContentSettings()
       .then((r) => {
         setFooterDisclaimer(r.footerDisclaimer || '');
-        setProductDisclaimerTitle(r.productDisclaimerTitle || 'Important Note');
-        setProductDisclaimerText(r.productDisclaimerText || '');
+        setProductDisclaimerTitle(typeof r.productDisclaimerTitle === 'string' ? r.productDisclaimerTitle : '');
+        setProductDisclaimerText(typeof r.productDisclaimerText === 'string' ? r.productDisclaimerText : '');
         setHomeHeroIntro(r.homeHeroIntro || '');
         setHomeStoryLabel(r.homeStoryLabel || '');
         setHomeStoryHeading(r.homeStoryHeading || '');
@@ -120,23 +120,32 @@ export default function AdminContentSettingsPage() {
             className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm text-neutral-900"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-1">Product disclaimer title</label>
-          <input
-            type="text"
-            value={productDisclaimerTitle}
-            onChange={(e) => setProductDisclaimerTitle(e.target.value)}
-            className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm text-neutral-900"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-1">Product disclaimer text</label>
-          <textarea
-            value={productDisclaimerText}
-            onChange={(e) => setProductDisclaimerText(e.target.value)}
-            rows={5}
-            className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm text-neutral-900"
-          />
+        <div className="rounded-xl border border-neutral-100 bg-neutral-50/80 p-4 space-y-3">
+          <h2 className="text-sm font-semibold text-neutral-900">Product page disclaimer (optional)</h2>
+          <p className="text-xs text-neutral-600 leading-relaxed">
+            Shown on every product detail page when the text below is not empty. Leave blank to hide. Per-product disclaimers
+            (Products → edit → “Show disclaimer”) override this when enabled and filled in.
+          </p>
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1">Title</label>
+            <input
+              type="text"
+              value={productDisclaimerTitle}
+              onChange={(e) => setProductDisclaimerTitle(e.target.value)}
+              placeholder="e.g. Important note"
+              className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm text-neutral-900"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1">Body</label>
+            <textarea
+              value={productDisclaimerText}
+              onChange={(e) => setProductDisclaimerText(e.target.value)}
+              rows={5}
+              placeholder="One paragraph per line becomes a bullet on the storefront."
+              className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm text-neutral-900"
+            />
+          </div>
         </div>
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
         {message ? <p className="text-sm text-green-700">{message}</p> : null}

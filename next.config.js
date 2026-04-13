@@ -32,12 +32,27 @@ function getImagesConfig() {
 }
 
 const nextConfig = {
+  poweredByHeader: false,
   /** Inlines critical CSS + defers full stylesheet (Critters). Prod only; improves LCP. Not related to analytics. */
   experimental: {
     optimizeCss: true,
+    /** Smaller client bundles for barrel imports (e.g. date-fns). */
+    optimizePackageImports: ['date-fns'],
+  },
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
   images: getImagesConfig(),
   compress: true,
+  async headers() {
+    return [
+      {
+        source: '/assets/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+    ];
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       const stub = path.join(__dirname, 'lib/next-modern-browser-polyfill.js');
