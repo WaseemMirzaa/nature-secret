@@ -106,6 +106,45 @@ const CustomerRatingsTrustCard = memo(function CustomerRatingsTrustCard({ count,
 const ProductTrustBar = memo(function ProductTrustBar({ product, className = '', variant = 'text' }) {
   const n = product?.reviewCount != null && product.reviewCount > 0 ? product.reviewCount : 37;
   const labels = ['Cash on Delivery', 'Free Shipping', `${n} Reviews`];
+  if (variant === 'mobileStrip') {
+    const avg = Number(product?.rating);
+    const avgShow = Number.isFinite(avg) && avg > 0 ? `${(Math.round(avg * 10) / 10).toFixed(1)}★ · ` : '';
+    return (
+      <div
+        className={`rounded-xl border border-neutral-200/90 bg-white px-3 py-2.5 shadow-sm ${className}`}
+        role="group"
+        aria-label="Trust highlights"
+      >
+        <p className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 text-center text-[11px] font-semibold leading-snug text-neutral-900">
+          <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-emerald-950 ring-1 ring-emerald-200/70">
+            Cash on Delivery Available
+          </span>
+          <span className="text-neutral-300" aria-hidden>
+            ·
+          </span>
+          <span className="inline-flex items-center gap-1 text-neutral-800">
+            <svg className="h-3.5 w-3.5 shrink-0 text-gold-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1h-1m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"
+              />
+            </svg>
+            Free shipping
+          </span>
+          <span className="text-neutral-300" aria-hidden>
+            ·
+          </span>
+          <span className="text-neutral-700">
+            {avgShow}
+            {Number(n).toLocaleString('en-US')} reviews
+          </span>
+        </p>
+        <p className="mt-1 text-center text-[10px] font-medium text-neutral-500">3–7 day delivery · 7-day returns</p>
+      </div>
+    );
+  }
   if (variant === 'pills') {
     return (
       <div className={`flex flex-wrap gap-2 ${className}`} role="group" aria-label="Trust highlights">
@@ -207,6 +246,54 @@ function scrubMedicalTerms(input = '') {
   const text = String(input || '');
   return text;
 }
+
+/** Curated review body: `quote` + newline + `---` + newline + `outcome`, or em-dash split, for PDP outcome line. */
+function splitReviewQuoteAndOutcome(body) {
+  const raw = String(body || '').trim();
+  if (!raw) return { quote: '', outcome: '' };
+  const triple = /\n\s*-{3,}\s*\n/;
+  if (triple.test(raw)) {
+    const bits = raw.split(triple);
+    const rest = bits.slice(1).join('\n---\n').trim();
+    return { quote: scrubMedicalTerms(bits[0].trim()), outcome: scrubMedicalTerms(rest) };
+  }
+  const parts = raw.split(/\s+[—–]\s+/);
+  if (parts.length >= 2) {
+    return {
+      quote: scrubMedicalTerms(parts[0].trim()),
+      outcome: scrubMedicalTerms(parts.slice(1).join(' ').trim()),
+    };
+  }
+  return { quote: scrubMedicalTerms(raw), outcome: '' };
+}
+
+const PdpMobileReviewPeek = memo(function PdpMobileReviewPeek({ reviews }) {
+  if (!Array.isArray(reviews) || reviews.length === 0) return null;
+  return (
+    <div className="mt-4 border-t border-neutral-100 pt-4" aria-label="Recent buyer reviews">
+      <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-500">What buyers say</p>
+      <ul className="space-y-2.5">
+        {reviews.map((r) => {
+          const { quote, outcome } = splitReviewQuoteAndOutcome(r.body);
+          return (
+            <li key={r.id} className="rounded-xl border border-neutral-100 bg-neutral-50/90 px-3 py-2.5">
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <span className="truncate text-xs font-semibold text-neutral-900">{r.authorName}</span>
+                <ReviewStarsInline rating={r.rating} className="scale-90" />
+              </div>
+              {quote ? <p className="text-[12px] leading-snug text-neutral-700">{quote}</p> : null}
+              {outcome ? (
+                <p className="mt-1.5 border-t border-neutral-200/80 pt-1.5 text-[11px] font-semibold leading-snug text-emerald-900">
+                  Outcome: {outcome}
+                </p>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+});
 
 /** PDP Order Now: build cart line from latest ref snapshot (avoids stale closure while view finishes loading). */
 function buildOrderNowLineFromCtx(ctx) {
@@ -584,6 +671,7 @@ export default function ProductDetailClient({
   const visibleReviews = primaryReviews
     ? (reviewsExpanded ? primaryReviews : primaryReviews.slice(0, reviewPreviewCount))
     : [];
+  const mobileTopReviews = useMemo(() => primaryReviews.slice(0, 3), [primaryReviews]);
 
   const customerRatingTrust = useMemo(() => {
     if (!product) return null;
@@ -640,6 +728,8 @@ export default function ProductDetailClient({
       ? Math.round((saveLineCents / Number(compareAtForLine)) * 100)
       : null;
   const showVariantPicker = product.variants?.length > 1;
+  const inv = Number(product?.inventory);
+  const lowStockUrgent = Number.isFinite(inv) && inv > 0 && inv <= 30;
 
   /** Cart line when product has price but no variant row (or API omits variants). */
   function getCartLinePayload() {
@@ -910,7 +1000,7 @@ export default function ProductDetailClient({
               </h1>
             </header>
             <div className="border-t border-neutral-100 bg-gradient-to-b from-neutral-50/90 to-neutral-50/40 px-5 py-4 sm:px-7 sm:py-5">
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
                 <span className="font-display text-[1.875rem] font-bold tabular-nums tracking-tight text-neutral-900 sm:text-[2.125rem]">
                   {formatPrice(price, currency)}
                 </span>
@@ -922,7 +1012,13 @@ export default function ProductDetailClient({
                         Save {formatPrice(saveLineCents, currency)}
                       </span>
                     ) : null}
+                    <span className="w-full text-[10px] font-bold uppercase tracking-[0.12em] text-amber-800 sm:w-auto">Limited time offer</span>
                   </>
+                ) : null}
+                {lowStockUrgent && !(saveLineCents != null && saveLineCents > 0) ? (
+                  <span className="inline-flex items-center rounded-full border border-neutral-900/15 bg-neutral-900 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
+                    Low stock — order soon
+                  </span>
                 ) : null}
               </div>
               {pctOff != null && pctOff > 0 ? (
@@ -936,14 +1032,12 @@ export default function ProductDetailClient({
                   </span>
                 </p>
               ) : null}
-              {product.inventory !== 0 ? (
-                <div className="mt-4">
-                  <ProductTrustBar product={product} variant="pills" />
-                </div>
+              {lowStockUrgent && saveLineCents != null && saveLineCents > 0 ? (
+                <p className="mt-2 text-[11px] font-semibold text-neutral-700">Only {inv} left in stock — selling fast</p>
               ) : null}
-              {customerRatingTrust ? (
-                <div className="mt-4">
-                  <CustomerRatingsTrustCard count={customerRatingTrust.count} average={customerRatingTrust.average} />
+              {product.inventory !== 0 ? (
+                <div className="mt-3">
+                  <ProductTrustBar product={product} variant="mobileStrip" />
                 </div>
               ) : null}
             </div>
@@ -999,9 +1093,18 @@ export default function ProductDetailClient({
                             >
                               {v.name}
                             </span>
-                            <span className={`mt-1 text-[13px] tabular-nums ${selected ? 'text-neutral-200' : 'text-neutral-600'}`}>
+                            <span
+                              className={`mt-1 text-[14px] font-bold tabular-nums ${selected ? 'text-white' : 'text-neutral-900'}`}
+                            >
                               {formatPrice(v.price, currency)}
                             </span>
+                            {v.compareAtPrice != null && Number(v.compareAtPrice) > Number(v.price || 0) ? (
+                              <span
+                                className={`mt-0.5 text-[11px] tabular-nums line-through ${selected ? 'text-neutral-300' : 'text-neutral-400'}`}
+                              >
+                                {formatPrice(v.compareAtPrice, currency)}
+                              </span>
+                            ) : null}
                           </button>
                         );
                       })}
@@ -1050,7 +1153,7 @@ export default function ProductDetailClient({
                       setTimeout(() => setOrderNowVibrate(false), 400);
                       void handleOrderNowNavigate();
                     }}
-                    className={`btn-pdp-order-now relative z-0 flex min-h-[3.5rem] w-full items-center justify-center gap-2 rounded-xl px-4 text-[15px] font-semibold tracking-tight transition hover:shadow-lg disabled:opacity-90 disabled:pointer-events-none ${
+                    className={`btn-pdp-order-now relative z-0 flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-[16px] font-bold tracking-tight shadow-md transition hover:shadow-lg disabled:opacity-90 disabled:pointer-events-none ${
                       orderNowVibrate && !orderNowNavigating ? 'animate-vibrate' : ''
                     }`}
                   >
@@ -1072,6 +1175,7 @@ export default function ProductDetailClient({
                       </>
                     )}
                   </button>
+                  <PdpMobileReviewPeek reviews={mobileTopReviews} />
                   <button
                     type="button"
                     disabled={orderNowNavigating}
@@ -1081,8 +1185,8 @@ export default function ProductDetailClient({
                       setAddCartVibrate(true);
                       setTimeout(() => setAddCartVibrate(false), 400);
                     }}
-                    className={`flex min-h-[3rem] w-full items-center justify-center rounded-xl border border-neutral-300 bg-white py-3 text-[14px] font-semibold tracking-tight text-neutral-900 transition hover:border-neutral-400 hover:bg-neutral-50 disabled:opacity-50 disabled:pointer-events-none ${
-                      addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
+                    className={`w-full bg-transparent py-2 text-center text-[13px] font-semibold text-neutral-600 underline decoration-neutral-300 decoration-2 underline-offset-4 transition hover:text-neutral-900 hover:decoration-neutral-500 disabled:pointer-events-none disabled:opacity-40 ${
+                      addCartVibrate ? 'animate-vibrate' : ''
                     }`}
                   >
                     Add to cart
@@ -1093,9 +1197,6 @@ export default function ProductDetailClient({
                       Limited stock — reserve yours today
                     </span>
                   </div>
-                  <p className="text-center text-[10px] font-medium uppercase tracking-wider text-neutral-500 sm:text-[11px] sm:normal-case sm:tracking-normal">
-                    Free shipping · 3–7 day delivery · 7-day returns
-                  </p>
                 </div>
               </div>
             )}
@@ -1145,18 +1246,30 @@ export default function ProductDetailClient({
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Size / Variant</p>
                     <div className="flex flex-wrap gap-2 lg:gap-2.5">
-                      {product.variants.map((v) => (
-                        <button
-                          key={v.id}
-                          type="button"
-                          onClick={() => setSelectedVariant(v)}
-                          className={`rounded-full sm:rounded-2xl border-2 px-4 py-2 text-sm font-medium transition ${
-                            variant?.id === v.id ? 'border-neutral-900 bg-neutral-900 text-white shadow-sm' : 'border-neutral-200 text-neutral-700 hover:border-neutral-300 bg-white'
-                          }`}
-                        >
-                          {v.name}
-                        </button>
-                      ))}
+                      {product.variants.map((v) => {
+                        const sel = variant?.id === v.id;
+                        const showStrike = v.compareAtPrice != null && Number(v.compareAtPrice) > Number(v.price || 0);
+                        return (
+                          <button
+                            key={v.id}
+                            type="button"
+                            onClick={() => setSelectedVariant(v)}
+                            className={`rounded-full sm:rounded-2xl border-2 px-4 py-2 text-left text-sm font-medium transition ${
+                              sel ? 'border-neutral-900 bg-neutral-900 text-white shadow-sm' : 'border-neutral-200 text-neutral-700 hover:border-neutral-300 bg-white'
+                            }`}
+                          >
+                            <span className="block leading-tight">{v.name}</span>
+                            <span className={`mt-1 block text-xs font-bold tabular-nums ${sel ? 'text-neutral-100' : 'text-neutral-900'}`}>
+                              {formatPrice(v.price, currency)}
+                            </span>
+                            {showStrike ? (
+                              <span className={`mt-0.5 block text-[11px] tabular-nums line-through ${sel ? 'text-neutral-400' : 'text-neutral-400'}`}>
+                                {formatPrice(v.compareAtPrice, currency)}
+                              </span>
+                            ) : null}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 ) : (
@@ -1266,21 +1379,15 @@ export default function ProductDetailClient({
             </div>
           </div>
 
-          {/* Mobile / tablet: free shipping + out of stock (variant & qty live in fixed bottom bar) */}
+          {/* Mobile / tablet: out of stock only (trust + shipping live in purchase card) */}
           <div className="space-y-2 lg:hidden">
-            <div className="pt-0 sm:pt-0.5">
-              <p className="text-[11px] sm:text-xs font-medium text-neutral-600 flex items-center gap-1">
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gold-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1h-1m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                </svg>
-                Free shipping
-              </p>
-              {product.inventory === 0 && (
+            {product.inventory === 0 ? (
+              <div className="pt-0 sm:pt-0.5">
                 <span className="mt-2 sm:mt-3 block rounded-xl border border-neutral-200 bg-neutral-100 py-2.5 sm:py-3 text-center text-xs sm:text-sm font-medium text-neutral-500">
                   Out of stock
                 </span>
-              )}
-            </div>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
@@ -1523,7 +1630,17 @@ export default function ProductDetailClient({
                     </span>
                     <span className="text-xs sm:text-sm font-semibold text-neutral-900">{r.authorName}</span>
                   </div>
-                  <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">{scrubMedicalTerms(r.body)}</p>
+                  {(() => {
+                    const { quote, outcome } = splitReviewQuoteAndOutcome(r.body);
+                    return (
+                      <>
+                        <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">{quote}</p>
+                        {outcome ? (
+                          <p className="mt-2 text-xs font-semibold leading-snug text-emerald-900 sm:text-sm">Outcome: {outcome}</p>
+                        ) : null}
+                      </>
+                    );
+                  })()}
                 </article>
               ))}
             </div>
@@ -1686,9 +1803,17 @@ export default function ProductDetailClient({
                       </span>
                       <span className="text-sm font-semibold text-neutral-900">{r.authorName}</span>
                     </div>
-                    <p className="text-sm leading-relaxed text-neutral-600 sm:text-[15px] sm:leading-[1.65]">
-                      {scrubMedicalTerms(r.body)}
-                    </p>
+                    {(() => {
+                      const { quote, outcome } = splitReviewQuoteAndOutcome(r.body);
+                      return (
+                        <>
+                          <p className="text-sm leading-relaxed text-neutral-600 sm:text-[15px] sm:leading-[1.65]">{quote}</p>
+                          {outcome ? (
+                            <p className="mt-2 text-sm font-semibold leading-snug text-emerald-900 sm:text-[15px]">Outcome: {outcome}</p>
+                          ) : null}
+                        </>
+                      );
+                    })()}
                   </div>
                 ))}
                 {primaryReviews.length > reviewPreviewCount && (
