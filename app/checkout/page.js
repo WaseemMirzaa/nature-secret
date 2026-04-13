@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from '@/components/Link';
 import Image from 'next/image';
@@ -122,15 +122,15 @@ export default function CheckoutPage() {
 
   const getProduct = (id) => (Array.isArray(products) ? products.find((p) => p.id === id) : null);
   /** Meta Pixel + CAPI: Advertising ID when set, else product UUID (`metaContentId`). */
-  const catalogIdForProduct = (productId) => {
-    const p = getProduct(productId);
+  const catalogIdForProduct = useCallback((productId) => {
+    const p = Array.isArray(products) ? products.find((x) => x.id === productId) : null;
     return p ? metaContentId(p) : '';
-  };
-  const metaCategoryIdForProduct = (productId) => {
-    const p = getProduct(productId);
+  }, [products]);
+  const metaCategoryIdForProduct = useCallback((productId) => {
+    const p = Array.isArray(products) ? products.find((x) => x.id === productId) : null;
     const id = p?.categoryAdvertisingId || p?.categoryId;
     return id ? String(id) : '';
-  };
+  }, [products]);
   const getVariant = (productId, variantId) => {
     const p = getProduct(productId);
     return p?.variants?.find((v) => v.id === variantId);
@@ -167,7 +167,7 @@ export default function CheckoutPage() {
       categoryIds,
       standardContents,
     );
-  }, [mounted, items, grandTotal, currency, products]);
+  }, [mounted, items, grandTotal, currency, catalogIdForProduct, metaCategoryIdForProduct]);
 
   useEffect(() => {
     if (!mounted || items.length === 0) return;
@@ -177,7 +177,18 @@ export default function CheckoutPage() {
     if (lastCheckoutViewKeyRef.current === key) return;
     lastCheckoutViewKeyRef.current = key;
     trackCheckoutPageView(grandTotal / 100, currency, contentIds);
-  }, [mounted, items, grandTotal, currency, form.email, form.name, form.phone, form.city, form.pincode, products]);
+  }, [
+    mounted,
+    items,
+    grandTotal,
+    currency,
+    form.email,
+    form.name,
+    form.phone,
+    form.city,
+    form.pincode,
+    catalogIdForProduct,
+  ]);
 
   function applyDiscount() {
     setDiscountError('');
