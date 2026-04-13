@@ -249,8 +249,11 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Product description — HTML content */
+/* Product description — HTML from API; force same stack as layout (`font-sans` / next/font Inter). */
 .product-description {
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  font-feature-settings: 'rlig' 1, 'calt' 1;
+  letter-spacing: -0.01em;
   line-height: 1.6;
   word-wrap: break-word;
 }
@@ -271,7 +274,9 @@ html {
 .product-description h2,
 .product-description h3,
 .product-description h4 {
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   font-weight: 600;
+  letter-spacing: -0.02em;
   margin-top: 1em;
   margin-bottom: 0.5em;
   color: #1c1917;
