@@ -827,7 +827,7 @@ export default function ProductDetailClient({
         <div className="relative w-full lg:max-w-xl xl:max-w-md lg:mx-0 mx-auto">
           <div className="max-lg:rounded-xl max-lg:overflow-hidden max-lg:border max-lg:border-neutral-200 max-lg:bg-neutral-50 max-lg:p-1.5 sm:max-lg:p-2 max-lg:flex max-lg:flex-col max-lg:items-stretch max-lg:gap-2.5 sm:max-lg:gap-3 lg:contents">
           <div
-            className="relative aspect-square w-full overflow-hidden rounded-lg sm:rounded-xl lg:rounded-2xl bg-neutral-100 shadow-sm lg:shadow-premium ring-1 ring-neutral-200/60 max-lg:aspect-[4/5] max-lg:rounded-[1.1rem] max-lg:border max-lg:border-white/90 max-lg:bg-neutral-50 max-lg:shadow-lift max-lg:ring-neutral-900/[0.04] max-lg:frame-media-inset"
+            className="relative w-full shrink-0 overflow-hidden rounded-lg sm:rounded-xl lg:rounded-2xl bg-neutral-100 shadow-sm lg:shadow-premium ring-1 ring-neutral-200/60 max-lg:rounded-[1.1rem] max-lg:border max-lg:border-white/90 max-lg:bg-neutral-50 max-lg:shadow-lift max-lg:ring-neutral-900/[0.04] max-lg:frame-media-inset"
             onMouseEnter={() => setZoom(true)}
             onMouseLeave={() => setZoom(false)}
           >
@@ -836,27 +836,30 @@ export default function ProductDetailClient({
                 {pctOff}% OFF
               </span>
             ) : null}
-            <div
-              className={`absolute inset-0 transition-transform duration-150 [transform-origin:center] ${
-                zoom ? 'scale-110' : ''
-              }`}
-            >
-              {serverHeroValid ? (
-                serverHeroImage
-              ) : (
-                <Image
-                  src={mainImage}
-                  alt={productDisplayName}
-                  fill
-                  className="object-contain"
-                  sizes={PRODUCT_HERO_IMAGE_SIZES}
-                  priority={clientHeroNeedsPriority}
-                  fetchPriority="high"
-                  quality={PRODUCT_HERO_IMAGE_QUALITY}
-                  decoding="async"
-                  loading="eager"
-                />
-              )}
+            {/* h-0 + padding-bottom reserves height before image paint (flex/`contents` + aspect-ratio can still CLS). */}
+            <div className="relative isolate w-full h-0 pb-[125%] lg:pb-[100%]">
+              <div
+                className={`absolute inset-0 transition-transform duration-150 [transform-origin:center] ${
+                  zoom ? 'scale-110' : ''
+                }`}
+              >
+                {serverHeroValid ? (
+                  serverHeroImage
+                ) : (
+                  <Image
+                    src={mainImage}
+                    alt={productDisplayName}
+                    fill
+                    className="object-contain"
+                    sizes={PRODUCT_HERO_IMAGE_SIZES}
+                    priority={true}
+                    fetchPriority="high"
+                    quality={PRODUCT_HERO_IMAGE_QUALITY}
+                    decoding="async"
+                    loading="eager"
+                  />
+                )}
+              </div>
             </div>
             <button
               type="button"

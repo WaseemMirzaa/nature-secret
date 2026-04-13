@@ -1,4 +1,3 @@
-import { getImageProps } from 'next/image';
 import ProductDetailClient from './ProductDetailClient';
 import ProductHeroServer from './ProductHeroServer';
 import {
@@ -7,7 +6,6 @@ import {
   resolveAbsoluteImageUrl,
   getDefaultHeroImageSrcForProduct,
 } from '@/lib/fetchProductServer';
-import { PRODUCT_HERO_IMAGE_QUALITY, PRODUCT_HERO_IMAGE_SIZES } from '@/lib/constants';
 
 function slugFromParams(params) {
   const raw = params?.id;
@@ -40,33 +38,11 @@ export default async function ProductPage({ params }) {
     fetchContentSettingsServer(),
   ]);
 
-  const lcpSrc = product ? getDefaultHeroImageSrcForProduct(product) : '';
-  let lcpPreload = null;
-  if (lcpSrc && !lcpSrc.includes('/assets/nature-secret-logo')) {
-    try {
-      const { props: lcpImg } = getImageProps({
-        src: lcpSrc,
-        alt: '',
-        fill: true,
-        sizes: PRODUCT_HERO_IMAGE_SIZES,
-        priority: true,
-        quality: PRODUCT_HERO_IMAGE_QUALITY,
-      });
-      lcpPreload = (
-        <link
-          rel="preload"
-          as="image"
-          href={lcpImg.src}
-          {...(lcpImg.srcSet
-            ? { imagesrcset: lcpImg.srcSet, imagesizes: lcpImg.sizes || PRODUCT_HERO_IMAGE_SIZES }
-            : {})}
-          fetchPriority="high"
-        />
-      );
-    } catch {
-      lcpPreload = null;
-    }
-  }
+  const productImageUrl = product ? getDefaultHeroImageSrcForProduct(product) : '';
+  const lcpPreload =
+    productImageUrl && !productImageUrl.includes('/assets/nature-secret-logo') ? (
+      <link rel="preload" as="image" href={productImageUrl} fetchPriority="high" />
+    ) : null;
 
   return (
     <>
@@ -78,8 +54,8 @@ export default async function ProductPage({ params }) {
         initialReviews={reviews}
         initialContentSettings={contentSettings}
       >
-        {product && lcpSrc && !lcpSrc.includes('/assets/nature-secret-logo') ? (
-          <ProductHeroServer src={lcpSrc} alt={product.name || 'Product'} />
+        {product && productImageUrl && !productImageUrl.includes('/assets/nature-secret-logo') ? (
+          <ProductHeroServer src={productImageUrl} alt={product.name || 'Product'} />
         ) : null}
       </ProductDetailClient>
     </>

@@ -14,7 +14,8 @@ export default function ProductHeroServer({ src, alt }) {
       fill
       className="object-contain transition-transform duration-300"
       sizes={PRODUCT_HERO_IMAGE_SIZES}
-      priority
+      priority={true}
+      loading="eager"
       fetchPriority="high"
       decoding="sync"
       quality={PRODUCT_HERO_IMAGE_QUALITY}
