@@ -19,7 +19,7 @@ export function MetaPixelLoader() {
       if (isMetaDebugEnabled()) {
         metaDebug('MetaPixelLoader', {
           injected: false,
-          reason: 'session gate closed (see lib/meta-pixel-gate.js, NEXT_PUBLIC_META_OPEN_PIXEL_GATE)',
+          reason: 'session gate closed (first paint not home/shop/PDP/checkout — lib/meta-pixel-gate.js)',
         });
       }
       return;
