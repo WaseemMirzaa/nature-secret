@@ -31,6 +31,7 @@ import { BlogCategory } from './entities/blog-category.entity';
 import { BlogTemplate } from './entities/blog-template.entity';
 import { AnalyticsEvent } from './entities/analytics-event.entity';
 import { DiscountCode } from './entities/discount-code.entity';
+import { PAINREX_PRODUCT_DESCRIPTION_HTML } from './seed-painrex-description';
 
 const ALL_ENTITIES = [
   AdminUser,
@@ -141,6 +142,121 @@ async function run() {
       await slideRepo.save(slideRepo.create(DEFAULT_HERO_SLIDES[i]));
     }
     console.log('Seeded hero slides:', DEFAULT_HERO_SLIDES.length);
+  }
+
+  const productRepo = dataSource.getRepository(Product);
+  const variantRepo = dataSource.getRepository(ProductVariant);
+  const customerRepo = dataSource.getRepository(Customer);
+
+  const herbalCat = await categoryRepo.findOne({ where: { slug: 'herbal-oil' } });
+  if (herbalCat) {
+    const demoSlug = 'nature-secret-px-oil';
+    let demoProduct = await productRepo.findOne({ where: { slug: demoSlug }, relations: ['variants'] });
+    if (!demoProduct) {
+      demoProduct = productRepo.create({
+        name: 'Painrex Oil',
+        slug: demoSlug,
+        categoryId: herbalCat.id,
+        badge: 'Bestseller',
+        badgeSub: 'Top selling',
+        price: 49900,
+        description: PAINREX_PRODUCT_DESCRIPTION_HTML,
+        benefits: [
+          'Relaxing massage for neck & muscles',
+          'Comforting joints & tight-feeling areas',
+          'Daily unwind ritual',
+          'Fast-absorbing texture',
+          'Non-greasy finish',
+        ],
+        images: ['/assets/nature-secret-logo.svg'],
+        rating: 4.8,
+        reviewCount: 37,
+        inventory: 100,
+        isBestseller: true,
+        outOfStock: false,
+        faq: [
+          { q: 'Where to use?', a: 'For external body care use. Apply as needed to clean skin.' },
+          { q: 'How to apply?', a: 'Apply a few drops to the desired area and massage gently.' },
+        ],
+      });
+      await productRepo.save(demoProduct);
+      await variantRepo.save([
+        variantRepo.create({
+          productId: demoProduct.id,
+          name: '50 ml',
+          volume: '50ml',
+          price: 49900,
+          image: '/assets/nature-secret-logo.svg',
+        }),
+        variantRepo.create({
+          productId: demoProduct.id,
+          name: '100 ml',
+          volume: '100ml',
+          price: 89900,
+          image: '/assets/nature-secret-logo.svg',
+        }),
+      ]);
+      console.log('Seeded demo product:', demoSlug);
+    } else {
+      demoProduct.name = 'Painrex Oil';
+      demoProduct.description = PAINREX_PRODUCT_DESCRIPTION_HTML;
+      demoProduct.reviewCount = 37;
+      await productRepo.save(demoProduct);
+      console.log('Updated demo product copy:', demoSlug);
+    }
+
+    const quickSlug = 'demo-product';
+    let quick = await productRepo.findOne({ where: { slug: quickSlug }, relations: ['variants'] });
+    if (!quick) {
+      quick = productRepo.create({
+        name: 'Demo product (local test)',
+        slug: quickSlug,
+        categoryId: herbalCat.id,
+        badge: 'Demo',
+        badgeSub: 'Testing',
+        price: 10000,
+        description:
+          '<p><strong>Local demo product.</strong> Open this page at <code>/shop/demo-product</code> to test checkout and PDP.</p>',
+        benefits: ['Test add to cart', 'Test Order Now', 'Safe to delete in production'],
+        images: ['/assets/nature-secret-logo.svg'],
+        rating: 4.9,
+        reviewCount: 12,
+        inventory: 99,
+        isBestseller: false,
+        outOfStock: false,
+        faq: [{ q: 'Is this real stock?', a: 'No — for development and QA only.' }],
+      });
+      await productRepo.save(quick);
+      await variantRepo.save([
+        variantRepo.create({
+          productId: quick.id,
+          name: '50 ml',
+          volume: '50ml',
+          price: 10000,
+          image: '/assets/nature-secret-logo.svg',
+        }),
+      ]);
+      console.log('Seeded demo product for testing:', quickSlug, '→ /shop/' + quickSlug);
+    }
+  }
+
+  const demoCustomers = [
+    { email: 'customer1@demo.local', password: 'Demo123!', name: 'Demo Customer One' },
+    { email: 'customer2@demo.local', password: 'Demo123!', name: 'Demo Customer Two' },
+  ];
+  for (const c of demoCustomers) {
+    const existing = await customerRepo.findOne({ where: { email: c.email } });
+    if (!existing) {
+      const hash = await bcrypt.hash(c.password, 10);
+      await customerRepo.save(
+        customerRepo.create({
+          email: c.email,
+          passwordHash: hash,
+          name: c.name,
+        }),
+      );
+      console.log('Seeded demo customer:', c.email);
+    }
   }
 
   console.log('DB setup completed.');

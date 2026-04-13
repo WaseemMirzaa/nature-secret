@@ -12,6 +12,7 @@ import {
   getCategories,
   getContentSettings,
 } from '@/lib/api';
+import { getDevFallbackCategories, getDevFallbackProducts } from '@/lib/devCatalogFallback';
 const HomeBelowFold = dynamic(() => import('@/components/HomeBelowFold'), {
   loading: () => <div className="min-h-[40vh] w-full bg-page-canvas" aria-hidden />,
   ssr: true,
@@ -54,6 +55,8 @@ export default function HomeContent({
   const ssrSlides = useMemo(() => mapSliderSlides(initialSlider), [initialSlider]);
   const heroSlides = clientSlider != null ? clientSlider : ssrSlides;
 
+  const isDev = process.env.NODE_ENV === 'development';
+
   const products = clientProducts != null ? clientProducts : initialProducts;
   const categories = clientCategories != null ? clientCategories : initialCategories;
 
@@ -72,15 +75,23 @@ export default function HomeContent({
     getProducts({ limit: 48 })
       .then((res) => {
         if (cancelled) return;
-        const list = Array.isArray(res?.data) ? res.data : [];
+        let list = Array.isArray(res?.data) ? res.data : [];
+        if (isDev && list.length === 0) list = getDevFallbackProducts();
         setClientProducts(list);
         if (list.length) setStoreProducts(list);
         setProductsError(list.length === 0);
       })
       .catch(() => {
         if (!cancelled) {
-          setProductsError(true);
-          setClientProducts([]);
+          if (isDev) {
+            const list = getDevFallbackProducts();
+            setClientProducts(list);
+            setStoreProducts(list);
+            setProductsError(false);
+          } else {
+            setProductsError(true);
+            setClientProducts([]);
+          }
         }
       });
     return () => {
@@ -93,10 +104,13 @@ export default function HomeContent({
     let cancelled = false;
     getCategories()
       .then((list) => {
-        if (!cancelled) setClientCategories(Array.isArray(list) ? list : []);
+        if (cancelled) return;
+        let next = Array.isArray(list) ? list : [];
+        if (isDev && next.length === 0) next = getDevFallbackCategories();
+        setClientCategories(next);
       })
       .catch(() => {
-        if (!cancelled) setClientCategories([]);
+        if (!cancelled) setClientCategories(isDev ? getDevFallbackCategories() : []);
       });
     return () => {
       cancelled = true;
