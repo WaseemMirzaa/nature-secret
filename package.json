@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "next dev",
+    "dev:mock": "NEXT_PUBLIC_UI_MOCK=1 next dev",
     "db:reset": "bash scripts/setup-local-mysql.sh",
     "db:seed:reviews": "cd backend && npm run db:seed:reviews",
     "build": "NODE_OPTIONS='--max-old-space-size=4096' next build",

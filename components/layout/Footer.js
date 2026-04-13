@@ -28,8 +28,8 @@ export function Footer() {
   }, []);
 
   return (
-    <footer className="border-t border-neutral-200 bg-white mt-16 sm:mt-20 lg:mt-24">
-      <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-6 sm:py-10 lg:py-16">
+    <footer className="border-t border-neutral-200/60 bg-page-canvas mt-16 sm:mt-20 lg:mt-24">
+      <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-8 sm:py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 sm:gap-9 lg:gap-12">
           <div className="md:col-span-2">
             <Logo className="h-9 sm:h-10" />
@@ -40,19 +40,19 @@ export function Footer() {
               Nationwide delivery · Arrives in 3–7 days · Quality assured
             </p>
             <FooterContact />
-            <div className="mt-6 h-px w-12 bg-gold-400/60" aria-hidden />
+            <div className="mt-6 h-px w-10 bg-neutral-900/15" aria-hidden />
           </div>
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-gold-700/90">Shop</h3>
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">Shop</h3>
             <ul className="mt-3 sm:mt-4 space-y-2 sm:space-y-3">
-              <li><Link href="/shop" className="text-xs sm:text-sm text-neutral-600 hover:text-gold-700 transition-colors">All products</Link></li>
+              <li><Link href="/shop" className="text-xs sm:text-sm text-neutral-600 hover:text-neutral-900 transition-colors">All products</Link></li>
               {Array.isArray(categories) &&
                 categories.map((c) =>
                   c?.slug ? (
                     <li key={c.id || c.slug}>
                       <Link
                         href={`/shop?category=${encodeURIComponent(c.slug)}`}
-                        className="text-xs sm:text-sm text-neutral-600 hover:text-gold-700 transition-colors"
+                        className="text-xs sm:text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
                       >
                         {c.name || c.slug}
                       </Link>
@@ -62,20 +62,20 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-gold-700/90">Company</h3>
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">Company</h3>
             <ul className="mt-3 sm:mt-4 space-y-2 sm:space-y-3">
-              <li><Link href="/blog" className="text-xs sm:text-sm text-neutral-600 hover:text-gold-700 transition-colors">Journal</Link></li>
-              <li><Link href="/about" className="text-xs sm:text-sm text-neutral-600 hover:text-gold-700 transition-colors">About</Link></li>
-              <li><Link href="/contact" className="text-xs sm:text-sm text-neutral-600 hover:text-gold-700 transition-colors">Contact</Link></li>
+              <li><Link href="/blog" className="text-xs sm:text-sm text-neutral-600 hover:text-neutral-900 transition-colors">Journal</Link></li>
+              <li><Link href="/about" className="text-xs sm:text-sm text-neutral-600 hover:text-neutral-900 transition-colors">About</Link></li>
+              <li><Link href="/contact" className="text-xs sm:text-sm text-neutral-600 hover:text-neutral-900 transition-colors">Contact</Link></li>
             </ul>
           </div>
         </div>
         <div className="mt-8 sm:mt-12 lg:mt-14 pt-6 sm:pt-8 border-t border-neutral-200/80 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4">
           <p className="text-xs text-neutral-500">© {new Date().getFullYear()} Nature Secret. All rights reserved.</p>
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6 lg:gap-8">
-            <Link href="/privacy" className="text-xs text-neutral-500 hover:text-gold-600 transition-colors">Privacy</Link>
-            <Link href="/terms" className="text-xs text-neutral-500 hover:text-gold-600 transition-colors">Terms</Link>
-            <Link href="/kids-safety" className="text-xs text-neutral-500 hover:text-gold-600 transition-colors">Kids safety</Link>
+            <Link href="/privacy" className="text-xs text-neutral-500 hover:text-neutral-800 transition-colors">Privacy</Link>
+            <Link href="/terms" className="text-xs text-neutral-500 hover:text-neutral-800 transition-colors">Terms</Link>
+            <Link href="/kids-safety" className="text-xs text-neutral-500 hover:text-neutral-800 transition-colors">Kids safety</Link>
           </div>
         </div>
         <p className="mt-4 pb-12 sm:pb-14 lg:pb-16 text-[11px] sm:text-xs text-neutral-500 leading-relaxed max-w-4xl">{footerDisclaimer}</p>

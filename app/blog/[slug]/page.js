@@ -52,7 +52,7 @@ export default function BlogPostPage() {
     return (
       <div className="min-h-screen bg-page-canvas">
         <div className="mx-auto max-w-3xl px-3 sm:px-5 lg:px-8 py-6 sm:py-12 lg:py-16">
-          <Link href="/blog" className="text-xs sm:text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/40 pb-0.5 inline-flex items-center gap-1">
+          <Link href="/blog" className="text-xs sm:text-sm font-medium text-neutral-700 hover:text-neutral-900 border-b border-neutral-300 pb-0.5 inline-flex items-center gap-1">
             ← Journal
           </Link>
           <p className="mt-5 sm:mt-8 text-sm sm:text-base text-neutral-600">This post isn&apos;t available or the content is updating. Try again later or browse the journal.</p>
@@ -68,12 +68,12 @@ export default function BlogPostPage() {
   return (
     <div className="min-h-screen bg-page-canvas">
       <article className="mx-auto max-w-3xl px-3 sm:px-5 lg:px-8 py-5 sm:py-10 lg:py-20">
-        <Link href="/blog" className="text-xs sm:text-sm font-medium text-neutral-500 hover:text-gold-600 transition-colors inline-flex items-center gap-1 mb-4 sm:mb-8 lg:mb-10">
+        <Link href="/blog" className="text-xs sm:text-sm font-medium text-neutral-500 hover:text-neutral-900 transition-colors inline-flex items-center gap-1 mb-4 sm:mb-8 lg:mb-10">
           ← Journal
         </Link>
 
         <header className="mb-5 sm:mb-8 lg:mb-10">
-          <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-600">
+          <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
             {getTemplateLabel(post.template)}
           </p>
           <h1 className="mt-2 sm:mt-3 text-2xl sm:text-3xl lg:text-[2.75rem] font-semibold text-neutral-900 tracking-tight leading-[1.15]">
@@ -101,7 +101,7 @@ export default function BlogPostPage() {
 
         {relatedProducts.length > 0 && (
           <aside className="mt-10 sm:mt-14 lg:mt-16 pt-8 sm:pt-10 lg:pt-12 border-t border-neutral-200">
-            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 mb-3 sm:mb-4">Related products</p>
+            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500 mb-3 sm:mb-4">Related products</p>
             <div className="flex flex-wrap gap-3 sm:gap-4">
               {relatedProducts.map((p) => {
                 const img = p.images?.[0] || '/assets/nature-secret-logo.svg';
@@ -110,7 +110,7 @@ export default function BlogPostPage() {
                   <Link
                     key={p.id}
                     href={`/shop/${productPath(p)}`}
-                    className="flex items-center gap-2 sm:gap-3 rounded-full sm:rounded-2xl border border-neutral-200 bg-white px-3 sm:px-4 py-2.5 sm:py-3 shadow-soft hover:border-gold-400/40 hover:shadow-gold-sm transition-all duration-200"
+                    className="flex items-center gap-2 sm:gap-3 rounded-full sm:rounded-2xl border border-neutral-200 bg-white px-3 sm:px-4 py-2.5 sm:py-3 shadow-soft hover:border-neutral-400 hover:shadow-md transition-all duration-200"
                   >
                     <div className="relative h-10 w-10 sm:h-12 sm:w-12 rounded-lg overflow-hidden bg-neutral-100 flex-shrink-0">
                       <Image src={img} alt={name} fill className="object-cover" sizes="48px" unoptimized={!img.startsWith('http')} />
@@ -124,7 +124,7 @@ export default function BlogPostPage() {
         )}
 
         <div className="mt-10 sm:mt-14 lg:mt-16 rounded-xl sm:rounded-2xl border border-neutral-200 bg-white p-5 sm:p-8 lg:p-10 text-center shadow-soft">
-          <div className="inline-block w-10 h-px bg-gold-400/50 mb-4 sm:mb-5" aria-hidden />
+          <div className="inline-block w-10 h-px bg-neutral-300 mb-4 sm:mb-5" aria-hidden />
           <h3 className="text-base sm:text-lg font-semibold text-neutral-900">Stay in the loop</h3>
           <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-neutral-500 max-w-md mx-auto">Tips, ingredients, and updates—no clutter.</p>
           <form className="mt-4 sm:mt-6 flex flex-col sm:flex-row gap-2 sm:gap-3 max-w-sm mx-auto" onSubmit={(e) => e.preventDefault()}>
@@ -135,7 +135,7 @@ export default function BlogPostPage() {
             />
             <button
               type="submit"
-              className="rounded-full sm:rounded-2xl bg-neutral-900 px-6 py-3 text-sm font-medium text-white hover:bg-neutral-800 transition-colors"
+              className="btn-gold-primary rounded-full sm:rounded-2xl px-6 py-3 text-sm font-semibold text-white transition hover:shadow-lg"
             >
               Subscribe
             </button>

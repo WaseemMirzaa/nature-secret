@@ -339,54 +339,105 @@ export default function CheckoutPage() {
   if (!mounted) return <CustomerPageLoader message="Loading" />;
 
   const fieldClass =
-    'w-full rounded-2xl border border-neutral-600 bg-gradient-to-b from-white to-gold-50/[0.35] px-2.5 py-2 text-base leading-snug text-neutral-900 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9)] placeholder:text-neutral-400/85 placeholder:text-sm max-sm:placeholder:font-normal transition-all duration-200 hover:border-neutral-700 hover:shadow-[0_1px_6px_-3px_rgba(0,0,0,0.06)] focus:border-neutral-700 focus:bg-white focus:shadow-[0_0_0_3px_rgba(82,82,82,0.16)] focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 sm:border-2 sm:border-neutral-600 sm:px-3 sm:py-2.5 sm:text-sm sm:leading-snug lg:px-3.5 lg:py-3 lg:text-[0.9375rem]';
+    'w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-[15px] leading-snug text-neutral-900 placeholder:text-neutral-400 placeholder:text-sm transition focus:border-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 sm:text-sm sm:py-3';
 
   const labelClass =
-    'block mb-0.5 sm:mb-1 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.12em] sm:tracking-wide text-neutral-600';
+    'block mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-600';
 
-  /** Cards: low lift + soft wide penumbra (more visible shadow, less “floating”) */
-  const checkoutCardShadow =
-    'shadow-[0_1px_2px_rgba(0,0,0,0.055),0_10px_32px_-12px_rgba(0,0,0,0.095),inset_0_1px_0_0_rgba(255,255,255,0.88)] sm:shadow-[0_2px_4px_rgba(0,0,0,0.06),0_14px_40px_-14px_rgba(0,0,0,0.105),inset_0_1px_0_0_rgba(255,255,255,0.88)]';
   const cardSurface =
-    `rounded-[1.75rem] border-0 bg-gradient-to-br from-white via-white to-neutral-50/50 ${checkoutCardShadow} sm:rounded-2xl`;
+    'rounded-2xl border border-neutral-200/90 bg-white/95 shadow-premium backdrop-blur-[2px] sm:rounded-2xl';
 
   const sectionTitle =
-    'text-[10px] sm:text-xs font-bold text-neutral-900 border-l-[3px] border-gold-500 pl-2 sm:pl-2.5 tracking-tight';
+    'font-display text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.16em] text-neutral-900 border-l-[3px] border-brand-gold pl-2.5 sm:pl-3';
+
+  const untilFreeShippingCents = total >= 99900 ? 0 : Math.max(0, 99900 - total);
 
   if (items.length === 0 && !placing) {
     return (
-      <div className="mx-auto max-w-lg px-3 sm:px-5 py-6 sm:py-14 lg:py-16 text-center">
-        <p className="text-sm sm:text-base text-neutral-600">Your cart is empty.</p>
-        <Link href="/shop" className="mt-4 inline-block font-medium text-gold-800 hover:text-gold-700">
-          Continue shopping
-        </Link>
+      <div className="checkout-page bg-section-ambient min-h-[70vh] px-4 py-12 sm:py-20">
+        <div className="mx-auto max-w-md rounded-2xl border border-neutral-200/90 bg-white/90 p-8 text-center shadow-premium">
+          <p className="font-display text-lg font-semibold text-neutral-900">Your bag is empty</p>
+          <p className="mt-2 text-sm text-neutral-600 leading-relaxed">Add something you love — we ship COD nationwide.</p>
+          <Link
+            href="/shop"
+            className="btn-pdp-order-now mt-6 inline-flex min-h-[3rem] w-full items-center justify-center rounded-2xl px-5 text-sm font-semibold transition hover:opacity-95"
+          >
+            Browse the shop
+          </Link>
+        </div>
       </div>
     );
   }
 
   const ctaBase =
-    'checkout-cta-animated inline-flex items-center justify-center rounded-full sm:rounded-2xl bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800 px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_3px_12px_-6px_rgba(0,0,0,0.22),0_0_0_1px_rgba(212,175,55,0.1)] ring-1 ring-inset ring-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_5px_18px_-8px_rgba(0,0,0,0.28)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/60 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 disabled:hover:scale-100 motion-reduce:transition-none motion-reduce:hover:scale-100 sm:px-6 sm:py-3.5 sm:text-[0.9375rem]';
+    'btn-pdp-order-now inline-flex items-center justify-center rounded-2xl px-5 py-3 text-[15px] font-semibold shadow-md transition hover:opacity-95 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 motion-reduce:active:scale-100 sm:py-3.5 sm:text-base';
 
   return (
-    <div className="checkout-page mx-auto max-w-6xl px-3 sm:px-5 lg:px-8 py-4 sm:py-6 lg:py-12 pb-10 sm:pb-12 lg:pb-16">
-      <div className="mb-5 sm:mb-6 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4 animate-checkout-enter motion-reduce:animate-none motion-reduce:opacity-100">
+    <div className="checkout-page bg-section-ambient min-h-screen">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-10 py-6 sm:py-10 lg:py-12 pb-28 sm:pb-32">
+      <div className="mb-6 sm:mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between animate-checkout-enter motion-reduce:animate-none motion-reduce:opacity-100">
         <div className="min-w-0">
-          <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.16em] sm:tracking-[0.18em] text-gold-700/90 mb-0.5 sm:mb-1">
-            Almost there
-          </p>
-          <h1 className="text-base sm:text-lg lg:text-xl font-bold text-neutral-900 tracking-tight">
+          <nav className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium text-neutral-500" aria-label="Checkout progress">
+            <Link href="/shop" className="hover:text-neutral-800 transition">
+              Shop
+            </Link>
+            <span aria-hidden className="text-neutral-300">
+              /
+            </span>
+            <span className="text-neutral-900">Checkout</span>
+            <span aria-hidden className="text-neutral-300">
+              /
+            </span>
+            <span className="text-neutral-400">Confirmation</span>
+          </nav>
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">Secure checkout</p>
+          <h1 className="font-display mt-1 text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl">
             Complete your order
           </h1>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-neutral-600">
+            Pay cash on delivery when your parcel arrives. Free shipping on orders over {formatPrice(99900, currency)}.
+          </p>
         </div>
+        <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200/90 bg-white/80 px-3 py-1.5 text-[11px] font-semibold text-neutral-800 shadow-sm">
+            <span className="h-1.5 w-1.5 rounded-full bg-brand-gold" aria-hidden />
+            COD · No card needed
+          </span>
+        </div>
+      </div>
+
+      <div
+        className="mb-6 grid gap-3 rounded-2xl border border-neutral-200/60 bg-white/60 p-3 shadow-sm backdrop-blur-sm sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-neutral-200/80 sm:p-0"
+        role="region"
+        aria-label="Why order with us"
+      >
+        {[
+          { t: 'Cash on delivery', d: 'Inspect your order, then pay the courier.' },
+          { t: 'Fast dispatch', d: 'Most orders ship within 1–2 business days.' },
+          { t: 'Easy returns', d: '7-day window on qualifying orders.' },
+        ].map((row) => (
+          <div key={row.t} className="flex gap-3 px-3 py-2.5 sm:px-4 sm:py-3.5">
+            <span
+              className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-neutral-200/80 bg-accent-cream text-xs font-bold text-neutral-800"
+              aria-hidden
+            >
+              ✓
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-neutral-900">{row.t}</p>
+              <p className="mt-0.5 text-[12px] leading-snug text-neutral-600">{row.d}</p>
+            </div>
+          </div>
+        ))}
       </div>
       <form ref={formRef} id="checkout-form" onSubmit={handleSubmit}>
         <div className="flex flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_min(20rem,32%)] lg:gap-x-8 xl:grid-cols-[minmax(0,1fr)_min(22rem,380px)] xl:gap-x-12 lg:items-start">
           <div className="space-y-4 sm:space-y-6 lg:space-y-7 min-w-0">
         <section
           id="checkout-contact"
-          className={`scroll-mt-24 animate-checkout-enter checkout-enter-delay-1 motion-reduce:animate-none motion-reduce:opacity-100 p-3.5 sm:p-4 ${cardSurface}`}
+          className={`scroll-mt-24 animate-checkout-enter checkout-enter-delay-1 motion-reduce:animate-none motion-reduce:opacity-100 p-4 sm:p-5 ${cardSurface}`}
         >
-          <h2 className={`${sectionTitle} mb-2.5 sm:mb-3`}>Contact & delivery</h2>
+          <h2 className={`${sectionTitle} mb-3 sm:mb-4`}>Contact & delivery</h2>
           <div className="space-y-3 sm:space-y-3.5">
             {/* Honeypot: hidden; if filled, submit is rejected client-side (no Meta/API). */}
             <div className="hidden" aria-hidden="true">
@@ -424,7 +475,7 @@ export default function CheckoutPage() {
                   className={`min-w-0 ${fieldClass}`}
                   aria-describedby="checkout-phone-hint"
                 />
-                <p id="checkout-phone-hint" className="mt-0.5 sm:mt-1 text-[10px] sm:text-[11px] font-medium text-gold-800/75">
+                <p id="checkout-phone-hint" className="mt-0.5 sm:mt-1 text-[10px] sm:text-[11px] font-medium text-neutral-500">
                   At least 10 digits
                 </p>
               </div>
@@ -517,50 +568,59 @@ export default function CheckoutPage() {
           </div>
         </section>
 
-        <section className={`animate-checkout-enter checkout-enter-delay-2 motion-reduce:animate-none motion-reduce:opacity-100 p-3.5 sm:p-4 ${cardSurface}`}>
-          <h2 className={`${sectionTitle} mb-2 sm:mb-2.5`}>Shipping method</h2>
-          <div className="flex items-center justify-between gap-3 rounded-2xl border-0 bg-gradient-to-br from-neutral-50/90 to-white px-3 py-2.5 sm:px-4 sm:py-3.5 text-xs sm:text-sm shadow-[0_2px_10px_-4px_rgba(0,0,0,0.08)]">
-            <span className="font-medium text-neutral-800">Standard</span>
-            <span className="font-semibold tabular-nums text-neutral-900">
-              {shipping === 0 ? 'Free' : formatPrice(shipping, currency)}
+        <section className={`animate-checkout-enter checkout-enter-delay-2 motion-reduce:animate-none motion-reduce:opacity-100 p-4 sm:p-5 ${cardSurface}`}>
+          <h2 className={`${sectionTitle} mb-3`}>Shipping</h2>
+          <div className="flex items-start justify-between gap-4 rounded-xl border border-neutral-200/90 bg-accent-cream/90 px-4 py-3.5 sm:py-4">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-neutral-900">Standard delivery</p>
+              <p className="mt-1 text-[12px] leading-snug text-neutral-600">Tracked nationwide · typical arrival 3–7 days</p>
+            </div>
+            <span className="shrink-0 rounded-full border border-neutral-900/10 bg-white px-3 py-1 text-xs font-bold tabular-nums text-neutral-900">
+              {shipping === 0 ? 'FREE' : formatPrice(shipping, currency)}
             </span>
           </div>
         </section>
 
-        <section className={`animate-checkout-enter checkout-enter-delay-3 motion-reduce:animate-none motion-reduce:opacity-100 p-3.5 sm:p-4 ${cardSurface}`}>
-          <h2 className={`${sectionTitle} mb-2 sm:mb-3`}>Payment</h2>
-          <div className="rounded-2xl border-0 bg-gold-100 px-3 py-2.5 sm:px-4 sm:py-3.5 text-xs sm:text-sm font-semibold text-neutral-900 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.07)]">
-            Cash on delivery (COD)
+        <section className={`animate-checkout-enter checkout-enter-delay-3 motion-reduce:animate-none motion-reduce:opacity-100 p-4 sm:p-5 ${cardSurface}`}>
+          <h2 className={`${sectionTitle} mb-3`}>Payment</h2>
+          <div className="rounded-xl border-2 border-brand-gold/50 bg-accent-cream px-4 py-3.5 sm:py-4">
+            <p className="text-sm font-bold text-neutral-900">Cash on delivery</p>
+            <p className="mt-1 text-[12px] leading-relaxed text-neutral-700">
+              Pay the courier when your order arrives — zero upfront payment, zero card risk.
+            </p>
           </div>
         </section>
 
-        <section className={`animate-checkout-enter checkout-enter-delay-4 motion-reduce:animate-none motion-reduce:opacity-100 p-3.5 sm:p-4 ${cardSurface}`}>
-          <h2 className={`${sectionTitle} mb-2 sm:mb-2.5`}>Discount</h2>
-          <div className="flex gap-1.5 sm:gap-2 items-stretch">
-            <input
-              id="checkout-discount-code"
-              type="text"
-              name="discountCode"
-              autoComplete="off"
-              placeholder="Code"
-              value={discountCode}
-              onChange={(e) => setDiscountCode(e.target.value)}
-              className={`flex-1 min-w-0 ${fieldClass}`}
-            />
-            <button
-              type="button"
-              onClick={applyDiscount}
-              className="shrink-0 self-stretch rounded-full sm:rounded-2xl bg-gradient-to-br from-neutral-900 to-neutral-800 px-3.5 sm:px-4 py-2 text-[12px] sm:text-sm font-semibold text-white shadow-[0_2px_8px_-4px_rgba(0,0,0,0.18)] ring-1 ring-neutral-500/25 transition hover:scale-[1.02] active:scale-[0.98] motion-reduce:hover:scale-100 touch-manipulation min-w-[4.25rem] sm:min-w-0"
-            >
-              Apply
-            </button>
+        <section className={`animate-checkout-enter checkout-enter-delay-4 motion-reduce:animate-none motion-reduce:opacity-100 p-4 sm:p-5 ${cardSurface}`}>
+          <h2 className={`${sectionTitle} mb-2 sm:mb-3`}>Promo code</h2>
+          <p className="mb-2 text-[12px] text-neutral-600">Have a code? Unlock instant savings on this order.</p>
+          <div className="rounded-xl border border-neutral-200/80 bg-accent-cream/80 p-2 sm:p-2.5">
+            <div className="flex gap-2 items-stretch">
+              <input
+                id="checkout-discount-code"
+                type="text"
+                name="discountCode"
+                autoComplete="off"
+                placeholder="Enter code"
+                value={discountCode}
+                onChange={(e) => setDiscountCode(e.target.value)}
+                className="flex-1 min-w-0 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 transition focus:border-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-900/10"
+              />
+              <button
+                type="button"
+                onClick={applyDiscount}
+                className="btn-gold-primary shrink-0 self-stretch rounded-full sm:rounded-2xl px-3.5 sm:px-4 py-2 text-[12px] sm:text-sm text-white transition hover:scale-[1.02] active:scale-[0.98] motion-reduce:hover:scale-100 touch-manipulation min-w-[4.25rem] sm:min-w-0"
+              >
+                Apply
+              </button>
+            </div>
           </div>
           {discountError && (
             <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs font-medium text-red-600">{discountError}</p>
           )}
           {appliedDiscount && !discountError && (
-            <div className="mt-2.5 sm:mt-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-emerald-50/90 border border-emerald-200/60 px-2.5 py-1.5 sm:px-3 sm:py-2">
-              <p className="text-[11px] sm:text-xs font-medium text-emerald-800 leading-snug">
+            <div className="mt-2.5 sm:mt-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-accent-cream border border-emerald-800/15 px-2.5 py-1.5 sm:px-3 sm:py-2">
+              <p className="text-[11px] sm:text-xs font-medium text-emerald-900 leading-snug">
                 {isNsPromoCode(appliedDiscount)
                   ? `${NS_PROMO_CODE} applied — Rs 150 off`
                   : `Code applied (${codes[appliedDiscount]}% off)`}
@@ -577,9 +637,18 @@ export default function CheckoutPage() {
         </section>
           </div>
 
-        <aside className="mt-6 sm:mt-7 space-y-3 sm:space-y-4 lg:mt-0 animate-checkout-enter checkout-enter-delay-5 motion-reduce:animate-none motion-reduce:opacity-100 min-w-0">
-          <section className={`p-3 sm:p-4 ${cardSurface}`}>
-          <h2 className={`${sectionTitle} mb-2 sm:mb-2.5`}>Order summary</h2>
+        <aside className="mt-6 space-y-4 sm:mt-8 sm:space-y-4 lg:mt-0 lg:sticky lg:top-24 lg:self-start animate-checkout-enter checkout-enter-delay-5 motion-reduce:animate-none motion-reduce:opacity-100 min-w-0">
+          {untilFreeShippingCents > 0 ? (
+            <div className="rounded-xl border border-brand-gold/40 bg-accent-cream px-3 py-2.5 text-center sm:px-4 sm:py-3">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-neutral-900">Almost free shipping</p>
+              <p className="mt-1 text-xs font-medium text-neutral-700">
+                Add <span className="tabular-nums font-bold text-neutral-900">{formatPrice(untilFreeShippingCents, currency)}</span> more for{' '}
+                <span className="font-semibold text-neutral-900">free delivery</span>
+              </p>
+            </div>
+          ) : null}
+          <section className={`p-4 sm:p-5 ${cardSurface}`}>
+          <h2 className={`${sectionTitle} mb-3`}>Your bag</h2>
             <ul className="space-y-3 mb-4 max-h-[min(50vh,320px)] overflow-y-auto overscroll-contain -mr-1 pr-1 touch-pan-y sm:max-h-none sm:overflow-visible">
               {items.map((i) => {
                 const p = getProduct(i.productId);
@@ -587,12 +656,12 @@ export default function CheckoutPage() {
                 const imgSrc = variant?.image || p?.images?.[0] || '/assets/nature-secret-logo.svg';
                 const lineTotal = i.price * i.qty;
                 return (
-                  <li key={`${i.productId}-${i.variantId ?? 'default'}`} className="flex gap-2 sm:gap-2.5 lg:gap-3">
-                    <div className="relative h-11 w-11 sm:h-[3.25rem] sm:w-[3.25rem] lg:h-14 lg:w-14 rounded-2xl sm:rounded-md lg:rounded-lg overflow-hidden bg-white flex-shrink-0 ring-1 ring-neutral-200/90">
-                      <Image src={imgSrc} alt="" fill className="object-cover" sizes="56px" unoptimized={!imgSrc.startsWith('http')} />
+                  <li key={`${i.productId}-${i.variantId ?? 'default'}`} className="flex gap-3 sm:gap-3.5">
+                    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-neutral-200/90 bg-neutral-50 shadow-sm">
+                      <Image src={imgSrc} alt="" fill className="object-contain p-0.5" sizes="56px" unoptimized={!imgSrc.startsWith('http')} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[11px] sm:text-sm font-medium text-neutral-900 truncate leading-snug sm:leading-tight">
+                      <p className="text-[13px] sm:text-sm font-semibold text-neutral-900 truncate leading-snug">
                         {p?.name ?? i.name ?? 'Product'}
                         {variant ? ` (${variant.name})` : ''}
                       </p>
@@ -601,7 +670,7 @@ export default function CheckoutPage() {
                           <button
                             type="button"
                             onClick={() => updateQty(i.productId, i.variantId, Math.max(0, i.qty - 1))}
-                            className="min-h-[40px] min-w-[40px] sm:min-h-0 sm:min-w-0 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 active:bg-neutral-100 text-sm sm:text-base leading-none touch-manipulation"
+                            className="min-h-[40px] min-w-[40px] sm:min-h-0 sm:min-w-0 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 active:bg-neutral-150 text-sm sm:text-base leading-none touch-manipulation"
                             aria-label="Decrease quantity"
                           >
                             −
@@ -612,7 +681,7 @@ export default function CheckoutPage() {
                           <button
                             type="button"
                             onClick={() => updateQty(i.productId, i.variantId, Math.min(99, i.qty + 1))}
-                            className="min-h-[40px] min-w-[40px] sm:min-h-0 sm:min-w-0 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 active:bg-neutral-100 text-sm sm:text-base leading-none touch-manipulation"
+                            className="min-h-[40px] min-w-[40px] sm:min-h-0 sm:min-w-0 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-100 active:bg-neutral-150 text-sm sm:text-base leading-none touch-manipulation"
                             aria-label="Increase quantity"
                           >
                             +
@@ -633,48 +702,49 @@ export default function CheckoutPage() {
             </ul>
           </section>
 
-        <div className={`p-3.5 sm:p-4 ${cardSurface}`}>
-          <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-neutral-600">
+        <div className={`p-4 sm:p-5 ${cardSurface} ring-1 ring-neutral-900/[0.04]`}>
+          <div className="space-y-2 text-sm text-neutral-600">
             <div className="flex justify-between gap-2">
               <span>Subtotal</span>
-              <span className="tabular-nums text-neutral-900 font-medium">{formatPrice(subtotal, currency)}</span>
+              <span className="tabular-nums font-medium text-neutral-900">{formatPrice(subtotal, currency)}</span>
             </div>
             {discountAmount > 0 && (
               <div className="flex justify-between gap-2 text-emerald-800">
-                <span>Discount</span>
-                <span className="tabular-nums font-medium">−{formatPrice(discountAmount, currency)}</span>
+                <span>You save</span>
+                <span className="tabular-nums font-semibold">−{formatPrice(discountAmount, currency)}</span>
               </div>
             )}
             <div className="flex justify-between gap-2">
               <span>Shipping</span>
-              <span className="tabular-nums text-neutral-900 font-medium">
+              <span className="tabular-nums font-medium text-neutral-900">
                 {shipping === 0 ? 'Free' : formatPrice(shipping, currency)}
               </span>
             </div>
           </div>
-          <div className="mt-3 sm:mt-4 flex items-center gap-2.5 sm:gap-3 border-t border-neutral-200/90 pt-3 sm:pt-4">
-            <div className="relative h-12 w-12 sm:h-14 sm:w-14 shrink-0 overflow-hidden rounded-2xl sm:rounded-lg bg-neutral-100 ring-1 ring-neutral-200/70">
+          <div className="mt-4 flex items-center gap-3 border-t border-neutral-200/90 pt-4">
+            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-neutral-200/90 bg-neutral-50">
               <Image
                 src={firstThumb || '/assets/nature-secret-logo.svg'}
                 alt=""
                 fill
-                className="object-cover"
+                className="object-contain p-1"
                 sizes="56px"
                 unoptimized={firstThumb && !String(firstThumb).startsWith('http')}
               />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs sm:text-sm font-semibold text-neutral-900">Total due on delivery</p>
-              <p className="text-[10px] sm:text-xs text-neutral-500">
-                {itemCount} {itemCount === 1 ? 'item' : 'items'}
+              <p className="font-display text-sm font-semibold text-neutral-900">Total on delivery</p>
+              <p className="text-xs text-neutral-500">
+                {itemCount} {itemCount === 1 ? 'item' : 'items'} · COD
               </p>
             </div>
-            <p className="text-sm sm:text-base lg:text-lg font-bold tabular-nums text-neutral-900 shrink-0">
+            <p className="font-display text-lg font-bold tabular-nums text-neutral-900 sm:text-xl shrink-0">
               {formatPrice(grandTotal, currency)}
             </p>
           </div>
-          <p className="mt-3 text-[10px] sm:text-xs text-center text-neutral-500 leading-snug">
-            Arrives in 3–7 days · Pay on delivery (COD)
+          <p className="mt-3 flex items-center justify-center gap-2 text-center text-[11px] font-medium text-neutral-600">
+            <span className="h-1 w-1 rounded-full bg-brand-gold" aria-hidden />
+            3–7 day delivery · Pay only when your order arrives
           </p>
         </div>
 
@@ -695,18 +765,19 @@ export default function CheckoutPage() {
             >
               {placing ? (
                 <span aria-hidden>
-                  <Spinner className="h-4 w-4 border-white/35 border-t-white" />
+                  <Spinner className="h-4 w-4 border-neutral-900/20 border-t-neutral-900" />
                 </span>
               ) : null}
-              {placing ? 'Placing order…' : 'Complete order'}
+              {placing ? 'Placing order…' : 'Complete order — pay on delivery'}
             </button>
             {placing && (
-              <p className="text-center text-[11px] sm:text-xs font-medium text-gold-800/90">Usually takes a few seconds.</p>
+              <p className="text-center text-[11px] sm:text-xs font-medium text-neutral-500">Usually takes a few seconds.</p>
             )}
           </div>
         </aside>
         </div>
       </form>
+      </div>
     </div>
   );
 }

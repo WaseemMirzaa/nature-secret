@@ -37,11 +37,11 @@ export default function KidsSafetyPage() {
 
           <p className="mt-8 text-sm text-neutral-600 leading-relaxed">
             For adult supervision, product-specific instructions, and any health questions, consult a qualified professional. Our{' '}
-            <a href="/terms" className="font-medium text-gold-800 underline underline-offset-2 hover:text-gold-900">
+            <a href="/terms" className="font-medium text-neutral-800 underline underline-offset-2 hover:text-neutral-900">
               Terms of Service
             </a>{' '}
             and{' '}
-            <a href="/privacy" className="font-medium text-gold-800 underline underline-offset-2 hover:text-gold-900">
+            <a href="/privacy" className="font-medium text-neutral-800 underline underline-offset-2 hover:text-neutral-900">
               Privacy Policy
             </a>{' '}
             apply when you use naturesecret.pk.

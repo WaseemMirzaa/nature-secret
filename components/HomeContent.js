@@ -13,6 +13,7 @@ import {
   getContentSettings,
 } from '@/lib/api';
 import { getDevFallbackCategories, getDevFallbackProducts } from '@/lib/devCatalogFallback';
+import { HomeTrustStrip } from '@/components/HomeTrustStrip';
 const HomeBelowFold = dynamic(() => import('@/components/HomeBelowFold'), {
   loading: () => <div className="min-h-[40vh] w-full bg-page-canvas" aria-hidden />,
   ssr: true,
@@ -157,6 +158,8 @@ export default function HomeContent({
     return HOME_CONTENT_FALLBACK;
   }, [homeContent]);
 
+  const showHeroVisual = heroSlides.length > 0 || sliderError;
+
   useEffect(() => {
     const n = heroSlides.length;
     if (n === 0) return;
@@ -165,82 +168,100 @@ export default function HomeContent({
   }, [heroSlides.length]);
 
   return (
-    <div className="min-h-screen">
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute left-0 top-24 w-24 h-px bg-gradient-to-r from-gold-400/60 to-transparent" aria-hidden />
-        <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-8 sm:py-14 lg:py-32">
-          <div className="max-w-2xl">
-            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] sm:tracking-[0.25em] text-gold-600 mb-3 sm:mb-5">
-              Natural care, refined
-            </p>
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-semibold text-neutral-900 tracking-tight leading-[1.08]">
-              Natural Care, Refined for Everyday Beauty.
-            </h1>
-            <p className="mt-4 sm:mt-6 text-sm sm:text-lg text-neutral-600 max-w-md leading-relaxed whitespace-pre-wrap">
-              {home.homeHeroIntro}
-            </p>
-            <div className="mt-5 sm:mt-10 flex flex-wrap gap-2.5 sm:gap-4">
-              <Link
-                href="/shop"
-                className="inline-flex items-center justify-center rounded-full sm:rounded-2xl bg-neutral-900 px-6 sm:px-8 py-3 sm:py-3.5 text-xs sm:text-sm font-medium text-white shadow-premium transition hover:bg-neutral-800 hover:shadow-gold-md focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:ring-offset-2"
-              >
-                Shop now
-              </Link>
-              <Link
-                href="/blog"
-                className="inline-flex items-center justify-center rounded-full sm:rounded-2xl border-2 border-neutral-300 bg-white px-6 sm:px-8 py-3 sm:py-3.5 text-xs sm:text-sm font-medium text-neutral-900 transition hover:border-gold-400/60 hover:bg-gold-50/50"
-              >
-                Read our journal
-              </Link>
-            </div>
-          </div>
-        </div>
-        {(heroSlides.length > 0 || sliderError) && (
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-3/4 hidden lg:block">
-          <div className="relative w-full h-full rounded-l-2xl overflow-hidden shadow-premium bg-neutral-100">
-            {heroSlides.length > 0 ? (
-            <>
-            {heroSlides.map((slide, i) => (
-              <Link
-                key={slide.id || i}
-                href={slide.href}
-                className={`absolute inset-0 transition-opacity duration-700 ${i === slideIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
-                aria-label={slide.title}
-              >
-                <Image
-                  src={slide.src}
-                  alt={slide.alt}
-                  fill
-                  className="object-cover"
-                  priority={i === 0}
-                  fetchPriority={i === 0 ? 'high' : 'low'}
-                  sizes="(max-width: 1024px) 0, 600px"
-                  quality={75}
-                  decoding="async"
-                />
-              </Link>
-            ))}
-            <div className="absolute bottom-4 left-4 right-4 z-20 flex justify-center gap-1.5">
-              {heroSlides.map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setSlideIndex(i)}
-                  className={`h-1.5 rounded-full transition-all ${i === slideIndex ? 'w-6 bg-gold-500' : 'w-1.5 bg-white/60 hover:bg-white/90'}`}
-                  aria-label={`Go to slide ${i + 1}`}
-                />
-              ))}
-            </div>
-            </>
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
-                <p className="text-sm text-neutral-500">Hero images unavailable. Try again later.</p>
+    <div className="min-h-screen bg-page-canvas">
+      {/* Hero — mobile: visual first; desktop: editorial two-column */}
+      <section className="relative overflow-hidden border-b border-neutral-200/30 bg-section-ambient">
+        <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-10 sm:py-14 lg:py-24">
+          <div
+            className={`grid grid-cols-1 items-center gap-8 lg:gap-12 xl:gap-16 ${showHeroVisual ? 'lg:grid-cols-12' : ''}`}
+          >
+            <div
+              className={`order-2 max-w-xl lg:order-1 ${showHeroVisual ? 'lg:col-span-5' : 'lg:col-span-12 lg:max-w-2xl'}`}
+            >
+              <p className="flex items-center gap-2 text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.24em] text-neutral-500 mb-3 sm:mb-4">
+                <span className="h-1.5 w-1.5 rounded-full bg-neutral-900 shadow-[0_0_0_1px_rgba(255,255,255,0.15)]" aria-hidden />
+                Natural care, refined
+              </p>
+              <h1 className="font-display text-3xl sm:text-[2.85rem] lg:text-[3.35rem] font-semibold text-neutral-900 leading-[1.05] text-balance">
+                Natural Care, Refined for Everyday Beauty.
+              </h1>
+              <p className="mt-4 sm:mt-6 text-sm sm:text-base text-neutral-600 max-w-md leading-relaxed whitespace-pre-wrap">
+                {home.homeHeroIntro}
+              </p>
+              <div className="mt-6 sm:mt-9 flex flex-wrap gap-3">
+                <Link
+                  href="/shop"
+                  className="btn-gold-primary inline-flex min-h-[44px] items-center justify-center rounded-full px-8 py-3 text-xs sm:text-sm text-white transition duration-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
+                >
+                  Shop now
+                </Link>
+                <Link
+                  href="/blog"
+                  className="inline-flex min-h-[44px] items-center justify-center rounded-full border-2 border-neutral-300 bg-white/90 px-8 py-3 text-xs sm:text-sm font-semibold text-neutral-900 shadow-sm backdrop-blur-md transition duration-300 hover:border-neutral-900 hover:bg-neutral-50 hover:shadow-md"
+                >
+                  Read our journal
+                </Link>
               </div>
-            )}
+              <div className="mt-8 sm:mt-10 lg:mt-12">
+                <HomeTrustStrip />
+              </div>
+            </div>
+
+            {showHeroVisual ? (
+            <div className="order-1 lg:order-2 lg:col-span-7">
+                <div className="relative mx-auto w-full max-w-lg lg:max-w-none">
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute -inset-3 rounded-[1.35rem] bg-gradient-to-br from-neutral-200/60 via-transparent to-neutral-100/40 opacity-90 blur-2xl sm:-inset-4 lg:-inset-5"
+                  />
+                  <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[1.25rem] border border-white/80 bg-neutral-100 shadow-lift-lg ring-1 ring-neutral-900/[0.04] sm:aspect-[5/6] lg:aspect-[4/5] frame-media-inset">
+                    {heroSlides.length > 0 ? (
+                      <>
+                        {heroSlides.map((slide, i) => (
+                          <Link
+                            key={slide.id || i}
+                            href={slide.href}
+                            className={`absolute inset-0 transition-opacity duration-700 ${i === slideIndex ? 'z-10 opacity-100' : 'z-0 opacity-0'}`}
+                            aria-label={slide.title}
+                          >
+                            <Image
+                              src={slide.src}
+                              alt={slide.alt}
+                              fill
+                              className="object-cover"
+                              priority={i === 0}
+                              fetchPriority={i === 0 ? 'high' : 'low'}
+                              sizes="(max-width: 1024px) 100vw, 55vw"
+                              quality={80}
+                              decoding="async"
+                            />
+                          </Link>
+                        ))}
+                        <div className="absolute bottom-4 left-0 right-0 z-20 flex justify-center px-4">
+                          <div className="flex gap-1.5 rounded-full border border-white/20 bg-black/20 px-2.5 py-2 backdrop-blur-md">
+                            {heroSlides.map((_, i) => (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => setSlideIndex(i)}
+                                className={`h-1 rounded-full transition-all duration-300 ${i === slideIndex ? 'w-8 bg-white shadow-sm' : 'w-1.5 bg-white/50 hover:bg-white/85'}`}
+                                aria-label={`Go to slide ${i + 1}`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center p-8 text-center">
+                        <p className="text-sm text-neutral-500">Hero images unavailable. Try again later.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+            </div>
+            ) : null}
           </div>
         </div>
-        )}
       </section>
 
       <HomeBelowFold

@@ -819,7 +819,7 @@ export default function AdminMetaCampaignsPage() {
           type="button"
           disabled={exportBusy || loading}
           onClick={handleExportPurchases}
-          className="rounded-xl border border-gold-400/70 bg-gold-50/90 text-gold-950 px-4 py-2 text-sm font-medium hover:bg-gold-100 min-h-[44px] disabled:opacity-50"
+          className="rounded-xl border border-gold-400/70 bg-gold-50/90 text-gold-900 px-4 py-2 text-sm font-medium hover:bg-gold-100 min-h-[44px] disabled:opacity-50"
         >
           {exportBusy ? 'Exporting…' : 'Export purchases (CSV)'}
         </button>

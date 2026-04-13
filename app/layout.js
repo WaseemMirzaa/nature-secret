@@ -5,7 +5,13 @@ import { StoreLayout } from '@/components/StoreLayout';
 import { META_LANDING_SNAPSHOT_SCRIPT } from '@/lib/meta-pixel-gate';
 import { networkRetryInlineScript } from '@/lib/networkRetry';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
+/** Single stack: clear, credible retail type (no decorative display serif). */
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
+  weight: ['400', '500', '600', '700'],
+});
 
 /** Safe origin for `<link rel="preconnect">` (API / uploads). No-op if env unset or invalid. */
 function getApiOriginForPreconnect() {

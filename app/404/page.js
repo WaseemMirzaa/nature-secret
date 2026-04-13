@@ -20,7 +20,7 @@ export default function NotFoundPage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-neutral-50 text-neutral-900">
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-page-canvas text-neutral-900">
       <p className="text-6xl font-semibold text-neutral-300 mb-2">404</p>
       <h1 className="text-xl font-semibold mb-2">Page not found</h1>
       <p className="text-neutral-600 text-sm text-center max-w-md mb-6">

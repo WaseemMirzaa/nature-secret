@@ -2,8 +2,14 @@ const path = require('path');
 const webpack = require('webpack');
 
 /** @type {import('next').NextConfig} */
+const UNSPLASH_PATTERN = { protocol: 'https', hostname: 'images.unsplash.com', pathname: '/**' };
+
 function getImagesConfig() {
   const raw = process.env.NEXT_PUBLIC_API_URL || '';
+  const basePatterns = [
+    UNSPLASH_PATTERN,
+    { protocol: 'https', hostname: 'img.shields.io', pathname: '/**' },
+  ];
   try {
     const u = new URL(raw);
     return {
@@ -22,12 +28,19 @@ function getImagesConfig() {
           ...(u.port ? { port: u.port } : {}),
           pathname: '/**',
         },
-        { protocol: 'https', hostname: 'img.shields.io', pathname: '/**' },
+        ...basePatterns,
       ],
     };
   } catch {
-    // No valid API URL at build time: keep previous safe default (direct src, no optimizer fetch).
-    return { unoptimized: true };
+    // No valid API URL: still optimize Unsplash (UI mock / placeholders).
+    return {
+      unoptimized: false,
+      formats: ['image/avif', 'image/webp'],
+      minimumCacheTTL: 86400,
+      deviceSizes: [480, 640, 750, 828, 1080, 1200, 1920],
+      imageSizes: [32, 48, 64, 96, 128, 256, 384],
+      remotePatterns: basePatterns,
+    };
   }
 }
 

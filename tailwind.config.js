@@ -7,23 +7,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        /** Classic metallic gold (#D4AF37) — highlights + deep bronze for depth */
+        /** Warm stone — maps legacy `gold-*` utilities to neutral premium palette */
         gold: {
-          50: '#fffdf7',
-          100: '#fff8e8',
-          200: '#ffecb8',
-          300: '#f4d978',
-          400: '#e6c74a',
-          500: '#d4af37',
-          600: '#b8962e',
-          700: '#967d25',
-          800: '#7a651f',
-          900: '#5c4d18',
-        },
-        neutral: {
-          50: '#fafaf9',
+          50: '#fafafa',
           100: '#f5f5f4',
-          150: '#efeeec',
           200: '#e7e5e4',
           300: '#d6d3d1',
           400: '#a8a29e',
@@ -33,9 +20,23 @@ module.exports = {
           800: '#292524',
           900: '#1c1917',
         },
+        neutral: {
+          50: '#fafafa',
+          100: '#f5f5f4',
+          150: '#ebe9e3',
+          200: '#e0ddd6',
+          300: '#ccc8bf',
+          400: '#9c9890',
+          500: '#6f6b64',
+          600: '#54514b',
+          700: '#403e39',
+          800: '#2c2a27',
+          900: '#1a1917',
+        },
       },
       fontFamily: {
-        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-sans)', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['var(--font-sans)', 'system-ui', '-apple-system', 'sans-serif'],
       },
       borderRadius: {
         xl: '12px',
@@ -43,18 +44,21 @@ module.exports = {
       },
       boxShadow: {
         soft: '0 2px 15px -3px rgba(0,0,0,0.07), 0 10px 20px -2px rgba(0,0,0,0.04)',
-        premium: '0 4px 24px -4px rgba(0,0,0,0.08)',
-        'gold-sm': '0 2px 10px -2px rgba(212,175,55,0.28)',
-        'gold-md': '0 4px 18px -4px rgba(212,175,55,0.34)',
-        'gold-glow': '0 4px 24px -6px rgba(212,175,55,0.45), 0 0 0 1px rgba(255,248,220,0.4)',
+        premium: '0 1px 2px rgba(0,0,0,0.04), 0 12px 40px -16px rgba(0,0,0,0.08)',
+        lift: '0 4px 6px -1px rgba(0,0,0,0.05), 0 20px 40px -16px rgba(0,0,0,0.1)',
+        'lift-lg': '0 8px 16px -4px rgba(0,0,0,0.06), 0 32px 64px -24px rgba(0,0,0,0.14)',
+        card: '0 1px 0 rgba(0,0,0,0.04), 0 16px 48px -20px rgba(0,0,0,0.12)',
+        'gold-sm': '0 2px 12px -2px rgba(0,0,0,0.08)',
+        'gold-md': '0 4px 20px -4px rgba(0,0,0,0.12)',
+        'gold-glow': '0 6px 28px -8px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06)',
       },
       backgroundImage: {
         'gold-shine':
-          'linear-gradient(135deg, #fffef8 0%, #f5e6a8 22%, #d4af37 45%, #f4e8a1 56%, #c9a227 82%, #8b6914 100%)',
+          'linear-gradient(135deg, #fffdf6 0%, #f0dfa8 24%, #c9a227 46%, #e8d48a 58%, #a88620 78%, #5c4510 100%)',
         'gold-shine-soft':
-          'linear-gradient(165deg, #fffdf7 0%, #fff3c8 40%, #e8d48a 100%)',
+          'linear-gradient(165deg, #fffdfb 0%, #faf0d0 42%, #dcc06a 100%)',
         'gold-shine-cta':
-          'linear-gradient(135deg, #fffef5 0%, #f0d860 28%, #d4af37 48%, #f7e98a 58%, #b8962e 100%)',
+          'linear-gradient(135deg, #fffef8 0%, #e8cf6a 30%, #c9a227 50%, #f2e2a0 62%, #8c6f1b 100%)',
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-out',

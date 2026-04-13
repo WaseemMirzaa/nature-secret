@@ -30,11 +30,11 @@ export default function SupportPage() {
 
   if (!customer) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center px-3 sm:px-5 py-6 sm:py-16">
+      <div className="min-h-screen bg-page-canvas flex flex-col items-center justify-center px-3 sm:px-5 py-6 sm:py-16">
         <div className="text-center max-w-md">
           <h1 className="text-lg sm:text-xl font-semibold text-neutral-900">Support tickets</h1>
           <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-neutral-600">Please log in to view your support tickets.</p>
-          <Link href="/contact" className="mt-4 inline-block text-sm font-medium text-gold-600 hover:text-gold-700">Submit a ticket (no login required) →</Link>
+          <Link href="/contact" className="mt-4 inline-block text-sm font-medium text-neutral-700 hover:text-neutral-900">Submit a ticket (no login required) →</Link>
           <p className="mt-6">
             <Link href="/" className="text-sm text-neutral-500 hover:text-neutral-700">← Back to home</Link>
           </p>
@@ -44,7 +44,7 @@ export default function SupportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-page-canvas">
       <div className="max-w-2xl mx-auto px-3 sm:px-5 lg:px-8 py-4 sm:py-7 lg:py-10">
         <h1 className="text-xl sm:text-2xl font-semibold text-neutral-900">My support tickets</h1>
         <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-neutral-600">View the status of your support requests.</p>
@@ -55,7 +55,7 @@ export default function SupportPage() {
         {loading ? (
           <div className="mt-5 sm:mt-8"><InlineLoader /></div>
         ) : tickets.length === 0 ? (
-          <p className="mt-5 sm:mt-8 text-neutral-500">No tickets yet. <Link href="/contact" className="text-gold-600 hover:underline">Submit one</Link>.</p>
+          <p className="mt-5 sm:mt-8 text-neutral-500">No tickets yet. <Link href="/contact" className="text-neutral-800 hover:underline">Submit one</Link>.</p>
         ) : (
           <ul className="mt-5 sm:mt-8 space-y-3 sm:space-y-4">
             {tickets.map((t) => (
@@ -82,7 +82,7 @@ export default function SupportPage() {
                       <p className="mt-1 text-sm text-neutral-800 whitespace-pre-wrap">{t.message}</p>
                     </div>
                     {t.adminReply && (
-                      <div className="rounded-lg bg-neutral-50 p-3">
+                      <div className="rounded-lg bg-neutral-50 border border-neutral-200 p-3">
                         <p className="text-xs font-medium text-neutral-500 uppercase">Reply from support</p>
                         <p className="mt-1 text-sm text-neutral-800 whitespace-pre-wrap">{t.adminReply}</p>
                         {t.repliedAt && <p className="mt-0.5 text-xs text-neutral-500">{formatDate(t.repliedAt)}</p>}

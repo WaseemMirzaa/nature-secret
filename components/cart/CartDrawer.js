@@ -170,18 +170,20 @@ export function CartDrawer() {
         </div>
         {items.length > 0 && (
           <div className="border-t border-neutral-200 p-3 sm:p-4 space-y-2.5 sm:space-y-3">
-            <div className="flex gap-2">
-              <input
-                id="cart-drawer-discount-code"
-                name="discountCode"
-                type="text"
-                autoComplete="off"
-                placeholder="Discount code"
-                value={discountCode}
-                onChange={(e) => setDiscountCode(e.target.value)}
-                className="flex-1 rounded-lg sm:rounded-xl border border-neutral-600 sm:border-2 sm:border-neutral-600 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm"
-              />
-              <button type="button" onClick={applyDiscount} className="rounded-full sm:rounded-2xl bg-neutral-900 text-white px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium">Apply</button>
+            <div className="rounded-xl border border-neutral-200/90 bg-accent-cream p-2 sm:p-2.5">
+              <div className="flex gap-2">
+                <input
+                  id="cart-drawer-discount-code"
+                  name="discountCode"
+                  type="text"
+                  autoComplete="off"
+                  placeholder="Discount code"
+                  value={discountCode}
+                  onChange={(e) => setDiscountCode(e.target.value)}
+                  className="flex-1 rounded-lg sm:rounded-xl border border-neutral-300 bg-white px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm"
+                />
+                <button type="button" onClick={applyDiscount} className="btn-gold-primary rounded-full sm:rounded-2xl px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white shrink-0">Apply</button>
+              </div>
             </div>
             {discountError && <p className="text-xs text-red-600">{discountError}</p>}
             {appliedDiscount && !discountError && (
@@ -195,7 +197,7 @@ export function CartDrawer() {
             {discountAmount > 0 && <div className="text-xs sm:text-sm text-green-600">Discount: −{formatPrice(discountAmount, currency)}</div>}
             <div className="text-xs sm:text-sm text-neutral-500">Shipping: {shipping === 0 ? 'Free' : formatPrice(shipping, currency)}</div>
             <div className="text-sm sm:text-base font-semibold text-neutral-900">Total: {formatPrice(totalWithShipping, currency)}</div>
-            <Link href="/checkout" onClick={closeCartForCheckoutNav} className="block w-full rounded-full sm:rounded-2xl bg-neutral-900 text-white text-center py-2.5 sm:py-3 text-sm font-medium animate-cta-attract hover:animate-none transition">Checkout</Link>
+            <Link href="/checkout" onClick={closeCartForCheckoutNav} className="btn-gold-primary block w-full rounded-full sm:rounded-2xl text-center py-2.5 sm:py-3 text-sm font-semibold text-white animate-cta-attract hover:animate-none transition">Checkout</Link>
           </div>
         )}
       </div>

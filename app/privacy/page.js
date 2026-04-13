@@ -4,7 +4,7 @@ export default function PrivacyPage() {
       <div className="mx-auto max-w-4xl px-3 sm:px-5 lg:px-8 py-6 sm:py-10 lg:py-16">
         <div className="rounded-3xl border border-neutral-200 bg-white/90 shadow-sm p-5 sm:p-8 lg:p-10">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-neutral-900 tracking-tight">Privacy Policy for Nature Secret</h1>
-          <p className="mt-3 inline-flex rounded-full border border-gold-200 bg-gold-50 px-3 py-1 text-xs sm:text-sm text-gold-800">
+          <p className="mt-3 inline-flex rounded-full border border-neutral-200 bg-neutral-100 px-3 py-1 text-xs sm:text-sm text-neutral-800">
             Effective Date: March 31, 2026
           </p>
 
@@ -57,7 +57,7 @@ export default function PrivacyPage() {
             </p>
             <p className="mt-2 text-sm text-neutral-700">
               For safe use of products around children, see our{' '}
-              <a href="/kids-safety" className="font-medium text-gold-800 underline underline-offset-2 hover:text-gold-900">Kids safety</a> page.
+              <a href="/kids-safety" className="font-medium text-neutral-800 underline underline-offset-2 hover:text-neutral-900">Kids safety</a> page.
             </p>
           </section>
 
@@ -140,7 +140,7 @@ export default function PrivacyPage() {
             <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">12. How We Handle Information You Submit</h2>
             <p className="mt-3 text-sm text-neutral-700 leading-relaxed">
               Personal details you provide through forms, checkout, or support channels are handled as described in Sections 1–8 above. For site-wide rules on orders,
-              products, and liability, see our <a href="/terms" className="font-medium text-gold-800 underline underline-offset-2 hover:text-gold-900">Terms of Service</a>.
+              products, and liability, see our <a href="/terms" className="font-medium text-neutral-800 underline underline-offset-2 hover:text-neutral-900">Terms of Service</a>.
             </p>
           </section>
 

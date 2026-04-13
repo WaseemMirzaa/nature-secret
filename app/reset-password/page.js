@@ -58,12 +58,12 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center px-3 sm:px-5 py-6 sm:py-12">
+    <div className="min-h-screen bg-page-canvas flex flex-col items-center justify-center px-3 sm:px-5 py-6 sm:py-12">
       <div className="w-full max-w-md">
         <div className="rounded-2xl border border-neutral-200 bg-white shadow-premium overflow-hidden">
           <div className="bg-neutral-900 px-8 py-6 text-center">
             <Link href="/" className="inline-block">
-              <Logo className="h-9 text-gold-500" link={false} />
+              <Logo className="h-9 text-white" link={false} />
             </Link>
             <p className="mt-2 text-xs font-medium text-neutral-400 tracking-wider uppercase">Reset password</p>
           </div>
@@ -120,7 +120,7 @@ function ResetPasswordForm() {
                     type="submit"
                     disabled={loading}
                     aria-busy={loading}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-full sm:rounded-2xl bg-neutral-900 py-3.5 text-sm font-semibold text-white hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:ring-offset-2 disabled:opacity-50 transition"
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-full sm:rounded-2xl bg-neutral-900 py-3.5 text-sm font-semibold text-white hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-900/30 focus:ring-offset-2 disabled:opacity-50 transition"
                   >
                     {loading ? (
                       <span aria-hidden>
@@ -133,7 +133,7 @@ function ResetPasswordForm() {
               </>
             )}
             <p className="mt-6 text-center">
-              <Link href="/login" className="text-sm font-medium text-gold-600 hover:text-gold-700">← Back to login</Link>
+              <Link href="/login" className="text-sm font-medium text-neutral-600 hover:text-neutral-900">← Back to login</Link>
             </p>
           </div>
         </div>
@@ -146,7 +146,7 @@ function ResetPasswordForm() {
 export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+      <div className="min-h-screen bg-page-canvas flex items-center justify-center">
         <InlineLoader />
       </div>
     }>

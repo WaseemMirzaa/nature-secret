@@ -54,12 +54,12 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col items-center px-3 sm:px-5 py-6 sm:py-14 lg:py-16">
+    <div className="min-h-screen bg-page-canvas flex flex-col items-center px-3 sm:px-5 py-6 sm:py-14 lg:py-16">
       <div className="w-full max-w-md">
-        <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm overflow-hidden">
+        <div className="rounded-2xl border border-neutral-200 bg-white overflow-hidden">
           <div className="bg-neutral-900 px-5 sm:px-8 py-4 sm:py-6 text-center">
             <Link href="/" className="inline-block">
-              <Logo className="h-9 text-gold-500" link={false} />
+              <Logo className="h-9 text-white" link={false} />
             </Link>
             <p className="mt-2 text-xs font-medium text-neutral-400 tracking-wider uppercase">Contact</p>
           </div>
@@ -70,7 +70,7 @@ export default function ContactPage() {
               <>
                 <p className="text-neutral-700 text-sm leading-relaxed">
                   Reach us at{' '}
-                  <a href={`mailto:${(contact.emails || '').split(',')[0]?.trim()}`} className="text-gold-700 hover:underline">
+                  <a href={`mailto:${(contact.emails || '').split(',')[0]?.trim()}`} className="text-neutral-900 font-medium hover:underline">
                     {contact.emails}
                   </a>
                   , phone {contact.phone}.
@@ -154,11 +154,11 @@ export default function ContactPage() {
             </div>
 
             <p className="mt-6 text-center">
-              <Link href="/" className="text-sm font-medium text-gold-600 hover:text-gold-700">← Back to home</Link>
+              <Link href="/" className="text-sm font-medium text-neutral-600 hover:text-neutral-900">← Back to home</Link>
               {customer && (
                 <>
                   {' · '}
-                  <Link href="/support" className="text-sm font-medium text-gold-600 hover:text-gold-700">My support tickets</Link>
+                  <Link href="/support" className="text-sm font-medium text-neutral-600 hover:text-neutral-900">My support tickets</Link>
                 </>
               )}
             </p>

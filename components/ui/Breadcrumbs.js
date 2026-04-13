@@ -67,7 +67,7 @@ export function Breadcrumbs({ customItems, className = '' }) {
               ) : (
                 <Link
                   href={item.href}
-                  className="hover:text-gold-600 transition-colors"
+                  className="hover:text-neutral-900 transition-colors"
                 >
                   {item.label}
                 </Link>

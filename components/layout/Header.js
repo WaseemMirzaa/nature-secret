@@ -46,27 +46,27 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-neutral-200/80 shadow-[0_1px_0_0_rgba(0,0,0,0.03)]">
+      <header className="sticky top-0 z-40 border-b border-neutral-200/35 bg-page-canvas/80 shadow-[0_1px_0_rgba(255,255,255,0.6)] backdrop-blur-xl backdrop-saturate-150">
         <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
-          <div className="flex h-14 sm:h-16 min-h-[3.5rem] sm:min-h-[4rem] items-center justify-between">
+          <div className="flex h-[3.25rem] sm:h-[3.75rem] min-h-[3.25rem] sm:min-h-[3.75rem] items-center justify-between">
             <Logo className="h-8 sm:h-9" />
 
-            <nav className="hidden md:flex items-center gap-10">
-              <Link href="/" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Home</Link>
-              <Link href="/shop" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Shop</Link>
+            <nav className="hidden md:flex items-center gap-8 lg:gap-10">
+              <Link href="/" className="text-[13px] font-medium text-neutral-600 hover:text-neutral-900 transition-colors tracking-tight">Home</Link>
+              <Link href="/shop" className="text-[13px] font-medium text-neutral-600 hover:text-neutral-900 transition-colors tracking-tight">Shop</Link>
               {Array.isArray(categories) &&
                 categories.map((c) =>
                   c?.slug ? (
                     <Link
                       key={c.id || c.slug}
                       href={`/shop?category=${encodeURIComponent(c.slug)}`}
-                      className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5"
+                      className="text-[13px] font-medium text-neutral-600 hover:text-neutral-900 transition-colors tracking-tight"
                     >
                       {c.name || c.slug}
                     </Link>
                   ) : null,
                 )}
-              <Link href="/blog" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Blog</Link>
+              <Link href="/blog" className="text-[13px] font-medium text-neutral-600 hover:text-neutral-900 transition-colors tracking-tight">Blog</Link>
               {customer ? (
                 <>
                   <Link href="/account" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors">Account</Link>
@@ -76,24 +76,24 @@ export function Header() {
               ) : (
                 <>
                   <button type="button" onClick={() => useAuthModalStore.getState().openLogin()} className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors bg-transparent border-none cursor-pointer font-inherit">Login</button>
-                  <button type="button" onClick={() => useAuthModalStore.getState().openSignup()} className="text-sm font-medium text-neutral-900 border border-neutral-800 rounded-full px-4 py-2 hover:bg-neutral-900 hover:text-white transition-colors">Create account</button>
+                  <button type="button" onClick={() => useAuthModalStore.getState().openSignup()} className="text-[13px] font-medium text-neutral-900 border-2 border-neutral-300 rounded-full px-4 py-2 transition-all hover:border-neutral-900 hover:bg-neutral-50">Create account</button>
                 </>
               )}
             </nav>
 
             <div className="flex items-center gap-1">
-              <Link href="/wishlist" className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-neutral-500 hover:text-gold-600 hover:bg-gold-50 transition-colors" aria-label="Wishlist">
+              <Link href="/wishlist" className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 transition-colors" aria-label="Wishlist">
                 <HeartIcon className="w-5 h-5" />
               </Link>
               <button
                 type="button"
                 onClick={() => openCart()}
-                className="relative p-3 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-neutral-500 hover:text-gold-600 hover:bg-gold-50 transition-colors"
+                className="relative p-3 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 transition-colors"
                 aria-label="Open cart"
               >
                 <CartIcon className="w-5 h-5" />
                 {totalQty > 0 && (
-                  <span className="absolute top-1 right-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-gold-500 px-1 text-[10px] font-semibold text-white shadow-gold-sm">
+                  <span className="absolute top-1 right-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-neutral-900 px-1 text-[10px] font-semibold text-white shadow-gold-sm">
                     {totalQty}
                   </span>
                 )}
@@ -113,32 +113,32 @@ export function Header() {
         {menuOpen && (
           <div className="md:hidden border-t border-neutral-200 bg-white">
             <nav className="flex flex-col gap-0 px-3 py-3">
-              <Link href="/" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenuAfterNav}>Home</Link>
-              <Link href="/shop" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenuAfterNav}>Shop</Link>
+              <Link href="/" className="py-2.5 text-sm text-neutral-600 hover:text-neutral-900 font-medium transition-colors border-b border-neutral-100" onClick={closeMenuAfterNav}>Home</Link>
+              <Link href="/shop" className="py-2.5 text-sm text-neutral-600 hover:text-neutral-900 font-medium transition-colors border-b border-neutral-100" onClick={closeMenuAfterNav}>Shop</Link>
               {Array.isArray(categories) &&
                 categories.map((c) =>
                   c?.slug ? (
                     <Link
                       key={c.id || c.slug}
                       href={`/shop?category=${encodeURIComponent(c.slug)}`}
-                      className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100"
+                      className="py-2.5 text-sm text-neutral-600 hover:text-neutral-900 font-medium transition-colors border-b border-neutral-100"
                       onClick={closeMenuAfterNav}
                     >
                       {c.name || c.slug}
                     </Link>
                   ) : null,
                 )}
-              <Link href="/blog" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenuAfterNav}>Blog</Link>
+              <Link href="/blog" className="py-2.5 text-sm text-neutral-600 hover:text-neutral-900 font-medium transition-colors border-b border-neutral-100" onClick={closeMenuAfterNav}>Blog</Link>
               {customer ? (
                 <>
-                  <Link href="/account" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenuAfterNav}>Account</Link>
-                  <Link href="/support" className="py-2.5 text-sm text-neutral-600 hover:text-gold-600 font-medium transition-colors border-b border-neutral-100" onClick={closeMenuAfterNav}>Support</Link>
-                  <button type="button" className="py-2.5 text-sm text-left text-neutral-600 hover:text-gold-600 font-medium w-full border-b border-neutral-100" onClick={() => { useCustomerStore.getState().logout(); closeMenu(); window.location.href = '/'; }}>Log out</button>
+                  <Link href="/account" className="py-2.5 text-sm text-neutral-600 hover:text-neutral-900 font-medium transition-colors border-b border-neutral-100" onClick={closeMenuAfterNav}>Account</Link>
+                  <Link href="/support" className="py-2.5 text-sm text-neutral-600 hover:text-neutral-900 font-medium transition-colors border-b border-neutral-100" onClick={closeMenuAfterNav}>Support</Link>
+                  <button type="button" className="py-2.5 text-sm text-left text-neutral-600 hover:text-neutral-900 font-medium w-full border-b border-neutral-100" onClick={() => { useCustomerStore.getState().logout(); closeMenu(); window.location.href = '/'; }}>Log out</button>
                 </>
               ) : (
                 <>
-                  <button type="button" className="py-2.5 text-sm text-left text-neutral-600 hover:text-gold-600 font-medium w-full border-b border-neutral-100" onClick={() => { useAuthModalStore.getState().openLogin(); closeMenu(); }}>Login</button>
-                  <button type="button" className="py-2.5 text-sm text-left font-medium text-neutral-900 w-full mt-1.5 rounded-full sm:rounded-2xl bg-gold-50 text-gold-800 border border-gold-200" onClick={() => { useAuthModalStore.getState().openSignup(); closeMenu(); }}>Create account</button>
+                  <button type="button" className="py-2.5 text-sm text-left text-neutral-600 hover:text-neutral-900 font-medium w-full border-b border-neutral-100" onClick={() => { useAuthModalStore.getState().openLogin(); closeMenu(); }}>Login</button>
+                  <button type="button" className="btn-gold-primary py-2.5 text-sm text-left text-white font-semibold w-full mt-1.5 rounded-full sm:rounded-2xl" onClick={() => { useAuthModalStore.getState().openSignup(); closeMenu(); }}>Create account</button>
                 </>
               )}
             </nav>

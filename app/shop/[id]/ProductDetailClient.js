@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useMemo, useEffect, useLayoutEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useLayoutEffect, useRef, memo } from 'react';
 import Link from '@/components/Link';
 import Image, { getImageProps } from 'next/image';
 import { useProductsStore, useCartStore, useCartOpenStore, useWishlistStore, useCurrencyStore } from '@/lib/store';
@@ -26,7 +26,6 @@ import {
   productPath,
   getContentSettings,
 } from '@/lib/api';
-import { compressReviewMediaFile } from '@/lib/compressReviewMedia';
 import { getDefaultHeroImageSrcForProduct } from '@/lib/productImageResolve';
 import { InlineLoader, Spinner } from '@/components/ui/PageLoader';
 import {
@@ -40,29 +39,34 @@ import {
 
 const isUuid = (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 
-function ProductRatingSummary({ product, starClassName = '', countClassName = '', className = 'flex flex-wrap items-center justify-end gap-x-1' }) {
+const ProductRatingSummary = memo(function ProductRatingSummary({ product, starClassName = '', countClassName = '', className = 'flex flex-wrap items-center justify-end gap-x-1' }) {
   const r = Math.min(5, Math.round(Number(product?.rating) || 0));
   return (
     <div className={className}>
-      <span className={`text-gold-600 ${starClassName}`}>{'★'.repeat(r)}</span>
+      <span className={`text-amber-500 ${starClassName}`}>{'★'.repeat(r)}</span>
       <span className={`text-neutral-300 ${starClassName}`}>{'★'.repeat(5 - r)}</span>
       <span className={`text-neutral-500 ${countClassName}`}>({product?.reviewCount ?? 0} reviews)</span>
     </div>
   );
-}
+});
 
-function ProductTrustBar({ product, className = '', variant = 'text' }) {
+const ProductTrustBar = memo(function ProductTrustBar({ product, className = '', variant = 'text' }) {
   const n = product?.reviewCount != null && product.reviewCount > 0 ? product.reviewCount : 37;
   const labels = ['Cash on Delivery', 'Free Shipping', `${n} Verified Reviews`];
   if (variant === 'pills') {
     return (
-      <div className={`flex flex-wrap gap-1.5 ${className}`} role="group" aria-label="Trust highlights">
+      <div className={`flex flex-wrap gap-2 ${className}`} role="group" aria-label="Trust highlights">
         {labels.map((label) => (
           <span
             key={label}
-            className="inline-flex items-center gap-1.5 rounded-full border border-gold-200 bg-gold-50 px-3 py-1.5 text-[11px] font-medium tracking-wide text-neutral-800"
+            className="inline-flex items-center gap-2 rounded-full border border-neutral-200/70 bg-white px-3.5 py-2 text-[11px] font-medium leading-snug tracking-wide text-neutral-700 shadow-sm"
           >
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-gold-500" aria-hidden />
+            <span
+              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-neutral-200/80 bg-accent-cream text-[10px] font-bold text-neutral-800"
+              aria-hidden
+            >
+              ✓
+            </span>
             {label}
           </span>
         ))}
@@ -71,22 +75,31 @@ function ProductTrustBar({ product, className = '', variant = 'text' }) {
   }
   return (
     <div
-      className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] sm:text-xs text-neutral-600 ${className}`}
+      className={`flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] sm:text-xs text-neutral-700 ${className}`}
       role="group"
       aria-label="Trust highlights"
     >
-      <span className="inline-flex items-center gap-0.5 whitespace-nowrap">
-        <span aria-hidden>✅</span> Cash on Delivery
+      <span className="inline-flex items-center gap-1.5 whitespace-nowrap font-medium">
+        <span className="flex h-5 w-5 items-center justify-center rounded-full border border-neutral-200 bg-white text-[10px] text-neutral-700" aria-hidden>
+          ✓
+        </span>
+        Cash on Delivery
       </span>
-      <span className="inline-flex items-center gap-0.5 whitespace-nowrap">
-        <span aria-hidden>✅</span> Free Shipping
+      <span className="inline-flex items-center gap-1.5 whitespace-nowrap font-medium">
+        <span className="flex h-5 w-5 items-center justify-center rounded-full border border-neutral-200 bg-white text-[10px] text-neutral-700" aria-hidden>
+          ✓
+        </span>
+        Free Shipping
       </span>
-      <span className="inline-flex items-center gap-0.5 whitespace-nowrap">
-        <span aria-hidden>✅</span> {n} Verified Reviews
+      <span className="inline-flex items-center gap-1.5 whitespace-nowrap font-medium">
+        <span className="flex h-5 w-5 items-center justify-center rounded-full border border-neutral-200 bg-white text-[10px] text-neutral-700" aria-hidden>
+          ✓
+        </span>
+        {n} Verified Reviews
       </span>
     </div>
   );
-}
+});
 
 function getVideoPresentation(url) {
   if (!url || typeof url !== 'string') return null;
@@ -115,7 +128,7 @@ function getVideoPresentation(url) {
   return { kind: 'native', src: u };
 }
 
-function ReviewMediaBlock({ item, resolveImageUrl }) {
+const ReviewMediaBlock = memo(function ReviewMediaBlock({ item, resolveImageUrl }) {
   const rawUrl = item?.url;
   if (!rawUrl) return null;
   const isVideo = item.type === 'video';
@@ -145,7 +158,7 @@ function ReviewMediaBlock({ item, resolveImageUrl }) {
   return (
     <video src={pres.src} controls playsInline className="w-full rounded-lg bg-black max-h-[280px]" />
   );
-}
+});
 
 function scrubMedicalTerms(input = '') {
   const text = String(input || '');
@@ -259,9 +272,6 @@ export default function ProductDetailClient({
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewMessage, setReviewMessage] = useState('');
   const [reviewFiles, setReviewFiles] = useState([]);
-  const purchasePanelRef = useRef(null);
-  const [showStickyBar, setShowStickyBar] = useState(false);
-  const [isLg, setIsLg] = useState(false);
   const [productDisclaimerTitle, setProductDisclaimerTitle] = useState(
     () => initialContentSettings?.productDisclaimerTitle || 'Important Note',
   );
@@ -275,35 +285,6 @@ export default function ProductDetailClient({
     if (typeof window === 'undefined') return;
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [slugOrId]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mq = window.matchMedia('(min-width: 1024px)');
-    const set = () => setIsLg(mq.matches);
-    set();
-    mq.addEventListener('change', set);
-    return () => mq.removeEventListener('change', set);
-  }, []);
-
-  useLayoutEffect(() => {
-    if (typeof window === 'undefined' || !isLg) {
-      setShowStickyBar(false);
-      return;
-    }
-    const el = purchasePanelRef.current;
-    if (!el) {
-      setShowStickyBar(false);
-      return;
-    }
-    const obs = new IntersectionObserver(
-      ([e]) => {
-        setShowStickyBar(!e.isIntersecting);
-      },
-      { threshold: 0, rootMargin: '-72px 0px 0px 0px' },
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [isLg, product?.id]);
 
   useEffect(() => {
     if (initialContentSettings?.productDisclaimerTitle && initialContentSettings?.productDisclaimerText) return;
@@ -340,7 +321,7 @@ export default function ProductDetailClient({
     if (typeof window === 'undefined' || !galleryResolvedUrls.length) return;
     const unique = [...new Set(galleryResolvedUrls)];
     const links = [];
-    for (const href of unique) {
+    for (const href of unique.slice(0, 1)) {
       try {
         const { props } = getImageProps({
           src: href,
@@ -496,6 +477,10 @@ export default function ProductDetailClient({
     if (!m) return '';
     return sanitizeHtml(scrubMedicalTerms(m[0]));
   }, [product?.description]);
+  const sanitizedProductDescriptionHtml = useMemo(
+    () => (product?.description ? sanitizeHtml(scrubMedicalTerms(product.description)) : ''),
+    [product?.description],
+  );
 
   if (productLoading) {
     return (
@@ -509,14 +494,17 @@ export default function ProductDetailClient({
     return (
       <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 py-6 sm:py-12 lg:py-16 text-center">
         <p className="text-sm sm:text-base text-neutral-600">This product isn&apos;t available or the catalog is updating. Try again later or browse the shop.</p>
-        <Link href="/shop" className="mt-4 inline-block text-sm font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/40 pb-0.5">Back to shop</Link>
+        <Link href="/shop" className="mt-4 inline-block text-sm font-medium text-neutral-900 border-b border-neutral-900/25 pb-0.5 hover:border-neutral-900">Back to shop</Link>
       </div>
     );
   }
 
   const effectiveQty = Math.max(1, Math.min(99, Number(qty) || 1));
+  const variantCount = product.variants?.length ?? 0;
+  /** Show size/SKU UI whenever the API sent at least one variant row (including single-SKU). */
+  const showVariantPicker = variantCount > 0;
   const compareAtForLine =
-    product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice;
+    variantCount > 0 ? variant?.compareAtPrice : product.compareAtPrice;
   const stickyLineTotal = (Number(price) || 0) * effectiveQty;
   const stickyCompareLineTotal =
     compareAtForLine != null && Number(compareAtForLine) > 0
@@ -626,6 +614,7 @@ export default function ProductDetailClient({
     setReviewSubmitting(true);
     setReviewMessage('');
     try {
+      const { compressReviewMediaFile } = await import('@/lib/compressReviewMedia');
       const media = [];
       for (const file of reviewFiles) {
         const ready = await compressReviewMediaFile(file);
@@ -652,27 +641,24 @@ export default function ProductDetailClient({
 
   return (
     <div
-      className={`mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 xl:px-10 py-3 sm:py-5 lg:py-12 xl:py-14 ${
-        showStickyBar ? 'lg:pb-28 xl:pb-32' : ''
-      } ${product.inventory !== 0 ? 'max-lg:pb-28' : ''}`}
+      className={`mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 xl:px-10 py-3 sm:py-6 lg:py-8 ${product.inventory !== 0 ? 'pb-28' : ''}`}
     >
       <div className="flex flex-col">
-      <div className="order-1 grid grid-cols-1 lg:grid-cols-2 lg:gap-x-14 xl:gap-x-20 max-lg:gap-y-3 sm:max-lg:gap-y-4 animate-slide-up items-start">
-        {/* Left: gallery (desktop = large column; mobile unchanged) */}
-        <div className="relative w-full lg:max-w-xl xl:max-w-md lg:mx-0 mx-auto">
-          <div className="max-lg:rounded-xl max-lg:overflow-hidden max-lg:bg-gold-50/40 max-lg:border max-lg:border-gold-100 max-lg:p-2.5 sm:max-lg:p-3 max-lg:flex max-lg:items-center max-lg:justify-center lg:contents">
+      <div className="order-1 w-full max-w-xl sm:max-w-2xl lg:max-w-2xl mx-auto animate-slide-up">
+        <div className="relative w-full">
+          <div className="rounded-xl overflow-hidden bg-neutral-50 border border-neutral-200 p-2.5 sm:p-3 flex items-center justify-center">
           <div
-            className="aspect-square w-full rounded-lg sm:rounded-xl lg:rounded-2xl overflow-hidden bg-white relative border border-neutral-200 shadow-sm lg:shadow-premium lg:border-0 lg:ring-1 lg:ring-neutral-200/60"
+            className="relative aspect-square w-full overflow-hidden rounded-[1.1rem] border border-white/90 bg-neutral-50 shadow-lift ring-1 ring-neutral-900/[0.04] sm:rounded-xl frame-media-inset"
             onMouseEnter={() => setZoom(true)}
             onMouseLeave={() => setZoom(false)}
           >
             {product.badge ? (
-              <span className="absolute top-3 left-3 z-20 rounded-full bg-gold-500 px-2.5 py-1 max-lg:px-3 max-lg:py-1.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.06em] text-white shadow-gold-sm">
+              <span className="absolute top-3 left-3 z-20 rounded-full border border-neutral-900/12 bg-accent-cream px-3 py-1.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.06em] text-neutral-900 shadow-sm">
                 {product.badge}
               </span>
             ) : null}
             {pctOff != null && pctOff > 0 ? (
-              <span className="absolute top-3 right-12 z-20 rounded-full bg-red-700 px-2 py-1 text-[10px] sm:text-[11px] font-bold text-white lg:right-3">
+              <span className="absolute top-3 right-12 z-20 rounded-full border border-neutral-900/12 bg-accent-cream px-2 py-1 text-[10px] sm:text-[11px] font-bold text-neutral-900 shadow-sm">
                 {pctOff}% OFF
               </span>
             ) : null}
@@ -701,14 +687,14 @@ export default function ProductDetailClient({
             <button
               type="button"
               onClick={handleWishlistToggle}
-              className="absolute top-3 right-3 z-30 p-2.5 rounded-full bg-white shadow-sm border border-neutral-200 hover:border-gold-300 transition"
+              className="absolute top-3 right-3 z-30 p-2.5 rounded-full bg-white/95 shadow-sm border border-neutral-200/80 hover:border-neutral-400 transition backdrop-blur-sm"
               aria-label="Wishlist"
             >
               <svg className="w-5 h-5 text-neutral-700" fill={wishlist.includes(product.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
             </button>
           </div>
           </div>
-          <div className="mt-1.5 sm:mt-3 lg:mt-5 flex gap-1.5 sm:gap-2 lg:gap-3 overflow-x-auto pb-0.5 sm:pb-1 lg:pb-0">
+          <div className="mt-1.5 sm:mt-3 flex gap-1.5 sm:gap-2 overflow-x-auto pb-0.5 sm:pb-1">
             {variantImageList.map((url, i) => {
               const resolved = resolveImageUrl(url);
               return resolved ? (
@@ -716,7 +702,7 @@ export default function ProductDetailClient({
                   key={i}
                   type="button"
                   onClick={() => setSelectedImageIndex(i)}
-                  className={`relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 sm:h-20 sm:w-20 lg:h-[4.75rem] lg:w-[4.75rem] sm:rounded-xl ${selectedImageIndex === i ? 'border-neutral-900 lg:border-neutral-900 lg:ring-2 lg:ring-neutral-300' : 'border-neutral-200'}`}
+                  className={`relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 sm:h-[4.5rem] sm:w-[4.5rem] sm:rounded-xl ${selectedImageIndex === i ? 'border-neutral-900 ring-2 ring-neutral-200' : 'border-neutral-200'}`}
                 >
                   <Image
                     src={resolved}
@@ -724,7 +710,7 @@ export default function ProductDetailClient({
                     width={80}
                     height={80}
                     className="h-full w-full object-contain"
-                    sizes="(max-width: 639px) 56px, (max-width: 1023px) 80px, 76px"
+                    sizes="(max-width: 639px) 56px, 72px"
                     quality={65}
                     loading="eager"
                     fetchPriority="low"
@@ -734,203 +720,43 @@ export default function ProductDetailClient({
             })}
           </div>
         </div>
-
-        <div className="min-w-0 space-y-2 sm:space-y-3 lg:space-y-5 xl:space-y-6">
-          {/* Desktop: purchase column (scrolls with page; disclaimer lives below FAQ in main column) */}
-          <div
-            ref={purchasePanelRef}
-            className="max-lg:hidden block space-y-3 xl:space-y-4 pb-6 lg:pb-8 rounded-2xl lg:pl-0 xl:pl-1"
-          >
-            <div>
-              <h1 className="text-3xl xl:text-[2.125rem] font-semibold text-neutral-900 tracking-tight leading-[1.15]">{productDisplayName}</h1>
-              {(product.badge || product.badgeSub) && (
-                <div className="mt-2.5 xl:mt-3 flex flex-wrap gap-2">
-                  {product.badge && <span className="rounded-full bg-neutral-900 px-3 py-1 text-xs font-medium text-white">{product.badge}</span>}
-                  {product.badgeSub && <span className="rounded-full border border-gold-500/60 bg-gold-50 px-3 py-1 text-xs font-medium text-neutral-900">{product.badgeSub}</span>}
-                </div>
-              )}
-            </div>
-            <p className="text-2xl xl:text-[1.75rem] font-semibold text-neutral-900 pt-1 tabular-nums">
-              {(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice) && (
-                <span className="text-neutral-500 line-through mr-2 text-lg xl:text-xl">{formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}</span>
-              )}
-              {formatPrice(price, currency)}
-            </p>
-            {product.inventory !== 0 ? <ProductTrustBar product={product} className="pt-1" /> : null}
-            {product.description && (
-              <div className="pt-1 lg:pt-2">
-                <div
-                  className={`text-sm xl:text-[15px] text-neutral-600 leading-relaxed lg:leading-[1.65] product-description transition-all lg:[&_p]:text-[15px] lg:[&_li]:text-[15px] xl:[&_p]:text-[15px] xl:[&_li]:text-[15px] ${
-                    descriptionExpanded ? '' : 'line-clamp-3 max-h-[4.5rem] overflow-hidden'
-                  }`}
-                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(scrubMedicalTerms(product.description)) }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setDescriptionExpanded((v) => !v)}
-                  className="mt-2 text-xs font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/50 pb-0.5"
-                >
-                  {descriptionExpanded ? 'Read less' : 'Read more'}
-                </button>
-              </div>
-            )}
-            <div className="pt-1 lg:pt-2">
-              <div className="flex flex-wrap items-start justify-between gap-3 xl:gap-4">
-                {product.variants?.length > 1 ? (
-                  <div className="min-w-0 flex-1 overflow-visible">
-                    <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Size / Variant</p>
-                    <div className="flex flex-wrap gap-2 lg:gap-2.5 pt-1">
-                      {product.variants.map((v) => (
-                        <button
-                          key={v.id}
-                          type="button"
-                          onClick={() => setSelectedVariant(v)}
-                          className={`relative rounded-full sm:rounded-2xl border-2 px-4 py-2 text-sm font-medium transition ${
-                            variant?.id === v.id ? 'border-neutral-900 bg-neutral-900 text-white shadow-sm' : 'border-neutral-200 text-neutral-700 hover:border-neutral-300 bg-white'
-                          }`}
-                        >
-                          {bestValueVariantId === v.id ? (
-                            <span className="pointer-events-none absolute -top-2 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full bg-gold-500 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white shadow-gold-sm">
-                              Best value
-                            </span>
-                          ) : null}
-                          {v.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="min-w-0 flex-1" aria-hidden />
-                )}
-                <div className="shrink-0 pt-0.5 text-right lg:max-w-[11rem] xl:max-w-none">
-                  <ProductRatingSummary
-                    product={product}
-                    starClassName="text-lg xl:text-xl leading-none"
-                    countClassName="text-sm mt-1 sm:mt-0 sm:ml-1"
-                    className="flex flex-col items-end gap-0 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-x-1"
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="pt-0.5 lg:pt-1">
-              <label
-                htmlFor={`product-qty-${formFieldSuffix}`}
-                className="block text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2"
-              >
-                Quantity
-              </label>
-              <div className="inline-flex items-stretch overflow-hidden rounded-full border-2 border-neutral-200 bg-white">
-                <button
-                  type="button"
-                  onClick={() => setQty((n) => Math.max(1, (n || 1) - 1))}
-                  className="w-11 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 text-lg leading-none"
-                  aria-label="Decrease"
-                >
-                  −
-                </button>
-                <div className="flex min-w-[3rem] items-center justify-center border-y border-neutral-100 bg-transparent px-1">
-                  <input
-                    id={`product-qty-${formFieldSuffix}`}
-                    name="quantity"
-                    type="number"
-                    min={1}
-                    max={99}
-                    value={effectiveQty}
-                    onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
-                    className="w-full min-w-0 text-center text-sm font-semibold tabular-nums text-neutral-900 border-0 bg-transparent p-0 m-0 h-11 leading-none align-middle focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setQty((n) => Math.min(99, (n || 1) + 1))}
-                  className="w-11 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 text-lg leading-none"
-                  aria-label="Increase"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-            <div className="flex flex-col gap-2.5 lg:gap-3 pt-1 lg:pt-2">
-              {product.inventory === 0 ? (
-                <span className="rounded-2xl border border-neutral-200 bg-neutral-100 py-3 lg:py-3.5 text-center text-sm font-medium text-neutral-500">
-                  Out of stock
-                </span>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    disabled={orderNowNavigating}
-                    aria-busy={orderNowNavigating}
-                    onClick={() => {
-                      if (orderNowNavigating) return;
-                      setOrderNowVibrate(true);
-                      setTimeout(() => setOrderNowVibrate(false), 400);
-                      void handleOrderNowNavigate();
-                    }}
-                    className={`checkout-cta-animated cta-shimmer-gold relative z-0 w-full rounded-full sm:rounded-2xl bg-gold-500 py-3 lg:py-3.5 text-sm font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-md disabled:opacity-90 disabled:pointer-events-none ${
-                      orderNowVibrate && !orderNowNavigating ? 'animate-vibrate' : ''
-                    }`}
-                  >
-                    <span className="relative z-10 inline-flex items-center justify-center gap-1.5">
-                      {orderNowNavigating ? (
-                        <span aria-hidden>
-                          <Spinner className="h-3.5 w-3.5 border-neutral-900/25 border-t-neutral-900" />
-                        </span>
-                      ) : null}
-                      Order Now
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    disabled={orderNowNavigating}
-                    onClick={() => {
-                      if (orderNowNavigating) return;
-                      handleAddToCart();
-                      setAddCartVibrate(true);
-                      setTimeout(() => setAddCartVibrate(false), 400);
-                    }}
-                    className={`w-full rounded-full sm:rounded-2xl border-2 border-neutral-800 bg-white py-2 lg:py-2.5 text-xs font-semibold text-neutral-900 hover:bg-neutral-50 transition disabled:opacity-50 disabled:pointer-events-none ${
-                      addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
-                    }`}
-                  >
-                    Add to cart
-                  </button>
-                  <p className="text-center text-[11px] lg:text-xs font-medium text-neutral-700 pt-0.5">
-                    🔥 Limited stock — confirm your order today
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Mobile / tablet: out of stock notice (variant & qty live in fixed bottom bar) */}
-          <div className="space-y-2 lg:hidden">
-            {product.inventory === 0 ? (
-              <div className="pt-0 sm:pt-0.5">
-                <span className="mt-2 sm:mt-3 block rounded-xl border border-neutral-200/90 bg-neutral-100 py-2.5 sm:py-3 text-center text-[13px] sm:text-sm font-medium text-neutral-600">
-                  Out of stock
-                </span>
-              </div>
-            ) : null}
-          </div>
-        </div>
       </div>
 
-      {/* Mobile-only: purchase block sequence (title → price → trust → intro → ingredients → variant → qty → CTAs) */}
-      <div className="order-2 lg:hidden">
-        <div className="space-y-6 border-t border-neutral-200 bg-page-canvas px-3 sm:px-4 pt-6 sm:pt-6 rounded-t-2xl -mt-2 sm:mt-0 sm:rounded-none sm:border-t sm:bg-transparent sm:px-0">
-          <div>
-            <h1 className="text-[1.8125rem] sm:text-[1.9375rem] font-semibold leading-[1.12] tracking-[-0.025em] text-neutral-900">{productDisplayName}</h1>
-            {product.badgeSub ? <p className="mt-2.5 text-[13px] sm:text-sm text-neutral-600 leading-relaxed max-w-prose">{product.badgeSub}</p> : null}
-          </div>
-          <div className="border-b border-neutral-200 pb-4 sm:border-0 sm:pb-0">
-            <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-              <span className="text-[1.875rem] sm:text-[2.0625rem] font-bold tabular-nums tracking-tight text-neutral-900">{formatPrice(price, currency)}</span>
+      <div className="order-2 w-full max-w-xl sm:max-w-2xl lg:max-w-2xl mx-auto px-3 pb-1 pt-4 sm:px-1 sm:pb-2 sm:pt-6">
+        <article
+          className="overflow-hidden rounded-2xl border border-neutral-200/90 bg-white shadow-premium ring-1 ring-neutral-900/[0.035] sm:rounded-[1.75rem]"
+          aria-label="Product details and purchase"
+        >
+          <header className="px-5 pb-5 pt-7 sm:px-7 sm:pb-6 sm:pt-8">
+            <h1 className="font-display text-[1.75rem] font-semibold leading-[1.06] tracking-tight text-neutral-900 sm:text-[2rem]">
+              {productDisplayName}
+            </h1>
+            {(product.badge || product.badgeSub) && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {product.badge ? (
+                  <span className="rounded-full border border-neutral-900/10 bg-accent-cream px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-900">
+                    {product.badge}
+                  </span>
+                ) : null}
+                {product.badgeSub ? (
+                  <span className="max-w-full rounded-full border border-neutral-200/90 bg-white px-3 py-1.5 text-[11px] font-medium leading-snug text-neutral-700">
+                    {product.badgeSub}
+                  </span>
+                ) : null}
+              </div>
+            )}
+          </header>
+
+          <div className="border-t border-neutral-100 bg-gradient-to-b from-neutral-50/90 to-neutral-50/40 px-5 py-4 sm:px-7 sm:py-5">
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span className="font-display text-[1.875rem] font-bold tabular-nums tracking-tight text-neutral-900 sm:text-[2.125rem]">
+                {formatPrice(price, currency)}
+              </span>
               {compareAtForLine != null && Number(compareAtForLine) > Number(price) ? (
                 <>
-                  <span className="text-[15px] text-neutral-500 line-through tabular-nums">{formatPrice(compareAtForLine, currency)}</span>
+                  <span className="text-[15px] text-neutral-400 line-through tabular-nums">{formatPrice(compareAtForLine, currency)}</span>
                   {saveLineCents != null && saveLineCents > 0 ? (
-                    <span className="rounded-md border border-gold-400 bg-gold-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-gold-900">
+                    <span className="rounded-full border border-neutral-900/10 bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-neutral-900 shadow-sm">
                       Save {formatPrice(saveLineCents, currency)}
                     </span>
                   ) : null}
@@ -938,87 +764,108 @@ export default function ProductDetailClient({
               ) : null}
             </div>
             {pctOff != null && pctOff > 0 ? (
-              <p className="mt-2 flex items-center gap-2 text-[12px] font-semibold text-neutral-800">
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-gold-500" aria-hidden />
-                <span>⏱ Limited time offer — sale ends soon</span>
+              <p className="mt-3 flex items-center gap-2.5 rounded-xl border border-neutral-200/70 bg-white/90 px-3.5 py-2.5 text-[12px] font-semibold text-neutral-900 shadow-sm">
+                <span className="h-2 w-2 shrink-0 rounded-full bg-brand-gold" aria-hidden />
+                <span>Limited time — sale ends soon</span>
               </p>
             ) : null}
+            {product.inventory !== 0 ? (
+              <div className="mt-4">
+                <ProductTrustBar product={product} variant="pills" />
+              </div>
+            ) : null}
           </div>
-          {product.inventory !== 0 ? <ProductTrustBar product={product} variant="pills" /> : null}
+
           {introParagraphs.length > 0 ? (
-            <div className="space-y-3.5 border-b border-neutral-200 pb-5 text-[15px] leading-[1.65] text-neutral-600">
+            <div className="space-y-3 border-t border-neutral-100 px-5 py-5 text-[15px] leading-relaxed text-neutral-600 sm:px-7 sm:py-6 sm:text-[0.9375rem] sm:leading-[1.65]">
               {introParagraphs.map((p, i) => (
                 <p key={i}>{scrubMedicalTerms(p)}</p>
               ))}
             </div>
           ) : null}
           {Array.isArray(product.benefits) && product.benefits.length > 0 ? (
-            <div className="-mx-3 rounded-xl bg-neutral-900 px-4 py-4 border border-neutral-800 sm:-mx-0">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gold-400">Key ingredients</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {product.benefits.slice(0, 8).map((b, i) => {
-                  const s = String(b);
-                  return (
-                    <span
-                      key={i}
-                      className="rounded-full border border-gold-500/40 bg-neutral-800 px-2.5 py-1.5 text-[11px] font-medium leading-snug text-gold-100"
-                    >
-                      {s.length > 44 ? `${s.slice(0, 44)}…` : s}
-                    </span>
-                  );
-                })}
+            <div className="border-t border-neutral-100 px-5 py-5 sm:px-7 sm:py-6">
+              <div className="rounded-xl border border-neutral-800/90 bg-gradient-to-b from-neutral-900 to-neutral-950 px-4 py-4 shadow-inner sm:px-5 sm:py-5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">Key ingredients</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {product.benefits.slice(0, 8).map((b, i) => {
+                    const s = String(b);
+                    return (
+                      <span
+                        key={i}
+                        className="rounded-full border border-white/12 bg-white/5 px-3 py-1.5 text-[11px] font-medium leading-snug text-neutral-100 backdrop-blur-sm"
+                      >
+                        {s.length > 44 ? `${s.slice(0, 44)}…` : s}
+                      </span>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           ) : null}
+
           {product.inventory === 0 ? (
-            <span className="block rounded-xl border border-neutral-200/90 bg-neutral-100 py-3 text-center text-[14px] font-medium text-neutral-600">
-              Out of stock
-            </span>
+            <div className="border-t border-neutral-100 px-5 py-8 text-center sm:px-7">
+              <span className="inline-block rounded-xl border border-neutral-200 bg-neutral-50 px-6 py-3 text-sm font-medium text-neutral-600">
+                Out of stock
+              </span>
+            </div>
           ) : (
-            <>
-              {product.variants?.length > 1 ? (
-                <div className="overflow-visible pt-1">
-                  <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-neutral-700">Choose your size</p>
-                  <div className="grid grid-cols-2 gap-3 overflow-visible pt-2">
-                    {product.variants.map((v) => (
-                      <button
-                        key={v.id}
-                        type="button"
-                        onClick={() => setSelectedVariant(v)}
-                        className={`relative mt-1 rounded-xl border-2 py-3.5 px-2.5 text-center transition ${
-                          variant?.id === v.id
-                            ? 'border-gold-500 bg-neutral-900'
-                            : 'border-neutral-200 bg-white'
-                        }`}
-                      >
-                        {bestValueVariantId === v.id ? (
-                          <span className="pointer-events-none absolute -top-2.5 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full bg-gold-500 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-gold-sm">
-                            Best value
+            <div className="border-t border-neutral-100 bg-gradient-to-b from-neutral-50/50 via-white to-white px-5 py-6 sm:px-7 sm:py-8">
+              {showVariantPicker ? (
+                <div>
+                  <div className="mb-4 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">Size / variant</p>
+                    <ProductRatingSummary
+                      product={product}
+                      starClassName="text-[1rem] leading-none text-amber-500 sm:text-[1.0625rem]"
+                      countClassName="text-[11px] text-neutral-500 sm:text-[12px]"
+                      className="flex flex-wrap items-center justify-end gap-x-1 gap-y-0.5"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                    {product.variants.map((v) => {
+                      const selected = variant?.id === v.id;
+                      const isBest = bestValueVariantId === v.id;
+                      return (
+                        <button
+                          key={v.id}
+                          type="button"
+                          onClick={() => setSelectedVariant(v)}
+                          className={`flex min-h-[5.5rem] w-full flex-col items-center justify-center rounded-xl border px-3 py-3 text-center transition duration-200 ${
+                            selected
+                              ? 'variant-pdp-selected border-transparent shadow-md ring-1 ring-black/[0.06]'
+                              : 'border-neutral-200/90 bg-white hover:border-neutral-300 hover:shadow-sm'
+                          }`}
+                        >
+                          <span className={`text-[15px] font-semibold leading-tight ${selected ? 'text-neutral-900' : 'text-neutral-900'}`}>
+                            {v.name}
                           </span>
-                        ) : null}
-                        <span
-                          className={`block text-[15px] font-semibold leading-snug ${variant?.id === v.id ? 'text-white' : 'text-neutral-900'}`}
-                        >
-                          {v.name}
-                        </span>
-                        <span
-                          className={`mt-1 block text-[13px] tabular-nums ${variant?.id === v.id ? 'text-gold-200' : 'text-neutral-600'}`}
-                        >
-                          {formatPrice(v.price, currency)}
-                        </span>
-                      </button>
-                    ))}
+                          <span
+                            className={`mt-1 text-[13px] tabular-nums ${selected ? 'text-neutral-800' : 'text-neutral-600'}`}
+                          >
+                            {formatPrice(v.price, currency)}
+                          </span>
+                          <span
+                            className={`mt-auto block min-h-[1.125rem] pt-2 text-[10px] font-bold uppercase tracking-[0.1em] ${isBest ? 'text-neutral-700' : 'text-transparent'}`}
+                            aria-hidden={!isBest}
+                          >
+                            {isBest ? 'Best value' : '\u00a0'}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ) : null}
-              <div>
-                <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-600">Quantity</p>
+              <div className={showVariantPicker ? 'mt-7 border-t border-neutral-100/80 pt-7' : ''}>
+                <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">Quantity</p>
                 <div className="flex flex-wrap items-center gap-4">
-                  <div className="inline-flex items-stretch overflow-hidden rounded-full border-2 border-neutral-200 bg-white">
+                  <div className="inline-flex items-stretch overflow-hidden rounded-xl border border-neutral-200/90 bg-white shadow-sm">
                     <button
                       type="button"
                       onClick={() => setQty((n) => Math.max(1, (n || 1) - 1))}
-                      className="flex h-10 w-10 items-center justify-center text-lg font-semibold text-neutral-700 hover:bg-gold-50"
+                      className="flex h-11 w-11 items-center justify-center text-lg font-semibold text-neutral-600 transition hover:bg-neutral-50"
                       aria-label="Decrease quantity"
                     >
                       −
@@ -1031,21 +878,22 @@ export default function ProductDetailClient({
                       max={99}
                       value={effectiveQty}
                       onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
-                      className="h-10 w-12 border-x border-neutral-200 bg-transparent text-center text-[15px] font-semibold tabular-nums text-neutral-900 focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      className="h-11 w-12 border-x border-neutral-100 bg-transparent text-center text-[15px] font-semibold tabular-nums text-neutral-900 focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
                     <button
                       type="button"
                       onClick={() => setQty((n) => Math.min(99, (n || 1) + 1))}
-                      className="flex h-10 w-10 items-center justify-center text-lg font-semibold text-neutral-700 hover:bg-gold-50"
+                      className="flex h-11 w-11 items-center justify-center text-lg font-semibold text-neutral-600 transition hover:bg-neutral-50"
                       aria-label="Increase quantity"
                     >
                       +
                     </button>
                   </div>
-                  <span className="text-[12px] leading-snug text-neutral-600">2–3 month supply per bottle</span>
+                  <span className="max-w-[12rem] text-[12px] leading-snug text-neutral-500">Typical use: 2–3 months per bottle</span>
                 </div>
               </div>
-              <div className="flex flex-col gap-3 border-b border-neutral-200/70 pb-6">
+
+              <div className="mt-8 space-y-3 rounded-2xl border border-neutral-200/80 bg-white p-4 shadow-sm sm:p-5">
                 <button
                   type="button"
                   disabled={orderNowNavigating}
@@ -1056,7 +904,7 @@ export default function ProductDetailClient({
                     setTimeout(() => setOrderNowVibrate(false), 400);
                     void handleOrderNowNavigate();
                   }}
-                  className={`checkout-cta-animated cta-shimmer-gold relative z-0 flex min-h-[3.5rem] w-full items-center justify-center gap-2 rounded-full bg-gold-500 px-4 text-[15px] font-bold tracking-tight text-neutral-900 shadow-gold-md transition hover:bg-gold-600 disabled:opacity-90 disabled:pointer-events-none ${
+                  className={`btn-pdp-order-now relative z-0 flex min-h-[3.5rem] w-full items-center justify-center gap-2 rounded-xl px-4 text-[15px] font-semibold tracking-tight transition hover:shadow-lg disabled:opacity-90 disabled:pointer-events-none ${
                     orderNowVibrate && !orderNowNavigating ? 'animate-vibrate' : ''
                   }`}
                 >
@@ -1074,7 +922,7 @@ export default function ProductDetailClient({
                           d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"
                         />
                       </svg>
-                      <span className="relative z-10">Order Now — Cash on Delivery</span>
+                      <span className="relative z-10">Order now — cash on delivery</span>
                     </>
                   )}
                 </button>
@@ -1087,46 +935,45 @@ export default function ProductDetailClient({
                     setAddCartVibrate(true);
                     setTimeout(() => setAddCartVibrate(false), 400);
                   }}
-                  className={`min-h-[3rem] w-full rounded-full border-2 border-neutral-900 bg-white py-3 text-[14px] font-semibold tracking-tight text-neutral-900 transition hover:bg-neutral-50 disabled:opacity-50 disabled:pointer-events-none ${
+                  className={`flex min-h-[3rem] w-full items-center justify-center rounded-xl border border-neutral-300 bg-white py-3 text-[14px] font-semibold tracking-tight text-neutral-900 transition hover:border-neutral-400 hover:bg-neutral-50 disabled:opacity-50 disabled:pointer-events-none ${
                     addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
                   }`}
                 >
-                  Add to Cart
+                  Add to cart
                 </button>
-                <div className="flex items-center justify-center gap-2 border border-gold-300 bg-gold-50 px-3 py-2.5 text-center text-[12px] font-bold text-neutral-900">
-                  <span className="h-2 w-2 shrink-0 rounded-full bg-gold-500" aria-hidden />
-                  Limited stock — only a few bottles left
+                <div className="flex items-center justify-center gap-2 rounded-xl border border-neutral-200/60 bg-accent-cream/90 px-3 py-2.5 text-center text-[11px] font-semibold leading-snug text-neutral-900 sm:text-xs">
+                  <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-brand-gold" aria-hidden />
+                  Limited stock — reserve yours today
                 </div>
-                <p className="text-center text-[11px] font-medium tracking-wide leading-relaxed text-neutral-600">
-                  📦 Free shipping · Arrives in 3–7 days · Easy 7-day returns
+                <p className="text-center text-[10px] font-medium uppercase tracking-wider text-neutral-500 sm:text-[11px] sm:normal-case sm:tracking-normal">
+                  Free shipping · 3–7 day delivery · 7-day returns
                 </p>
               </div>
-            </>
+            </div>
           )}
-        </div>
+        </article>
       </div>
 
       {/* Write review + recent reviews */}
-      <section className="order-3 lg:order-4 mt-4 sm:mt-6 lg:mt-16 xl:mt-20 pt-5 sm:pt-8 lg:pt-14 xl:pt-16 border-t border-neutral-200 max-lg:border-t-0 max-lg:pt-4 sm:max-lg:pt-5">
-        <div className="lg:hidden mb-5">
+      <section className="order-3 mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-neutral-200 w-full max-w-xl sm:max-w-2xl lg:max-w-2xl mx-auto px-3 sm:px-0">
+        <div className="mb-5">
           <h3 className="text-[1.25rem] font-semibold text-neutral-900 tracking-tight leading-snug">What customers say</h3>
-          <div className="mt-3.5 flex items-center gap-3.5 rounded-xl border-2 border-gold-200 bg-gold-50 px-4 py-4">
+          <div className="mt-3.5 flex items-center gap-3.5 rounded-2xl border border-neutral-200 bg-white px-4 py-4">
             <span className="font-semibold text-[2.125rem] tabular-nums leading-none tracking-tight text-neutral-900">
               {Number(product.rating || 0).toFixed(1)}
             </span>
             <div className="min-w-0 flex-1">
-              <div className="text-gold-500 text-[1.125rem] tracking-[0.2em]">{'★'.repeat(Math.min(5, Math.round(Number(product.rating) || 0)))}</div>
+              <div className="text-neutral-800 text-[1.125rem] tracking-[0.2em]">{'★'.repeat(Math.min(5, Math.round(Number(product.rating) || 0)))}</div>
               <p className="text-[12px] text-neutral-600 mt-1 leading-snug">
                 Based on {product.reviewCount ?? 0} verified reviews
               </p>
             </div>
           </div>
         </div>
-        <h3 className="hidden lg:block text-base sm:text-lg lg:text-xl font-semibold text-neutral-900 mb-3 sm:mb-4 lg:mb-6 tracking-tight">Reviews</h3>
         {liveReviewsList.length > 0 ? (
           <div className="mb-6 sm:mb-8 lg:mb-10">
             <h4 className="text-[15px] sm:text-base font-semibold tracking-tight text-neutral-900 mb-3 sm:mb-4">Customer stories</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+            <div className="grid grid-cols-1 gap-4 sm:gap-5">
               {liveReviewsList.map((r) => (
                 <article
                   key={r.id}
@@ -1143,27 +990,22 @@ export default function ProductDetailClient({
                       ))}
                     </div>
                   ) : null}
-                  <div className="mb-2 flex items-start justify-between gap-2 lg:hidden">
+                  <div className="mb-2 flex items-start justify-between gap-2">
                     <div className="flex min-w-0 items-center gap-2.5">
                       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-[13px] font-bold text-white">
                         {reviewerInitials(r.authorName)}
                       </span>
                       <span className="truncate text-[15px] font-semibold text-neutral-900">{r.authorName}</span>
                     </div>
-                    <span className="shrink-0 text-gold-500 text-[15px] tracking-wide">
+                    <span className="shrink-0 text-amber-500 text-[15px] tracking-wide">
                       {'★'.repeat(Math.min(5, r.rating || 0))}
                       <span className="text-neutral-300">{'★'.repeat(5 - Math.min(5, r.rating || 0))}</span>
                     </span>
                   </div>
-                  <div className="mb-2 hidden flex-wrap items-center gap-1.5 sm:gap-2 lg:flex">
-                    <span className="text-gold-600 text-sm">{'★'.repeat(Math.min(5, r.rating || 0))}</span>
-                    <span className="text-neutral-400 text-sm">{'★'.repeat(5 - Math.min(5, r.rating || 0))}</span>
-                    <span className="text-xs sm:text-sm font-medium text-neutral-800">{r.authorName}</span>
-                  </div>
-                  <p className="text-[15px] leading-[1.6] text-neutral-700 lg:text-xs sm:lg:text-sm lg:leading-relaxed lg:text-neutral-600">
+                  <p className="text-[15px] leading-[1.6] text-neutral-700">
                     {scrubMedicalTerms(r.body)}
                   </p>
-                  <span className="mt-2.5 inline-block rounded-full border border-gold-200 bg-gold-50 px-2 py-0.5 text-[11px] font-semibold text-gold-900">
+                  <span className="mt-2.5 inline-block rounded-full border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-[11px] font-semibold text-neutral-700">
                     ✓ Verified story
                   </span>
                 </article>
@@ -1171,7 +1013,7 @@ export default function ProductDetailClient({
             </div>
           </div>
         ) : null}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-10 xl:gap-14">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6">
           <div>
             <p className="text-[13px] sm:text-sm lg:text-base text-neutral-600 mb-2 sm:mb-3 lg:mb-4 leading-relaxed lg:leading-relaxed">Share your experience with this product.</p>
             <form onSubmit={handleSubmitReview} className="space-y-2 sm:space-y-3 lg:space-y-4">
@@ -1271,7 +1113,7 @@ export default function ProductDetailClient({
               type="submit"
               disabled={reviewSubmitting || !reviewBody.trim()}
               aria-busy={reviewSubmitting}
-              className="mt-2 sm:mt-3 lg:mt-4 inline-flex items-center justify-center gap-2 rounded-full sm:rounded-2xl bg-neutral-900 px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 text-[13px] sm:text-sm lg:text-base font-semibold text-white hover:bg-neutral-800 disabled:opacity-60"
+              className="btn-gold-primary mt-2 sm:mt-3 lg:mt-4 inline-flex items-center justify-center gap-2 rounded-full sm:rounded-2xl px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 text-[13px] sm:text-sm lg:text-base disabled:opacity-60 hover:shadow-lg"
             >
               {reviewSubmitting ? (
                 <span aria-hidden>
@@ -1304,27 +1146,22 @@ export default function ProductDetailClient({
                         ))}
                       </div>
                     ) : null}
-                    <div className="mb-2 flex items-start justify-between gap-2 lg:hidden">
+                    <div className="mb-2 flex items-start justify-between gap-2">
                       <div className="flex min-w-0 items-center gap-2.5">
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-[13px] font-bold text-white">
                           {reviewerInitials(r.authorName)}
                         </span>
                         <span className="truncate text-[15px] font-semibold text-neutral-900">{r.authorName}</span>
                       </div>
-                      <span className="shrink-0 text-gold-500 text-[15px]">
+                      <span className="shrink-0 text-amber-500 text-[15px]">
                         {'★'.repeat(Math.min(5, r.rating || 0))}
                         <span className="text-neutral-300">{'★'.repeat(5 - Math.min(5, r.rating || 0))}</span>
                       </span>
                     </div>
-                    <div className="mb-1.5 hidden flex-wrap items-center gap-1.5 sm:mb-2 lg:mb-2.5 lg:flex sm:gap-2 lg:gap-2.5">
-                      <span className="text-gold-600 text-sm sm:text-base lg:text-lg">{'★'.repeat(Math.min(5, r.rating || 0))}</span>
-                      <span className="text-neutral-400 text-sm sm:text-base lg:text-lg">{'★'.repeat(5 - Math.min(5, r.rating || 0))}</span>
-                      <span className="text-xs sm:text-sm lg:text-base font-medium text-neutral-700">{r.authorName}</span>
-                    </div>
-                    <p className="text-[15px] leading-[1.6] text-neutral-700 lg:text-xs sm:lg:text-sm lg:leading-relaxed lg:text-neutral-600">
+                    <p className="text-[15px] leading-[1.6] text-neutral-700">
                       {scrubMedicalTerms(r.body)}
                     </p>
-                    <span className="mt-2 inline-block rounded-full border border-gold-200 bg-gold-50 px-2 py-0.5 text-[11px] font-semibold text-gold-900">
+                    <span className="mt-2 inline-block rounded-full border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-[11px] font-semibold text-neutral-700">
                       ✓ Verified purchase
                     </span>
                   </div>
@@ -1333,13 +1170,11 @@ export default function ProductDetailClient({
                   <button
                     type="button"
                     onClick={() => setReviewsExpanded((v) => !v)}
-                    className="text-[13px] sm:text-sm lg:text-base font-semibold text-gold-800 hover:text-gold-700 border-b border-gold-500/40 pb-0.5"
+                    className="text-[13px] sm:text-sm lg:text-base font-semibold text-neutral-900 hover:text-neutral-700 border-b border-neutral-300 pb-0.5"
                   >
                     {reviewsExpanded
                       ? 'View less'
-                      : isLg
-                        ? `View all reviews (${primaryReviews.length - reviewPreviewCount} more)`
-                        : `View more reviews (${primaryReviews.length - reviewPreviewCount} more)`}
+                      : `View more reviews (${primaryReviews.length - reviewPreviewCount} more)`}
                   </button>
                 )}
               </div>
@@ -1355,7 +1190,7 @@ export default function ProductDetailClient({
       </section>
 
       {keyBenefitCards.length > 0 ? (
-        <section className="order-4 lg:hidden border-t border-neutral-200 px-1 py-7 sm:px-0 bg-neutral-50">
+        <section className="order-4 border-t border-neutral-200 px-3 sm:px-4 py-7 max-w-xl sm:max-w-2xl lg:max-w-2xl mx-auto bg-page-canvas">
           <h3 className="text-[1.25rem] font-semibold tracking-tight text-neutral-900 leading-snug">Why {productDisplayName} works</h3>
           <div className="mt-5 grid grid-cols-2 gap-3">
             {keyBenefitCards.slice(0, 6).map((row, i) => (
@@ -1372,7 +1207,7 @@ export default function ProductDetailClient({
       ) : null}
 
       {howToSteps.length > 0 ? (
-        <section className="order-4 lg:hidden border-t border-neutral-200/80 px-1 py-7 sm:px-0">
+        <section className="order-4 border-t border-neutral-200/80 px-3 sm:px-4 py-7 max-w-xl sm:max-w-2xl lg:max-w-2xl mx-auto">
           <h3 className="text-[1.25rem] font-semibold tracking-tight text-neutral-900 leading-snug">How to use</h3>
           <ul className="mt-5 list-none space-y-4">
             {howToSteps.map((step, i) => (
@@ -1386,7 +1221,7 @@ export default function ProductDetailClient({
           </ul>
           {proTipHtml ? (
             <div
-              className="mt-5 border-l-4 border-gold-500 bg-gold-50 px-4 py-3.5 text-[14px] leading-relaxed text-neutral-700 [&_strong]:font-semibold [&_strong]:text-neutral-900"
+              className="mt-5 border-l-4 border-brand-gold bg-accent-cream px-4 py-3.5 text-[14px] leading-relaxed text-neutral-800 [&_strong]:font-semibold [&_strong]:text-neutral-900"
               dangerouslySetInnerHTML={{ __html: proTipHtml }}
             />
           ) : null}
@@ -1394,7 +1229,7 @@ export default function ProductDetailClient({
       ) : null}
 
       {(product.faq || []).length > 0 ? (
-        <section className="order-4 lg:hidden border-t border-neutral-200/80 px-1 py-7 sm:px-0">
+        <section className="order-4 border-t border-neutral-200/80 px-3 sm:px-4 py-7 max-w-xl sm:max-w-2xl lg:max-w-2xl mx-auto">
           <h3 className="text-[1.25rem] font-semibold tracking-tight text-neutral-900 leading-snug">Frequently asked questions</h3>
           <div className="mt-5 space-y-2.5">
             {(product.faq || []).map((item, i) => (
@@ -1406,7 +1241,7 @@ export default function ProductDetailClient({
                 >
                   <span className="min-w-0 pr-2">{scrubMedicalTerms(item.q)}</span>
                   <span
-                    className={`shrink-0 text-gold-600 text-lg transition-transform ${faqOpen === i ? 'rotate-180' : ''}`}
+                    className={`shrink-0 text-neutral-500 text-lg transition-transform ${faqOpen === i ? 'rotate-180' : ''}`}
                     aria-hidden
                   >
                     ▾
@@ -1423,7 +1258,7 @@ export default function ProductDetailClient({
         </section>
       ) : null}
 
-      <div className="order-4 border-t border-neutral-200 bg-neutral-50 px-3 py-6 text-[12px] leading-relaxed text-neutral-600 lg:hidden">
+      <div className="order-4 border-t border-neutral-200 bg-accent-cream/90 px-3 sm:px-4 py-6 text-[12px] leading-relaxed text-neutral-700 max-w-xl sm:max-w-2xl lg:max-w-2xl mx-auto">
         {disclaimerEnabled ? (
           <>
             <p className="text-xs font-semibold uppercase tracking-wide text-neutral-900">{disclaimerTitleToShow}</p>
@@ -1440,95 +1275,21 @@ export default function ProductDetailClient({
         )}
       </div>
 
-      {/* Desktop: FAQ + policies only */}
-      <section className="order-5 lg:order-2 max-lg:hidden block mt-16 xl:mt-20 pt-12 xl:pt-16 border-t border-neutral-200">
-        {(product.faq || []).length > 0 && (
-          <div>
-            <h3 className="text-base font-semibold text-neutral-900 mb-4 xl:mb-5 tracking-tight">FAQ</h3>
-            <ul className="space-y-1 max-w-2xl xl:max-w-3xl">
-              {(product.faq || []).map((item, i) => (
-                <li key={i} className="border-b border-neutral-100">
-                  <button type="button" onClick={() => setFaqOpen(faqOpen === i ? null : i)} className="w-full py-3.5 xl:py-4 text-left text-sm text-neutral-700 flex justify-between gap-4 font-medium">
-                    <span className="min-w-0 pr-2">{scrubMedicalTerms(item.q)}</span><span className="shrink-0">{faqOpen === i ? '−' : '+'}</span>
-                  </button>
-                  {faqOpen === i && <p className="pb-3.5 xl:pb-4 text-sm text-neutral-500 leading-relaxed max-w-2xl">{scrubMedicalTerms(item.a)}</p>}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {disclaimerEnabled ? (
-          <div
-            className={`rounded-xl border border-neutral-200 bg-neutral-50/90 px-3 py-2.5 max-w-2xl xl:max-w-3xl ${
-              (product.faq || []).length ? 'mt-8 xl:mt-10' : ''
-            }`}
-          >
-            <p className="text-[11px] xl:text-xs font-semibold text-neutral-900">{disclaimerTitleToShow}</p>
-            <ul className="mt-1.5 space-y-1 text-[11px] xl:text-sm text-neutral-700 leading-relaxed list-disc pl-4">
-              {disclaimerItemsToShow.map((item, idx) => (
-                <li key={`d-${idx}-${item.slice(0, 12)}`}>{item}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-        <div
-          className={`rounded-2xl bg-neutral-50 border border-neutral-100 p-6 xl:p-8 text-sm xl:text-[15px] text-neutral-600 space-y-3 leading-relaxed max-w-2xl xl:max-w-3xl ${
-            (product.faq || []).length || disclaimerEnabled ? 'mt-10 xl:mt-12' : ''
-          }`}
-        >
-          <p><strong>Shipping:</strong> {SHIPPING_POLICY}</p>
-          <p><strong>Returns:</strong> {RETURN_POLICY}</p>
-        </div>
-        {customProductBadges.length > 0 ? (
-          <div className="mt-6 xl:mt-8 flex flex-wrap items-center" style={{ gap: 10 }}>
-            {customProductBadges.map((b, idx) => {
-              const src = resolveImageUrl(b.imageUrl);
-              const alt = String(b.label || 'Badge').trim() || 'Badge';
-              const img = (
-                <img
-                  src={src}
-                  alt={alt}
-                  width={124}
-                  height={124}
-                  className="h-[124px] w-[124px] object-contain"
-                  loading="lazy"
-                />
-              );
-              return b.href ? (
-                <a
-                  key={`badge-${idx}`}
-                  href={b.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 hover:opacity-90"
-                >
-                  {img}
-                </a>
-              ) : (
-                <span key={`badge-${idx}`} className="shrink-0">
-                  {img}
-                </span>
-              );
-            })}
-        </div>
-        ) : null}
-      </section>
-
-      {/* Mobile: full description + policies (below structured sections) */}
-      <section className="order-6 mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-neutral-200 lg:hidden">
+      {/* Full description + policies (below structured sections) */}
+      <section className="order-6 mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-neutral-200 w-full max-w-xl sm:max-w-2xl lg:max-w-2xl mx-auto px-3 sm:px-4">
         {product.description && (
-          <details className="group mb-5 rounded-xl border-2 border-neutral-200 bg-white px-4 py-4 sm:px-5 sm:py-4 open:border-gold-400">
+          <details className="group mb-5 rounded-xl border-2 border-neutral-200 bg-white px-4 py-4 sm:px-5 sm:py-4 open:border-neutral-400">
             <summary className="cursor-pointer text-[15px] font-semibold text-neutral-900 list-none [&::-webkit-details-marker]:hidden">
-              Full product information <span className="text-gold-600 font-normal group-open:hidden">+</span>
-              <span className="hidden text-gold-600 font-normal group-open:inline">−</span>
+              Full product information <span className="text-neutral-500 font-normal group-open:hidden">+</span>
+              <span className="hidden text-neutral-500 font-normal group-open:inline">−</span>
             </summary>
             <div
               className="mt-3.5 text-[14px] leading-relaxed text-neutral-600 product-description max-h-[70vh] overflow-y-auto [&_li]:text-[14px] [&_p]:text-[14px]"
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml(scrubMedicalTerms(product.description)) }}
+              dangerouslySetInnerHTML={{ __html: sanitizedProductDescriptionHtml }}
             />
           </details>
         )}
-        <div className="rounded-xl sm:rounded-2xl border border-neutral-200 bg-neutral-100 px-4 py-4 sm:px-5 sm:py-4 text-[13px] sm:text-sm text-neutral-600 space-y-2 leading-relaxed">
+        <div className="rounded-xl sm:rounded-2xl border border-neutral-200 bg-neutral-50/60 px-4 py-4 sm:px-5 sm:py-4 text-[13px] sm:text-sm text-neutral-600 space-y-2 leading-relaxed">
           <p><strong className="font-semibold text-neutral-800">Shipping:</strong> {SHIPPING_POLICY}</p>
           <p><strong className="font-semibold text-neutral-800">Returns:</strong> {RETURN_POLICY}</p>
         </div>
@@ -1572,14 +1333,17 @@ export default function ProductDetailClient({
 
       {related.length > 0 && (
         <section className="mt-6 sm:mt-12 lg:mt-20 xl:mt-24 pt-6 sm:pt-10 lg:pt-16 xl:pt-20 border-t border-neutral-200">
-          <h2 className="text-[1.125rem] sm:text-xl lg:text-2xl xl:text-[1.75rem] font-semibold text-neutral-900 mb-3 sm:mb-6 lg:mb-8 xl:mb-10 tracking-tight max-lg:leading-snug">You may also like</h2>
+          <h2 className="text-[1.125rem] sm:text-xl lg:text-2xl xl:text-[1.75rem] font-semibold text-neutral-900 mb-3 sm:mb-6 lg:mb-8 xl:mb-10 tracking-tight max-lg:leading-snug inline-flex flex-col gap-1">
+            <span className="h-px w-10 bg-neutral-900/20" aria-hidden />
+            <span>You may also like</span>
+          </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 xl:gap-8">
             {related.map((p, i) => {
               const img = resolveImageUrl(p.images?.[0]) || '/assets/nature-secret-logo.svg';
               const name = p.name ?? p.slug ?? 'Product';
               return (
                 <Link key={p.id} href={`/shop/${productPath(p)}`} className="group animate-stagger-in opacity-0" style={{ animationDelay: `${i * 100}ms` }}>
-                  <div className="aspect-square rounded-xl sm:rounded-2xl lg:rounded-2xl overflow-hidden bg-neutral-100">
+                  <div className="aspect-square rounded-xl sm:rounded-2xl lg:rounded-2xl overflow-hidden bg-neutral-100 border border-neutral-200/90 transition-all group-hover:border-neutral-400 group-hover:shadow-premium">
                     <Image
                       src={img}
                       alt={name}
@@ -1602,7 +1366,7 @@ export default function ProductDetailClient({
       {/* Mobile: sticky bar — price + Order Now (sample layout; variant/qty live in page) */}
       {product.inventory !== 0 && (
         <div
-          className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t-2 border-gold-400 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.08)] px-4 py-3.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+          className="fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200/70 bg-page-canvas/95 backdrop-blur-xl shadow-[0_-8px_32px_rgba(0,0,0,0.06)] px-4 py-3.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
           role="region"
           aria-label="Quick purchase"
         >
@@ -1625,7 +1389,7 @@ export default function ProductDetailClient({
                 setTimeout(() => setOrderNowVibrate(false), 400);
                 void handleOrderNowNavigate();
               }}
-              className={`checkout-cta-animated cta-shimmer-gold relative z-0 min-h-[3.25rem] flex-1 rounded-full bg-gold-500 px-3 text-[14px] font-bold tracking-tight text-neutral-900 shadow-gold-md transition hover:bg-gold-600 disabled:opacity-90 disabled:pointer-events-none ${
+              className={`btn-pdp-order-now relative z-0 min-h-[3.25rem] flex-1 rounded-full px-3 text-[14px] font-semibold tracking-tight transition hover:shadow-lg disabled:opacity-90 disabled:pointer-events-none ${
                 orderNowVibrate && !orderNowNavigating ? 'animate-vibrate' : ''
               }`}
             >
@@ -1638,74 +1402,6 @@ export default function ProductDetailClient({
                 <span className="relative z-10">Order Now — COD</span>
               )}
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Desktop: sticky bottom bar when purchase panel scrolls out */}
-      {showStickyBar && product.inventory !== 0 && (
-        <div
-          className="max-lg:hidden flex fixed bottom-0 left-0 right-0 z-50 items-center justify-between gap-4 px-6 xl:px-10 py-3.5 xl:py-4 border-t border-neutral-200 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.08)]"
-          role="region"
-          aria-label="Quick purchase"
-        >
-          <div className="max-w-7xl mx-auto w-full flex flex-wrap items-center justify-between gap-4 xl:gap-6">
-            <div className="flex flex-wrap items-center gap-4 xl:gap-6 min-w-0">
-              <p className="text-lg xl:text-xl font-semibold text-neutral-900 tabular-nums">
-                {(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice) && (
-                  <span className="text-neutral-500 line-through text-sm mr-2">
-                    {formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}
-                  </span>
-                )}
-                {formatPrice(price, currency)}
-              </p>
-              <ProductRatingSummary
-                product={product}
-                starClassName="text-sm xl:text-base"
-                countClassName="text-xs text-neutral-500"
-                className="hidden sm:flex"
-              />
-            </div>
-            <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end flex-1 min-w-[280px]">
-              <button
-                type="button"
-                disabled={orderNowNavigating}
-                aria-busy={orderNowNavigating}
-                onClick={() => {
-                  if (orderNowNavigating) return;
-                  setOrderNowVibrate(true);
-                  setTimeout(() => setOrderNowVibrate(false), 400);
-                  void handleOrderNowNavigate();
-                }}
-                className={`checkout-cta-animated cta-shimmer-gold relative z-0 rounded-full sm:rounded-2xl bg-gold-500 px-4 py-2 text-xs font-semibold text-neutral-900 hover:bg-gold-600 transition shadow-gold-md sm:min-w-[120px] disabled:opacity-90 disabled:pointer-events-none ${
-                  orderNowVibrate && !orderNowNavigating ? 'animate-vibrate' : ''
-                }`}
-              >
-                <span className="relative z-10 inline-flex items-center justify-center gap-1.5">
-                  {orderNowNavigating ? (
-                    <span aria-hidden>
-                      <Spinner className="h-3.5 w-3.5 border-neutral-900/25 border-t-neutral-900" />
-                    </span>
-                  ) : null}
-                  Order Now
-                </span>
-              </button>
-              <button
-                type="button"
-                disabled={orderNowNavigating}
-                onClick={() => {
-                  if (orderNowNavigating) return;
-                  handleAddToCart();
-                  setAddCartVibrate(true);
-                  setTimeout(() => setAddCartVibrate(false), 400);
-                }}
-                className={`rounded-full sm:rounded-2xl border-2 border-neutral-800 bg-white px-3 py-1.5 text-[11px] font-semibold text-neutral-900 hover:bg-neutral-50 transition sm:min-w-[100px] disabled:opacity-50 disabled:pointer-events-none ${
-                  addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
-                }`}
-              >
-                Add to cart
-              </button>
-            </div>
           </div>
         </div>
       )}

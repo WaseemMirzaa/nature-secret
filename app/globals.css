@@ -3,23 +3,25 @@
 @tailwind utilities;
 
 :root {
-  /* Default page canvas — rgb(250, 250, 249); pair with bg-white sections for contrast */
-  --bg: #fafaf9;
-  --fg: #1c1917;
-  --gold: #d4af37;
-  --gold-mid: #b8962e;
-  --gold-rgb: 212 175 55;
-  --gold-soft: rgba(212, 175, 55, 0.14);
-  --gold-border: rgba(212, 175, 55, 0.38);
-  --gold-shine: linear-gradient(
-    135deg,
-    #fffef8 0%,
-    #f5e6a8 22%,
-    #d4af37 45%,
-    #f4e8a1 56%,
-    #c9a227 82%,
-    #8b6914 100%
-  );
+  /* White page canvas; accent cream + brand gold for highlights only */
+  --bg: #ffffff;
+  --fg: #0a0a0a;
+  --accent-cream-rgb: 253 244 213;
+  --brand-gold-rgb: 207 176 79;
+  --brand-gold: rgb(var(--brand-gold-rgb));
+  --brand-gold-hover: rgb(184 154 58);
+  --brand-gold-active: rgb(165 138 48);
+  --gold: var(--brand-gold);
+  --gold-mid: rgb(165 138 48);
+  --gold-rgb: var(--brand-gold-rgb);
+  --gold-soft: rgb(var(--brand-gold-rgb) / 0.14);
+  --gold-border: rgb(var(--brand-gold-rgb) / 0.45);
+  --gold-shine: linear-gradient(135deg, #fffef8 0%, rgb(var(--brand-gold-rgb)) 50%, #a68a30 100%);
+}
+
+::selection {
+  background-color: rgb(var(--brand-gold-rgb) / 0.28);
+  color: var(--fg);
 }
 
 html {
@@ -29,6 +31,7 @@ body {
   @apply text-neutral-900 antialiased;
   background-color: var(--bg);
   font-feature-settings: "rlig" 1, "calt" 1;
+  letter-spacing: -0.01em;
   overflow-x: hidden;
 }
 
@@ -40,68 +43,106 @@ body {
   .text-balance {
     text-wrap: balance;
   }
-}
-
-@keyframes checkoutCtaShimmer {
-  0% {
-    transform: translateX(-130%);
+  /** Headlines: same Inter as body — use `font-semibold` in markup for authority */
+  .font-display {
+    font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.03em;
   }
-  100% {
-    transform: translateX(130%);
+  /** Soft radial light — hero / key sections */
+  .bg-section-ambient {
+    background-color: var(--bg);
+    background-image:
+      radial-gradient(ellipse 90% 65% at 100% 0%, rgb(var(--brand-gold-rgb) / 0.08), transparent 52%),
+      radial-gradient(ellipse 75% 50% at 0% 100%, rgba(255, 255, 255, 0.95), transparent 48%),
+      radial-gradient(ellipse 55% 42% at 35% 0%, rgb(var(--accent-cream-rgb) / 0.35), transparent 46%);
+  }
+  /** Editorial frame: inset hairline on media */
+  .frame-media-inset {
+    box-shadow:
+      inset 0 0 0 1px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+  /** RGB(253,244,213) — promo bar, discount fields, soft highlights */
+  .bg-accent-cream {
+    background-color: rgb(var(--accent-cream-rgb));
+  }
+  .bg-accent-cream-soft {
+    background-color: rgb(var(--accent-cream-rgb) / 0.55);
+  }
+  .bg-brand-gold {
+    background-color: rgb(var(--brand-gold-rgb));
+  }
+  .border-brand-gold {
+    border-color: rgb(var(--brand-gold-rgb));
   }
 }
 
 @layer components {
-  .checkout-cta-animated {
-    @apply relative isolate overflow-hidden;
+  /** Primary CTA — charcoal on light canvas (class name kept for compatibility). */
+  .btn-gold-primary {
+    position: relative;
+    color: #fafafa;
+    font-weight: 600;
+    background-color: #0a0a0a;
+    background-image: none;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow:
+      0 4px 18px -6px rgba(0, 0, 0, 0.35),
+      0 0 0 1px rgba(0, 0, 0, 0.08);
   }
-  .checkout-cta-animated::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    border-radius: inherit;
-    background: linear-gradient(
-      105deg,
-      transparent 38%,
-      rgba(255, 252, 245, 0.16) 50%,
-      transparent 62%
-    );
-    transform: translateX(-130%);
-    /* Explicit longhand so the sweep loops forever (no single-play / ease “stall”). */
-    animation-name: checkoutCtaShimmer;
-    animation-duration: 2.8s;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-    animation-fill-mode: none;
-    will-change: transform;
+  .btn-gold-primary:hover:not(:disabled) {
+    background-color: #262626;
+    border-color: rgba(255, 255, 255, 0.16);
   }
-  @media (prefers-reduced-motion: reduce) {
-    .checkout-cta-animated::before {
-      animation-name: none;
-      will-change: auto;
-    }
+  .btn-gold-primary:active:not(:disabled) {
+    background-color: #171717;
   }
-  .checkout-cta-animated:disabled::before {
-    animation: none;
-    opacity: 0;
+  .btn-gold-primary:disabled {
+    opacity: 0.88;
+    filter: none;
   }
-  /** Same sweep as checkout CTA; brighter band for gold `bg-gold-500` buttons. */
-  .checkout-cta-animated.cta-shimmer-gold::before {
-    background: linear-gradient(
-      105deg,
-      transparent 34%,
-      rgba(255, 255, 255, 0.38) 50%,
-      transparent 66%
-    );
+
+  /** Product detail — Order Now only (brand gold 207, 176, 79) */
+  .btn-pdp-order-now {
+    position: relative;
+    color: #1c1917;
+    font-weight: 600;
+    background-color: rgb(var(--brand-gold-rgb));
+    background-image: none;
+    border: 1px solid rgba(60, 48, 12, 0.22);
+    box-shadow:
+      0 4px 18px -6px rgb(var(--brand-gold-rgb) / 0.55),
+      0 0 0 1px rgba(0, 0, 0, 0.04);
+  }
+  .btn-pdp-order-now:hover:not(:disabled) {
+    background-color: var(--brand-gold-hover);
+    border-color: rgba(60, 48, 12, 0.28);
+  }
+  .btn-pdp-order-now:active:not(:disabled) {
+    background-color: var(--brand-gold-active);
+  }
+  .btn-pdp-order-now:disabled {
+    opacity: 0.85;
+    filter: none;
+  }
+
+  /** PDP variant chip — selected (matches Order Now gold + dark label) */
+  .variant-pdp-selected {
+    border-color: rgba(60, 48, 12, 0.32);
+    background-color: rgb(var(--brand-gold-rgb));
+    color: #1c1917;
+    box-shadow:
+      0 2px 14px -4px rgb(var(--brand-gold-rgb) / 0.42),
+      0 0 0 1px rgba(0, 0, 0, 0.04);
   }
 }
 
-/* Premium focus ring */
+/* Premium focus ring — gold-tinted accent */
 *:focus-visible {
-  @apply outline-none ring-2 ring-neutral-800 ring-offset-2;
-  --tw-ring-offset-color: var(--bg);
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--bg),
+    0 0 0 4px rgb(var(--brand-gold-rgb) / 0.45);
 }
 
 /* Prevent horizontal overflow on small screens — inputs only (iOS zoom); buttons use explicit text-* */
@@ -146,7 +187,7 @@ html {
   color: #1c1917;
 }
 .product-description a {
-  color: #967d25;
+  color: #404040;
   text-decoration: none;
 }
 .product-description a:hover {

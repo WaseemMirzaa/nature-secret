@@ -4,7 +4,7 @@ export default function TermsPage() {
       <div className="mx-auto max-w-4xl px-3 sm:px-5 lg:px-8 py-6 sm:py-10 lg:py-16">
         <div className="rounded-3xl border border-neutral-200 bg-white/90 shadow-sm p-5 sm:p-8 lg:p-10">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-neutral-900 tracking-tight">Terms of Service for Nature Secret</h1>
-          <p className="mt-3 inline-flex rounded-full border border-gold-200 bg-gold-50 px-3 py-1 text-xs sm:text-sm text-gold-800">
+          <p className="mt-3 inline-flex rounded-full border border-neutral-200 bg-neutral-100 px-3 py-1 text-xs sm:text-sm text-neutral-800">
             Last Updated: March 31, 2026
           </p>
 
