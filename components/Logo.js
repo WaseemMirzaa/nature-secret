@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from '@/components/Link';
 
 const LOGO_SRC = '/assets/nature-secret-logo.svg';
@@ -9,14 +10,16 @@ const LOGO_SRC = '/assets/nature-secret-logo.svg';
  * @param {Object} props
  * @param {string} [props.className] - wrapper class (e.g. h-8, h-10)
  * @param {boolean} [props.link=true] - wrap in Link to /
+ * @param {boolean} [props.priority=false] - set true in header for faster LCP
  */
-export function Logo({ className = 'h-8', link = true }) {
+export function Logo({ className = 'h-8', link = true, priority = false }) {
   const img = (
-    <img
+    <Image
       src={LOGO_SRC}
       alt="Nature Secret"
-      width={2091}
-      height={1121}
+      width={418}
+      height={224}
+      priority={priority}
       className={`w-auto object-contain object-left ${className}`}
     />
   );
