@@ -1343,16 +1343,19 @@ export default function ProductDetailClient({
             {customProductBadges.map((b, idx) => {
               const src = resolveImageUrl(b.imageUrl);
               const alt = String(b.label || 'Badge').trim() || 'Badge';
-              const img = (
-                <img
+              const bypassOpt = typeof src === 'string' && (src.startsWith('data:') || src.startsWith('blob:'));
+              const img = src ? (
+                <Image
                   src={src}
                   alt={alt}
                   width={124}
                   height={124}
                   className="h-[124px] w-[124px] object-contain"
                   loading="lazy"
+                  sizes="124px"
+                  unoptimized={bypassOpt}
                 />
-              );
+              ) : null;
               return b.href ? (
                 <a
                   key={`badge-${idx}`}
@@ -1448,16 +1451,19 @@ export default function ProductDetailClient({
             {customProductBadges.map((b, idx) => {
               const src = resolveImageUrl(b.imageUrl);
               const alt = String(b.label || 'Badge').trim() || 'Badge';
-              const img = (
-                <img
+              const bypassOpt = typeof src === 'string' && (src.startsWith('data:') || src.startsWith('blob:'));
+              const img = src ? (
+                <Image
                   src={src}
                   alt={alt}
                   width={124}
                   height={124}
                   className="h-[124px] w-[124px] object-contain"
                   loading="lazy"
+                  sizes="124px"
+                  unoptimized={bypassOpt}
                 />
-              );
+              ) : null;
               return b.href ? (
                 <a
                   key={`badge-m-${idx}`}

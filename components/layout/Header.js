@@ -49,7 +49,7 @@ export function Header() {
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-neutral-200/80 shadow-[0_1px_0_0_rgba(0,0,0,0.03)]">
         <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-8">
           <div className="flex h-14 sm:h-16 min-h-[3.5rem] sm:min-h-[4rem] items-center justify-between">
-            <Logo className="h-8 sm:h-9" />
+            <Logo className="h-8 sm:h-9" priority />
 
             <nav className="hidden md:flex items-center gap-10">
               <Link href="/" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors border-b-2 border-transparent hover:border-gold-500/50 pb-0.5 -mb-0.5">Home</Link>

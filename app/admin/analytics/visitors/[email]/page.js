@@ -60,12 +60,12 @@ export default function AnalyticsVisitorDetailPage() {
     };
   }, [events, email, orders]);
 
-  const visitorEvents = visitorData?.events ?? [];
   const filteredActivity = useMemo(() => {
+    const visitorEvents = visitorData?.events ?? [];
     if (activityFilter === 'all') return [...visitorEvents].reverse();
     if (activityFilter === 'purchases') return visitorEvents.filter((e) => e.type === 'purchase').reverse();
     return visitorEvents.filter((e) => e.type !== 'purchase').reverse();
-  }, [visitorEvents, activityFilter]);
+  }, [visitorData, activityFilter]);
 
   const productContentId = (id) => {
     if (!id) return id;

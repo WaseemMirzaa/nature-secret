@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from '@/components/Link';
 import { getAdminSupportTickets, updateAdminSupportTicket, formatApiError } from '@/lib/api';
 import { InlineLoader } from '@/components/ui/PageLoader';
@@ -15,17 +15,17 @@ export default function AdminSupportPage() {
   const [savingId, setSavingId] = useState(null);
   const [error, setError] = useState('');
 
-  function load() {
+  const load = useCallback(() => {
     setLoading(true);
     getAdminSupportTickets({ status: statusFilter || undefined, limit: 100 })
       .then((data) => setTickets(Array.isArray(data) ? data : []))
       .catch(() => setTickets([]))
       .finally(() => setLoading(false));
-  }
+  }, [statusFilter]);
 
   useEffect(() => {
     load();
-  }, [statusFilter]);
+  }, [load]);
 
   async function handleUpdate(id) {
     setSavingId(id);

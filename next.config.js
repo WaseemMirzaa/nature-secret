@@ -9,6 +9,10 @@ function getImagesConfig() {
     return {
       // AVIF/WebP + resizing when API host is known (faster loads than full-size unoptimized).
       unoptimized: false,
+      /** Local `/assets/*.svg` logo via `next/image` (Header LCP). */
+      dangerouslyAllowSVG: true,
+      contentDispositionType: 'attachment',
+      contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
       formats: ['image/avif', 'image/webp'],
       minimumCacheTTL: 86400,
       /** 480 helps narrow viewports avoid oversized 640px src on slow 4G */

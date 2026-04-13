@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import Link from '@/components/Link';
 import { getAdminContactSettings, updateAdminContactSettings, getAdminWhatsAppQR, relinkAdminWhatsApp, formatApiError } from '@/lib/api';
 import { InlineLoader, Spinner } from '@/components/ui/PageLoader';
@@ -131,7 +132,14 @@ export default function AdminWhatsAppPage() {
             <p className="mt-1 text-sm text-neutral-600">Scan the QR code with WhatsApp on your phone (WhatsApp → Settings → Linked devices → Link a device).</p>
             {qrImage ? (
               <div className="mt-3 flex justify-center">
-                <img src={qrImage} alt="WhatsApp QR" className="w-64 h-64 rounded-lg border border-neutral-200" />
+                <Image
+                  src={qrImage}
+                  alt="WhatsApp QR"
+                  width={256}
+                  height={256}
+                  className="w-64 h-64 rounded-lg border border-neutral-200"
+                  unoptimized={typeof qrImage === 'string' && qrImage.startsWith('data:')}
+                />
               </div>
             ) : (
               <p className="mt-2 text-sm text-amber-700">Loading QR…</p>
