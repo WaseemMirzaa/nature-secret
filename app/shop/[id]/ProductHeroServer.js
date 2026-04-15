@@ -17,7 +17,7 @@ export default function ProductHeroServer({ src, alt }) {
       priority={true}
       loading="eager"
       fetchPriority="high"
-      decoding="sync"
+      decoding="async"
       quality={PRODUCT_HERO_IMAGE_QUALITY}
     />
   );

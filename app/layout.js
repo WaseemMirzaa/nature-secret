@@ -15,7 +15,8 @@ const inter = Inter({
   variable: '--font-sans',
   display: 'swap',
   adjustFontFallback: true,
-  preload: true,
+  /** Avoid competing with the main CSS request on the critical path (PDP LCP is usually the hero image). */
+  preload: false,
 });
 
 /** Safe origin for `<link rel="preconnect">` (API / uploads). No-op if env unset or invalid. */
