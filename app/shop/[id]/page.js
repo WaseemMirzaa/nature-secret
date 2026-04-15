@@ -6,6 +6,7 @@ import {
   resolveAbsoluteImageUrl,
   getDefaultHeroImageSrcForProduct,
 } from '@/lib/fetchProductServer';
+import { buildPdpEarlyViewContentInlineScript } from '@/lib/metaEarlyVc';
 
 function slugFromParams(params) {
   const raw = params?.id;
@@ -43,10 +44,14 @@ export default async function ProductPage({ params }) {
     productImageUrl && !productImageUrl.includes('/assets/nature-secret-logo') ? (
       <link rel="preload" as="image" href={productImageUrl} fetchPriority="high" />
     ) : null;
+  const earlyViewContentScript = product ? buildPdpEarlyViewContentInlineScript(product) : null;
 
   return (
     <>
       {lcpPreload}
+      {earlyViewContentScript ? (
+        <script dangerouslySetInnerHTML={{ __html: earlyViewContentScript }} />
+      ) : null}
       <ProductDetailClient
         key={slugOrId}
         slugOrId={slugOrId}

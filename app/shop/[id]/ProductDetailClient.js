@@ -732,25 +732,67 @@ export default function ProductDetailClient({
   const inv = Number(product?.inventory);
   const lowStockUrgent = Number.isFinite(inv) && inv > 0 && inv <= 30;
 
-  /** Cart line when product has price but no variant row (or API omits variants). */
-  function getCartLinePayload() {
-    const linePrice = variant?.price ?? product?.price;
-    if (linePrice == null || !Number.isFinite(Number(linePrice))) return null;
-    const variantId = canonicalVariantId(product, variant);
+  /**
+   * Add to cart (PDP): rehydrate cart → GET `/products` by slug or id → map UI variant to fetched rows →
+   * line price/name/image from API → `addItem` → `trackAddToCart` with that product object (Meta uses `advertisingId` / id).
+   */
+  function resolveLinePriceCents(p, vForLine) {
+    const raw = vForLine?.price ?? p?.price;
+    if (raw == null && raw !== 0) return null;
+    const n =
+      typeof raw === 'number' && Number.isFinite(raw)
+        ? raw
+        : parseFloat(String(raw).trim().replace(/,/g, ''));
+    return Number.isFinite(n) ? n : null;
+  }
+
+  /** Pick variant row on freshly fetched product matching current UI selection (or cheapest / only). */
+  function variantForFetchedProduct(p, uiVariant) {
+    const vars = Array.isArray(p?.variants) ? p.variants : [];
+    if (!vars.length) return null;
+    const selId = uiVariant?.id;
+    if (selId) {
+      const hit = vars.find((x) => x.id === selId);
+      if (hit) return hit;
+    }
+    if (vars.length === 1) return vars[0];
+    return vars.reduce(
+      (best, x) =>
+        best == null || (Number(x.price) || 0) < (Number(best.price) || 0) ? x : best,
+      null,
+    );
+  }
+
+  function buildCartLinePayload(p, vForLine, qty) {
+    if (!p?.id) return null;
+    const linePrice = resolveLinePriceCents(p, vForLine);
+    if (linePrice == null) return null;
     const image =
-      (variant?.images && variant.images[0]) || variant?.image || product?.images?.[0];
+      (vForLine?.images && vForLine.images[0]) || vForLine?.image || p?.images?.[0];
     return {
-      productId: product.id,
-      variantId,
+      productId: p.id,
+      variantId: canonicalVariantId(p, vForLine),
       price: linePrice,
-      name: product.name,
+      name: p.name,
       image,
-      qty: effectiveQty,
+      qty,
     };
   }
 
-  function handleAddToCart() {
-    const line = getCartLinePayload();
+  async function applyAddToCartFromFetched() {
+    const qty = effectiveQty;
+    let p = product;
+    if (slugOrId) {
+      try {
+        const fetched = await (isUuid(slugOrId) ? getProductById(slugOrId) : getProductBySlug(slugOrId));
+        if (fetched?.id) p = fetched;
+      } catch {
+        /* use in-memory product if network fails */
+      }
+    }
+    if (!p?.id) return;
+    const vForLine = variantForFetchedProduct(p, variant);
+    const line = buildCartLinePayload(p, vForLine, qty);
     if (!line) return;
     const vk = String(line.variantId ?? '');
     const itemsBefore = useCartStore.getState().items;
@@ -764,16 +806,29 @@ export default function ProductDetailClient({
     );
     const delta = (afterRow?.qty ?? 0) - prevQty;
     openCart();
-    if (delta > 0) {
-      trackAddToCart(product, line.price / 100, delta, currency);
-    } else if (isMetaDebugEnabled()) {
+    const trackQty = delta > 0 ? delta : Math.max(1, Number(line.qty) || 1);
+    trackAddToCart(p, line.price / 100, trackQty, currency);
+    if (delta <= 0 && isMetaDebugEnabled()) {
       metaDebug('handleAddToCart', {
-        skipped: true,
-        reason: 'No quantity delta after addItem',
-        productId: product?.id,
+        usedFallbackQty: true,
+        delta,
+        trackQty,
+        productId: p?.id,
         variantId: line.variantId,
       });
     }
+  }
+
+  async function handleAddToCart() {
+    if (typeof window === 'undefined') return;
+    try {
+      if (!useCartStore.persist.hasHydrated()) {
+        await useCartStore.persist.rehydrate();
+      }
+    } catch {
+      /* continue */
+    }
+    await applyAddToCartFromFetched();
   }
 
   /** Loader + retry; waits for live PDP data (ref) so checkout still runs after loading settles. */
@@ -1202,7 +1257,7 @@ export default function ProductDetailClient({
                     disabled={orderNowNavigating}
                     onClick={() => {
                       if (orderNowNavigating) return;
-                      handleAddToCart();
+                      void handleAddToCart();
                       setAddCartVibrate(true);
                       setTimeout(() => setAddCartVibrate(false), 400);
                     }}
@@ -1356,7 +1411,7 @@ export default function ProductDetailClient({
                     disabled={orderNowNavigating}
                     onClick={() => {
                       if (orderNowNavigating) return;
-                      handleAddToCart();
+                      void handleAddToCart();
                       setAddCartVibrate(true);
                       setTimeout(() => setAddCartVibrate(false), 400);
                     }}
@@ -1895,11 +1950,11 @@ export default function ProductDetailClient({
       {/* Mobile: quick purchase bar (matches premium PDP) */}
       {product.inventory !== 0 && (
         <div
-          className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200/70 bg-page-canvas/95 backdrop-blur-xl px-4 py-3.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_32px_rgba(0,0,0,0.06)]"
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-neutral-200/70 bg-page-canvas/95 backdrop-blur-xl px-4 py-3.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_32px_rgba(0,0,0,0.06)] pointer-events-none"
           role="region"
           aria-label="Quick purchase"
         >
-          <div className="mx-auto max-w-xl flex items-center gap-3">
+          <div className="mx-auto max-w-xl flex items-center gap-2 sm:gap-3 pointer-events-auto">
             <div className="min-w-0 shrink-0">
               <p className="text-xl font-semibold tabular-nums tracking-tight leading-tight text-neutral-900">{formatPrice(stickyLineTotal, currency)}</p>
               {stickyCompareLineTotal != null &&
@@ -1910,6 +1965,19 @@ export default function ProductDetailClient({
             </div>
             <button
               type="button"
+              onClick={() => {
+                void handleAddToCart();
+                setAddCartVibrate(true);
+                setTimeout(() => setAddCartVibrate(false), 400);
+              }}
+              className={`shrink-0 rounded-full border border-neutral-900/20 bg-white px-3 py-2.5 text-[12px] font-semibold text-neutral-900 shadow-sm transition hover:bg-neutral-50 min-h-[3.25rem] ${
+                addCartVibrate ? 'animate-vibrate' : ''
+              }`}
+            >
+              Add to cart
+            </button>
+            <button
+              type="button"
               disabled={orderNowNavigating}
               aria-busy={orderNowNavigating}
               onClick={() => {
@@ -1918,7 +1986,7 @@ export default function ProductDetailClient({
                 setTimeout(() => setOrderNowVibrate(false), 400);
                 void handleOrderNowNavigate();
               }}
-              className={`btn-pdp-order-now relative z-0 min-h-[3.25rem] flex-1 rounded-full px-3 text-[14px] font-semibold tracking-tight transition hover:shadow-lg disabled:opacity-90 disabled:pointer-events-none ${
+              className={`btn-pdp-order-now relative z-0 min-h-[3.25rem] flex-1 min-w-0 rounded-full px-2.5 sm:px-3 text-[13px] sm:text-[14px] font-semibold tracking-tight transition hover:shadow-lg disabled:opacity-90 disabled:pointer-events-none ${
                 orderNowVibrate && !orderNowNavigating ? 'animate-vibrate' : ''
               }`}
             >
@@ -1965,7 +2033,7 @@ export default function ProductDetailClient({
                 disabled={orderNowNavigating}
                 onClick={() => {
                   if (orderNowNavigating) return;
-                  handleAddToCart();
+                  void handleAddToCart();
                   setAddCartVibrate(true);
                   setTimeout(() => setAddCartVibrate(false), 400);
                 }}

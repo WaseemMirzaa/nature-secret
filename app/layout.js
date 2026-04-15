@@ -94,9 +94,7 @@ export default function RootLayout({ children }) {
             <link rel="preload" href={META_FBE_EVENTS_SCRIPT_URL} as="script" crossOrigin="anonymous" />
           </>
         ) : null}
-        {metaPixelHeadScript ? (
-          <script id="meta-pixel-head-bootstrap" dangerouslySetInnerHTML={{ __html: metaPixelHeadScript }} />
-        ) : (
+        {metaPixelHeadScript ? null : (
           <script id="meta-landing-snapshot" dangerouslySetInnerHTML={{ __html: META_LANDING_SNAPSHOT_SCRIPT }} />
         )}
         <meta name="api-url" content={apiUrl} />
@@ -112,6 +110,13 @@ export default function RootLayout({ children }) {
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className="min-h-screen flex flex-col font-sans">
+        {metaPixelHeadScript ? (
+          <Script
+            id="meta-pixel-head-bootstrap"
+            strategy="beforeInteractive"
+            dangerouslySetInnerHTML={{ __html: metaPixelHeadScript }}
+          />
+        ) : null}
         {appVersion ? (
           <Script id="ns-app-version-check" strategy="lazyOnload" dangerouslySetInnerHTML={{ __html: versionRefreshScript(appVersion) }} />
         ) : null}
