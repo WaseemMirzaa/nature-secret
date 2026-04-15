@@ -8,7 +8,7 @@ import { useProductsStore, useCartStore, useCartOpenStore, useWishlistStore, use
 import { useBreadcrumbLabel } from '@/lib/BreadcrumbContext';
 import { PRODUCT_HERO_IMAGE_QUALITY, PRODUCT_HERO_IMAGE_SIZES, SHIPPING_POLICY, RETURN_POLICY } from '@/lib/constants';
 import {
-  trackViewContent,
+  trackViewContentWhenReady,
   trackLandingPageViewForProduct,
   trackAddToCart,
   trackAddToWishlist,
@@ -584,7 +584,7 @@ export default function ProductDetailClient({
     currency,
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!product) return;
     const vcKey = product.id || slugOrId;
     if (viewContentSentForKeyRef.current === vcKey) return;
@@ -595,7 +595,7 @@ export default function ProductDetailClient({
       const vals = variants.map((v) => Number(v.price)).filter((p) => Number.isFinite(p) && p > 0);
       if (vals.length) cents = Math.min(...vals);
     }
-    trackViewContent(product, cents / 100, currency);
+    trackViewContentWhenReady(product, cents / 100, currency);
     trackLandingPageViewForProduct(product, cents / 100, currency);
     if ((product.inventory ?? 0) === 0) trackOutOfStockView(product);
   }, [product, currency, slugOrId]);

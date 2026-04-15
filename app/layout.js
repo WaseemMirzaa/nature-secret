@@ -3,7 +3,7 @@ import Script from 'next/script';
 import { Inter } from 'next/font/google';
 import { Providers } from '@/components/Providers';
 import { StoreLayout } from '@/components/StoreLayout';
-import { META_LANDING_SNAPSHOT_SCRIPT } from '@/lib/meta-pixel-gate';
+import { buildMetaPixelHeadBootstrapScript, META_LANDING_SNAPSHOT_SCRIPT } from '@/lib/meta-pixel-gate';
 import { networkRetryInlineScript } from '@/lib/networkRetry';
 
 const inter = Inter({
@@ -76,11 +76,17 @@ export default function RootLayout({ children }) {
       : '') ||
     '';
   const apiOrigin = getApiOriginForPreconnect();
+  const metaPixelHeadScript = buildMetaPixelHeadBootstrapScript();
   return (
     <html lang="en" className={inter.variable}>
       <head>
         {/* Register before `/_next/static/` links/scripts parse so chunk/CSS 404 triggers retry. */}
         <script dangerouslySetInnerHTML={{ __html: networkRetryInlineScript() }} />
+        {metaPixelHeadScript ? (
+          <script id="meta-pixel-head-bootstrap" dangerouslySetInnerHTML={{ __html: metaPixelHeadScript }} />
+        ) : (
+          <script id="meta-landing-snapshot" dangerouslySetInnerHTML={{ __html: META_LANDING_SNAPSHOT_SCRIPT }} />
+        )}
         <meta name="api-url" content={apiUrl} />
         {appVersion ? <meta name="ns-app-version" content={appVersion} /> : null}
         {apiOrigin ? (
@@ -94,8 +100,6 @@ export default function RootLayout({ children }) {
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className="min-h-screen flex flex-col font-sans">
-        {/* Recovery: Meta gate snapshot; deploy version refresh; chunk/network/RSC → reload (listener in <head>, lib/networkRetry.js). */}
-        <script id="meta-landing-snapshot" dangerouslySetInnerHTML={{ __html: META_LANDING_SNAPSHOT_SCRIPT }} />
         {appVersion ? (
           <Script id="ns-app-version-check" strategy="lazyOnload" dangerouslySetInnerHTML={{ __html: versionRefreshScript(appVersion) }} />
         ) : null}

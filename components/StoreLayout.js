@@ -45,15 +45,13 @@ function StoreAttributionEffects({ pathname, isAdmin }) {
     if (typeof window === 'undefined' || isAdmin || !pathname) return;
     if (pathname.startsWith('/checkout')) return;
     const path = pathname;
-    /** Defer `lib/analytics` (~CAPI + Meta helpers) off first paint / main bundle for this layout. */
+    /** Dynamic `lib/analytics` keeps main bundle smaller; run soon after paint (Meta PageView + CAPI). */
     const run = () => {
       import('@/lib/analytics')
         .then(({ trackPageView }) => trackPageView(path))
         .catch(() => {});
     };
-    const ric = window.requestIdleCallback;
-    if (typeof ric === 'function') ric(run, { timeout: 2500 });
-    else window.setTimeout(run, 200);
+    queueMicrotask(run);
   }, [pathname, isAdmin]);
 
   return null;
