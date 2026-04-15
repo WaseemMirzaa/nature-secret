@@ -47,6 +47,68 @@ export class OrdersService {
     private analyticsService: AnalyticsService,
   ) {}
 
+  /**
+   * Server-side prices and stock: ignore client `price` / `total` (fraud / tampering).
+   */
+  private async buildValidatedOrderLines(
+    items: Array<{ productId: string; variantId?: string; qty: number; price: number }>,
+  ): Promise<Array<{ productId: string; variantId: string | null; qty: number; price: number }>> {
+    if (!items?.length) throw new BadRequestException('Order must include at least one item');
+    const productCache = new Map<string, Product>();
+    const lines: Array<{ productId: string; variantId: string | null; qty: number; price: number }> = [];
+
+    for (const line of items) {
+      const qty = Math.max(1, Math.floor(Number(line.qty)) || 1);
+      let product: Product | undefined = productCache.get(line.productId);
+      if (!product) {
+        const loaded = await this.productRepo.findOne({
+          where: { id: line.productId },
+          relations: ['variants'],
+        });
+        if (!loaded) throw new BadRequestException('One or more products are no longer available');
+        product = loaded;
+        productCache.set(line.productId, product);
+      }
+      const variants = Array.isArray(product.variants) ? product.variants : [];
+      const wantVid =
+        line.variantId && String(line.variantId).trim() ? String(line.variantId).trim() : null;
+
+      let unitCents: number;
+      let variantId: string | null = wantVid;
+
+      if (variants.length === 0) {
+        unitCents = product.price;
+        variantId = null;
+      } else if (variants.length === 1) {
+        const only = variants[0];
+        unitCents = only.price;
+        variantId = only.id;
+      } else {
+        if (!wantVid) throw new BadRequestException(`Please select a variant for: ${product.name}`);
+        const hit = variants.find((v) => v.id === wantVid);
+        if (!hit) throw new BadRequestException(`Invalid variant for: ${product.name}`);
+        unitCents = hit.price;
+      }
+
+      if (product.outOfStock) throw new BadRequestException(`${product.name} is out of stock`);
+
+      lines.push({ productId: product.id, variantId, qty, price: unitCents });
+    }
+
+    const sumByProduct = new Map<string, number>();
+    for (const L of lines) {
+      sumByProduct.set(L.productId, (sumByProduct.get(L.productId) || 0) + L.qty);
+    }
+    for (const [pid, need] of sumByProduct) {
+      const p = productCache.get(pid);
+      if (p && p.inventory < need) {
+        throw new BadRequestException(`Not enough stock for ${p.name}`);
+      }
+    }
+
+    return lines;
+  }
+
   async create(dto: {
     customerId?: string;
     customerName?: string;
@@ -61,6 +123,8 @@ export class OrdersService {
       const customer = await this.customerRepo.findOne({ where: { id: dto.customerId } });
       if (customer?.blocked) throw new ForbiddenException('Account is blocked.');
     }
+    const validatedLines = await this.buildValidatedOrderLines(dto.items);
+    const total = validatedLines.reduce((s, L) => s + L.price * L.qty, 0);
     let orderId = '';
     for (let attempt = 0; attempt < 10; attempt++) {
       const candidate = generateOrderId();
@@ -81,11 +145,11 @@ export class OrdersService {
       email: emailTrimmed,
       phone: dto.phone ?? null,
       address: dto.address ?? null,
-      total: dto.total,
+      total,
       status: 'pending',
       paymentMethod: dto.paymentMethod || 'cash_on_delivery',
       confirmationCode: randomCode(6),
-      items: dto.items.map((i) => this.itemRepo.create(i)),
+      items: validatedLines.map((i) => this.itemRepo.create(i)),
     });
     await this.orderRepo.save(order);
     await this.timelineRepo.save(

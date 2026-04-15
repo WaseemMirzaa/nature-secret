@@ -50,7 +50,13 @@ export function AdminRealtimeProvider({ children }) {
   useEffect(() => {
     if (!getAdminToken()) return;
     const url = getWsUrl();
-    const socket = io(url, { path: '/api/v1/ws', transports: ['websocket', 'polling'], autoConnect: true });
+    const token = getAdminToken();
+    const socket = io(url, {
+      path: '/api/v1/ws',
+      transports: ['websocket', 'polling'],
+      autoConnect: true,
+      auth: { token },
+    });
     socketRef.current = socket;
 
     const onOrderCreated = (payload) => {

@@ -8,6 +8,7 @@ import { BLOG_TEMPLATES } from '@/lib/constants';
 import { format } from 'date-fns';
 import { useMemo, useState, useEffect } from 'react';
 import { getBlogPostBySlug, resolveImageUrl, productPath } from '@/lib/api';
+import { sanitizeBlogHtml } from '@/lib/sanitizeHtml';
 
 function getTemplateLabel(templateSlug) {
   return BLOG_TEMPLATES.find((t) => t.slug === templateSlug || t.id === templateSlug)?.name || templateSlug || 'Article';
@@ -96,7 +97,7 @@ export default function BlogPostPage() {
 
         <div
           className="blog-prose"
-          dangerouslySetInnerHTML={{ __html: post.body }}
+          dangerouslySetInnerHTML={{ __html: sanitizeBlogHtml(post.body || '') }}
         />
 
         {relatedProducts.length > 0 && (

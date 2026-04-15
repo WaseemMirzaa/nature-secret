@@ -7,6 +7,7 @@ import {
   getDefaultHeroImageSrcForProduct,
 } from '@/lib/fetchProductServer';
 import { buildPdpEarlyViewContentInlineScript } from '@/lib/metaEarlyVc';
+import { PdpHeroLcpPreload } from '@/lib/pdpHeroImagePreload';
 
 function slugFromParams(params) {
   const raw = params?.id;
@@ -40,10 +41,7 @@ export default async function ProductPage({ params }) {
   ]);
 
   const productImageUrl = product ? getDefaultHeroImageSrcForProduct(product) : '';
-  const lcpPreload =
-    productImageUrl && !productImageUrl.includes('/assets/nature-secret-logo') ? (
-      <link rel="preload" as="image" href={productImageUrl} fetchPriority="high" />
-    ) : null;
+  const lcpPreload = productImageUrl ? <PdpHeroLcpPreload src={productImageUrl} /> : null;
   const earlyViewContentScript = product ? buildPdpEarlyViewContentInlineScript(product) : null;
 
   return (
