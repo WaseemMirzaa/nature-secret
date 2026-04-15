@@ -9,6 +9,14 @@ import {
 import { buildPdpEarlyViewContentInlineScript } from '@/lib/metaEarlyVc';
 import { PdpHeroLcpPreload } from '@/lib/pdpHeroImagePreload';
 
+/**
+ * ISR: re-render in the background every 5 minutes.
+ * This allows experimental.optimizeCss (Critters) to inline critical CSS
+ * and defer the full stylesheet — eliminating the render-blocking CSS request.
+ * Pure SSR (no revalidate) bypasses Critters entirely.
+ */
+export const revalidate = 300;
+
 function slugFromParams(params) {
   const raw = params?.id;
   return typeof raw === 'string' ? raw : Array.isArray(raw) ? raw[0] : '';

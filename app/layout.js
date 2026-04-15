@@ -15,8 +15,12 @@ const inter = Inter({
   variable: '--font-sans',
   display: 'swap',
   adjustFontFallback: true,
-  /** Avoid competing with the main CSS request on the critical path (PDP LCP is usually the hero image). */
-  preload: false,
+  /**
+   * Re-enabled: with ISR on PDP, Critters defers the full CSS stylesheet, so the font preload
+   * no longer competes with a render-blocking CSS request. Preloading breaks the
+   * CSS→Font discovery chain (was adding ~1,026ms on Slow 4G).
+   */
+  preload: true,
 });
 
 /** Safe origin for `<link rel="preconnect">` (API / uploads). No-op if env unset or invalid. */
