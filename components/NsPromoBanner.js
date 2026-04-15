@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import {
   NS_PROMO_CODE,
-  NS_PROMO_DURATION_HOURS,
   initNsPromoDeadline,
   getNsPromoSecondsRemaining,
   isNsPromoWindowActive,
@@ -26,8 +25,11 @@ export function NsPromoBanner() {
   const [active, setActive] = useState(false);
 
   useEffect(() => {
-    if (pathname?.startsWith('/admin')) return;
     initNsPromoDeadline();
+  }, []);
+
+  useEffect(() => {
+    if (pathname?.startsWith('/admin')) return;
     setSeconds(getNsPromoSecondsRemaining());
     setActive(isNsPromoWindowActive());
   }, [pathname]);
@@ -51,12 +53,10 @@ export function NsPromoBanner() {
       aria-live="polite"
     >
       <p className="text-xs sm:text-sm text-neutral-800 leading-relaxed font-medium tracking-tight">
-        <span className="font-semibold text-neutral-900">
-          Offer for our first customers available for {NS_PROMO_DURATION_HOURS} hours
-        </span>
+        <span className="font-semibold text-neutral-900">Limited-time offer for new orders</span>
         <span className="text-neutral-500"> — </span>
         <span className="tabular-nums font-semibold text-neutral-900 text-sm sm:text-base">{formatCountdown(seconds)}</span>
-        <span className="text-neutral-600 font-medium"> left this visit</span>
+        <span className="text-neutral-600 font-medium"> left</span>
         <span className="text-neutral-400"> · </span>
         <span className="text-neutral-700">
           Use code{' '}
