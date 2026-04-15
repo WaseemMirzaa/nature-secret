@@ -14,6 +14,7 @@ import { metaDebug, isMetaDebugEnabled } from '@/lib/metaDebug';
 import { formatPrice } from '@/lib/currency';
 import { resolveImageUrl, productPath } from '@/lib/api';
 import { buildPathWithStoredAttribution } from '@/lib/attribution';
+import { canonicalVariantId } from '@/lib/cartLine';
 import { InlineLoader } from '@/components/ui/PageLoader';
 
 const SORT_OPTIONS = [
@@ -71,7 +72,7 @@ function ShopContent() {
     router.replace(buildPathWithStoredAttribution(`/shop/${productPath(p)}`));
   }, [apiLoading, resolvedCategory, filtered, router]);
 
-  const addItemIfNew = useCartStore((s) => s.addItemIfNew);
+  const addItem = useCartStore((s) => s.addItem);
   const openCart = useCartOpenStore((s) => s.open);
   const wishlist = useWishlistStore((s) => s.productIds);
   const toggleWishlist = useWishlistStore((s) => s.toggle);
@@ -79,22 +80,34 @@ function ShopContent() {
   const [quickAddVibrate, setQuickAddVibrate] = useState(null);
 
   function handleQuickAdd(product, variant) {
-    const added = addItemIfNew({
+    const line = {
       productId: product.id,
-      variantId: variant.id,
+      variantId: canonicalVariantId(product, variant),
       price: variant.price,
       name: product.name,
       image: (variant.images && variant.images[0]) || variant.image || product.images?.[0],
-    });
+      qty: 1,
+    };
+    const vk = String(line.variantId ?? '');
+    const itemsBefore = useCartStore.getState().items;
+    const beforeRow = itemsBefore.find(
+      (i) => i.productId === line.productId && String(i.variantId ?? '') === vk
+    );
+    const prevQty = beforeRow?.qty ?? 0;
+    addItem(line);
+    const afterRow = useCartStore.getState().items.find(
+      (i) => i.productId === line.productId && String(i.variantId ?? '') === vk
+    );
+    const delta = (afterRow?.qty ?? 0) - prevQty;
     openCart();
-    if (added) {
-      trackAddToCart(product, variant.price / 100, 1, currency);
+    if (delta > 0) {
+      trackAddToCart(product, variant.price / 100, delta, currency);
     } else if (isMetaDebugEnabled()) {
       metaDebug('handleQuickAdd', {
         skipped: true,
-        reason: 'Line already in cart',
+        reason: 'No quantity delta after addItem',
         productId: product.id,
-        variantId: variant.id,
+        variantId: line.variantId,
       });
     }
   }

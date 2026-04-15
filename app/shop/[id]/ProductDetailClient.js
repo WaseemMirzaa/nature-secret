@@ -33,6 +33,7 @@ import {
 import { compressReviewMediaFile } from '@/lib/compressReviewMedia';
 import { getDefaultHeroImageSrcForProduct } from '@/lib/productImageResolve';
 import { extractIntroParagraphsFromDescription, pickBestValueVariantId } from '@/lib/productDetailMobileParse';
+import { canonicalVariantId } from '@/lib/cartLine';
 import { InlineLoader, Spinner } from '@/components/ui/PageLoader';
 
 const isUuid = (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
@@ -306,7 +307,7 @@ function buildOrderNowLineFromCtx(ctx) {
   const image = (v?.images && v.images[0]) || v?.image || p?.images?.[0];
   return {
     productId: p.id,
-    variantId: v?.id,
+    variantId: canonicalVariantId(p, v),
     price: linePrice,
     name: p.name,
     image,
@@ -617,7 +618,7 @@ export default function ProductDetailClient({
     getReviews(product.id).then(setReviews).catch(() => setReviews([]));
   }, [product?.id, slugOrId, initialFromServer, initialReviews]);
 
-  const addItemIfNew = useCartStore((s) => s.addItemIfNew);
+  const addItem = useCartStore((s) => s.addItem);
   const openCart = useCartOpenStore((s) => s.open);
   const wishlist = useWishlistStore((s) => s.productIds);
   const toggleWishlist = useWishlistStore((s) => s.toggle);
@@ -735,7 +736,7 @@ export default function ProductDetailClient({
   function getCartLinePayload() {
     const linePrice = variant?.price ?? product?.price;
     if (linePrice == null || !Number.isFinite(Number(linePrice))) return null;
-    const variantId = variant?.id;
+    const variantId = canonicalVariantId(product, variant);
     const image =
       (variant?.images && variant.images[0]) || variant?.image || product?.images?.[0];
     return {
@@ -751,14 +752,24 @@ export default function ProductDetailClient({
   function handleAddToCart() {
     const line = getCartLinePayload();
     if (!line) return;
-    const added = addItemIfNew(line);
+    const vk = String(line.variantId ?? '');
+    const itemsBefore = useCartStore.getState().items;
+    const beforeRow = itemsBefore.find(
+      (i) => i.productId === line.productId && String(i.variantId ?? '') === vk
+    );
+    const prevQty = beforeRow?.qty ?? 0;
+    addItem(line);
+    const afterRow = useCartStore.getState().items.find(
+      (i) => i.productId === line.productId && String(i.variantId ?? '') === vk
+    );
+    const delta = (afterRow?.qty ?? 0) - prevQty;
     openCart();
-    if (added) {
-      trackAddToCart(product, line.price / 100, effectiveQty, currency);
+    if (delta > 0) {
+      trackAddToCart(product, line.price / 100, delta, currency);
     } else if (isMetaDebugEnabled()) {
       metaDebug('handleAddToCart', {
         skipped: true,
-        reason: 'Same product/variant already in cart — Meta AddToCart only fires on first add of a line',
+        reason: 'No quantity delta after addItem',
         productId: product?.id,
         variantId: line.variantId,
       });
@@ -788,8 +799,18 @@ export default function ProductDetailClient({
         const line = buildOrderNowLineFromCtx(ctx);
         const p = ctx.product;
         if (line && p) {
-          const added = addItemIfNew(line);
-          if (added) trackAddToCart(p, line.price / 100, line.qty, ctx.currency);
+          const vk = String(line.variantId ?? '');
+          const itemsBefore = useCartStore.getState().items;
+          const beforeRow = itemsBefore.find(
+            (i) => i.productId === line.productId && String(i.variantId ?? '') === vk
+          );
+          const prevQty = beforeRow?.qty ?? 0;
+          useCartStore.getState().addItem(line);
+          const afterRow = useCartStore.getState().items.find(
+            (i) => i.productId === line.productId && String(i.variantId ?? '') === vk
+          );
+          const delta = (afterRow?.qty ?? 0) - prevQty;
+          if (delta > 0) trackAddToCart(p, line.price / 100, delta, ctx.currency);
           const itemsAfter = useCartStore.getState().items;
           if (itemsAfter.length) {
             const grandCents = itemsAfter.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.qty) || 1), 0);

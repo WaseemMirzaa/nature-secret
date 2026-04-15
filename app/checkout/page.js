@@ -32,7 +32,7 @@ import {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, clear, updateQty } = useCartStore();
+  const { items, clear, updateQty, mergeDuplicateLines } = useCartStore();
   const addOrder = useOrdersStore((s) => s.addOrder);
   const storeProducts = useProductsStore((s) => s.products);
   const customer = useCustomerStore((s) => s.customer);
@@ -60,6 +60,11 @@ export default function CheckoutPage() {
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    mergeDuplicateLines();
+  }, [mounted, mergeDuplicateLines]);
 
   useEffect(() => {
     if (!mounted || items.length === 0) return;

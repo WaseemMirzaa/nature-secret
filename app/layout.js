@@ -3,7 +3,11 @@ import Script from 'next/script';
 import { Inter } from 'next/font/google';
 import { Providers } from '@/components/Providers';
 import { StoreLayout } from '@/components/StoreLayout';
-import { buildMetaPixelHeadBootstrapScript, META_LANDING_SNAPSHOT_SCRIPT } from '@/lib/meta-pixel-gate';
+import {
+  buildMetaPixelHeadBootstrapScript,
+  META_FBE_EVENTS_SCRIPT_URL,
+  META_LANDING_SNAPSHOT_SCRIPT,
+} from '@/lib/meta-pixel-gate';
 import { networkRetryInlineScript } from '@/lib/networkRetry';
 
 const inter = Inter({
@@ -77,11 +81,19 @@ export default function RootLayout({ children }) {
     '';
   const apiOrigin = getApiOriginForPreconnect();
   const metaPixelHeadScript = buildMetaPixelHeadBootstrapScript();
+  const pixelIdConfigured = Boolean(String(process.env.NEXT_PUBLIC_META_PIXEL_ID || '').trim());
   return (
     <html lang="en" className={inter.variable}>
       <head>
         {/* Register before `/_next/static/` links/scripts parse so chunk/CSS 404 triggers retry. */}
         <script dangerouslySetInnerHTML={{ __html: networkRetryInlineScript() }} />
+        {pixelIdConfigured ? (
+          <>
+            <link rel="preconnect" href="https://connect.facebook.net" crossOrigin="anonymous" />
+            <link rel="dns-prefetch" href="https://connect.facebook.net" />
+            <link rel="preload" href={META_FBE_EVENTS_SCRIPT_URL} as="script" crossOrigin="anonymous" />
+          </>
+        ) : null}
         {metaPixelHeadScript ? (
           <script id="meta-pixel-head-bootstrap" dangerouslySetInnerHTML={{ __html: metaPixelHeadScript }} />
         ) : (
