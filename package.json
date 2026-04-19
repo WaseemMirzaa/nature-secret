@@ -6,7 +6,8 @@
     "dev": "next dev",
     "db:reset": "bash scripts/setup-local-mysql.sh",
     "db:seed:reviews": "cd backend && npm run db:seed:reviews",
-    "build": "NODE_OPTIONS='--max-old-space-size=4096' next build",
+    "build": "NODE_OPTIONS='--max-old-space-size=1536' next build",
+    "build:large": "NODE_OPTIONS='--max-old-space-size=4096' next build",
     "start": "next start",
     "lint": "next lint"
   },
