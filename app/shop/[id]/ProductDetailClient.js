@@ -981,7 +981,7 @@ export default function ProductDetailClient({
       setReviewRating(5);
       setReviewBody('');
       setReviewFiles([]);
-      setReviewMessage('Thank you. Your review is submitted and will appear after approval.');
+      setReviewMessage('Thank you. Your review is submitted and will appear in few hours.');
     } catch (err) {
       setReviewMessage('Could not submit review. Please try again.');
     } finally {

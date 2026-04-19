@@ -2,22 +2,13 @@
 
 import { useState, useMemo, useRef, useEffect, useId, useCallback } from 'react';
 import Image from 'next/image';
-import {
-  buildReviewVideoVariants,
-  getNetworkTier,
-  isHlsUrl,
-  pickVariantStartIndex,
-} from '@/lib/reviewVideoAdaptive';
 
 /** Treat as video if type says so or URL is clearly a stream / file. */
 export function mediaItemIsVideo(item) {
-  if (item?.type === 'video') return true;
-  const u = String(item?.url || '').trim();
-  if (/youtube\.com|youtu\.be|vimeo\.com|\.(mp4|webm|ogg|m3u8)(\?|$)/i.test(u)) return true;
-  if (Array.isArray(item?.sources) && item.sources.some((s) => /\.(mp4|webm|ogg|m3u8)(\?|$)/i.test(String(s?.url || '')))) {
-    return true;
-  }
-  return false;
+  if (!item?.url || typeof item.url !== 'string') return false;
+  if (item.type === 'video') return true;
+  const u = item.url.trim();
+  return /youtube\.com|youtu\.be|vimeo\.com|\.(mp4|webm|ogg)(\?|$)/i.test(u);
 }
 
 function parseYoutubeVideoId(parsed) {
@@ -93,28 +84,16 @@ export function getVideoPresentation(url) {
       return { kind: 'embed', src: `https://player.vimeo.com/video/${vid}?${params.toString()}` };
     }
   } catch {
-    if (/\.(mp4|webm|ogg|m3u8)(\?|$)/i.test(u)) return { kind: 'native', src: u };
+    if (/\.(mp4|webm|ogg)(\?|$)/i.test(u)) return { kind: 'native', src: u };
     return null;
   }
-  if (/\.(mp4|webm|ogg|m3u8)(\?|$)/i.test(u)) return { kind: 'native', src: u };
+  if (/\.(mp4|webm|ogg)(\?|$)/i.test(u)) return { kind: 'native', src: u };
   return { kind: 'native', src: u };
 }
 
 const VIDEO_REPLAY_MAX = 3;
 
-function useNetworkTier() {
-  const [tier, setTier] = useState(() => (typeof window !== 'undefined' ? getNetworkTier() : 'medium'));
-  useEffect(() => {
-    const c = typeof navigator !== 'undefined' ? navigator.connection : undefined;
-    const upd = () => setTier(getNetworkTier());
-    upd();
-    c?.addEventListener?.('change', upd);
-    return () => c?.removeEventListener?.('change', upd);
-  }, []);
-  return tier;
-}
-
-function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl, mediaItem, resolveImageUrl }) {
+function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl }) {
   const idBase = useId();
   const videoRef = useRef(null);
   const nativeReplayRef = useRef(0);
@@ -123,26 +102,7 @@ function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl, mediaItem, resolveIm
   const [playbackRate, setPlaybackRate] = useState(1);
   const [videoReplayNonce, setVideoReplayNonce] = useState(0);
   const [embedReplayNonce, setEmbedReplayNonce] = useState(0);
-  const [qualityDownshift, setQualityDownshift] = useState(0);
   const openUrl = resolvedPlayUrl || getOpenVideoPageUrl(rawUrl);
-  const tier = useNetworkTier();
-
-  const variants = useMemo(
-    () => buildReviewVideoVariants(mediaItem, resolvedPlayUrl || pres.src, resolveImageUrl),
-    [mediaItem, resolvedPlayUrl, pres.src, resolveImageUrl],
-  );
-
-  const baseVariantIndex = useMemo(
-    () => pickVariantStartIndex(variants.length, tier),
-    [variants.length, tier],
-  );
-
-  const chosenVariantIndex = Math.min(
-    baseVariantIndex + qualityDownshift,
-    Math.max(0, variants.length - 1),
-  );
-  const chosenSrc = variants[chosenVariantIndex]?.url || pres.src;
-  const isHls = isHlsUrl(chosenSrc);
 
   useEffect(() => {
     nativeReplayRef.current = 0;
@@ -150,72 +110,16 @@ function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl, mediaItem, resolveIm
     setNativeError(false);
     setVideoReplayNonce(0);
     setEmbedReplayNonce(0);
-    setQualityDownshift(0);
   }, [pres.kind, pres.src]);
 
   useEffect(() => {
-    setQualityDownshift(0);
-  }, [tier, rawUrl]);
-
-  useEffect(() => {
     const el = videoRef.current;
-    if (!el || pres.kind !== 'native') return;
-    el.playbackRate = playbackRate;
-  }, [playbackRate, pres.kind, videoReplayNonce, chosenSrc]);
-
-  useEffect(() => {
-    if (pres.kind !== 'native' || !isHlsUrl(chosenSrc)) return undefined;
-    const video = videoRef.current;
-    if (!video) return undefined;
-    let hls;
-    let cancelled = false;
-    import('hls.js')
-      .then(({ default: Hls }) => {
-        if (cancelled || !videoRef.current) return;
-        if (Hls.isSupported()) {
-          hls = new Hls({
-            enableWorker: true,
-            capLevelToPlayerSize: true,
-            lowLatencyMode: false,
-            abrEwmaDefaultEstimate: tier === 'low' ? 220000 : tier === 'medium' ? 1000000 : 3500000,
-          });
-          hls.loadSource(chosenSrc);
-          hls.attachMedia(video);
-          hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            if (!hls.levels?.length) return;
-            if (tier === 'low') {
-              hls.currentLevel = 0;
-            } else if (tier === 'medium' && hls.levels.length > 2) {
-              hls.currentLevel = Math.min(hls.levels.length - 2, Math.floor(hls.levels.length / 2));
-            }
-          });
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-          video.src = chosenSrc;
-        }
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-      if (hls) hls.destroy();
-      else if (video) {
-        try {
-          video.pause();
-          video.removeAttribute('src');
-          video.load();
-        } catch {
-          /* ignore */
-        }
-      }
-    };
-  }, [pres.kind, chosenSrc, tier, videoReplayNonce, qualityDownshift]);
+    if (el && pres.kind === 'native') {
+      el.playbackRate = playbackRate;
+    }
+  }, [playbackRate, pres.kind, videoReplayNonce]);
 
   const handleNativeVideoError = useCallback(() => {
-    const maxIdx = variants.length - 1;
-    if (chosenVariantIndex < maxIdx) {
-      setQualityDownshift((d) => d + 1);
-      window.setTimeout(() => setVideoReplayNonce((n) => n + 1), 100);
-      return;
-    }
     if (nativeReplayRef.current < VIDEO_REPLAY_MAX) {
       nativeReplayRef.current += 1;
       window.setTimeout(() => {
@@ -224,7 +128,7 @@ function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl, mediaItem, resolveIm
       return;
     }
     setNativeError(true);
-  }, [chosenVariantIndex, variants.length]);
+  }, []);
 
   const handleEmbedError = useCallback(() => {
     if (embedReplayRef.current < VIDEO_REPLAY_MAX) {
@@ -262,7 +166,7 @@ function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl, mediaItem, resolveIm
         </div>
         <div className="flex flex-col gap-1.5 text-[11px] text-neutral-600 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:text-xs">
           <span className="text-neutral-500">
-            YouTube / Vimeo adjust quality to your connection. Use <span className="font-medium">⋮</span> or the gear menu to override.
+            Quality: use the player&apos;s <span className="font-medium">⋮</span> or gear menu (YouTube / Vimeo).
           </span>
           {openUrl ? (
             <a
@@ -297,21 +201,15 @@ function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl, mediaItem, resolveIm
     );
   }
 
-  const qualityHint = isHls
-    ? 'Adaptive stream (HLS): quality follows your connection.'
-    : variants.length > 1
-      ? 'Multiple files: starts on a rung suited to your connection, then steps down if playback fails.'
-      : 'Single file: full quality (buffering depends on your connection).';
-
   return (
     <div className="space-y-2">
       <video
-        key={`native-${chosenSrc}-${videoReplayNonce}-${qualityDownshift}`}
+        key={`native-${pres.src}-${videoReplayNonce}`}
         ref={videoRef}
-        src={isHls ? undefined : chosenSrc}
+        src={pres.src}
         controls
         playsInline
-        preload={isHls ? 'metadata' : tier === 'low' ? 'none' : 'metadata'}
+        preload="metadata"
         className="max-h-[min(70vh,26rem)] w-full rounded-lg bg-black"
         controlsList="nodownload"
         onError={handleNativeVideoError}
@@ -332,7 +230,7 @@ function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl, mediaItem, resolveIm
             </option>
           ))}
         </select>
-        <span className="text-neutral-400">{qualityHint}</span>
+        <span className="text-neutral-400">HD / quality depends on the uploaded file.</span>
       </div>
     </div>
   );
@@ -381,13 +279,5 @@ export function ReviewMediaBlock({ item, resolveImageUrl }) {
   const nativeSrc = pres.kind === 'native' ? resolvedPlayUrl || pres.src : pres.src;
   const presForPlayer = pres.kind === 'native' ? { ...pres, src: nativeSrc } : pres;
 
-  return (
-    <ReviewVideoPlayer
-      pres={presForPlayer}
-      rawUrl={rawUrl}
-      resolvedPlayUrl={resolvedPlayUrl}
-      mediaItem={item}
-      resolveImageUrl={resolveImageUrl}
-    />
-  );
+  return <ReviewVideoPlayer pres={presForPlayer} rawUrl={rawUrl} resolvedPlayUrl={resolvedPlayUrl} />;
 }

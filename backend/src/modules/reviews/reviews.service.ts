@@ -45,66 +45,15 @@ export class ReviewsService {
     return qb.orderBy('r.createdAt', 'DESC').getMany();
   }
 
-  private normalizeVideoSources(raw: unknown): Array<{ url: string; height?: number; label?: string }> | undefined {
-    if (!raw || !Array.isArray(raw)) return undefined;
-    const out: Array<{ url: string; height?: number; label?: string }> = [];
-    for (const s of raw.slice(0, 6)) {
-      if (!s || typeof s !== 'object') continue;
-      const url = String((s as { url?: string }).url || '').trim();
-      if (!url || url.length > 2000) continue;
-      const h = Number((s as { height?: number }).height);
-      const label =
-        typeof (s as { label?: string }).label === 'string' ? String((s as { label: string }).label).slice(0, 48) : undefined;
-      const row: { url: string; height?: number; label?: string } = { url };
-      if (Number.isFinite(h) && h > 0) row.height = h;
-      if (label) row.label = label;
-      out.push(row);
-    }
-    return out.length ? out : undefined;
-  }
-
-  normalizeMedia(
-    raw: unknown,
-    maxItems = 8,
-  ): Array<{
-    type: 'image' | 'video';
-    url: string;
-    height?: number;
-    label?: string;
-    sources?: Array<{ url: string; height?: number; label?: string }>;
-  }> | null {
+  normalizeMedia(raw: unknown, maxItems = 8): Array<{ type: 'image' | 'video'; url: string }> | null {
     if (!raw || !Array.isArray(raw)) return null;
-    const out: Array<{
-      type: 'image' | 'video';
-      url: string;
-      height?: number;
-      label?: string;
-      sources?: Array<{ url: string; height?: number; label?: string }>;
-    }> = [];
+    const out: Array<{ type: 'image' | 'video'; url: string }> = [];
     for (const item of raw.slice(0, maxItems)) {
       if (!item || typeof item !== 'object') continue;
       const url = String((item as { url?: string }).url || '').trim();
       if (!url || url.length > 2000) continue;
-      const looksVideo = /\.(mp4|webm|ogg|m3u8|mov)(\?|$)/i.test(url);
-      let t: 'image' | 'video' = (item as { type?: string }).type === 'video' ? 'video' : 'image';
-      if (looksVideo) t = 'video';
-      const sources = t === 'video' ? this.normalizeVideoSources((item as { sources?: unknown }).sources) : undefined;
-      const mainHeight = Number((item as { height?: number }).height);
-      const mainLabel =
-        typeof (item as { label?: string }).label === 'string'
-          ? String((item as { label: string }).label).slice(0, 48)
-          : undefined;
-      const row: {
-        type: 'image' | 'video';
-        url: string;
-        height?: number;
-        label?: string;
-        sources?: Array<{ url: string; height?: number; label?: string }>;
-      } = { type: t, url };
-      if (Number.isFinite(mainHeight) && mainHeight > 0) row.height = mainHeight;
-      if (mainLabel) row.label = mainLabel;
-      if (sources?.length) row.sources = sources;
-      out.push(row);
+      const t = (item as { type?: string }).type === 'video' ? 'video' : 'image';
+      out.push({ type: t, url });
     }
     return out.length ? out : null;
   }

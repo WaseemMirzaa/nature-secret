@@ -29,15 +29,9 @@ export class Review {
   @Column({ type: 'boolean', default: true })
   approved: boolean;
 
-  /** Curated UGC: photos / video URLs (admin). Video may include `sources[]` for multi-quality (height / label). */
+  /** Curated UGC: photos / video URLs (admin). */
   @Column({ type: 'json', nullable: true })
-  media: Array<{
-    type: 'image' | 'video';
-    url: string;
-    height?: number;
-    label?: string;
-    sources?: Array<{ url: string; height?: number; label?: string }>;
-  }> | null;
+  media: Array<{ type: 'image' | 'video'; url: string }> | null;
 
   @Column({ type: 'int', default: 0 })
   sortOrder: number;
