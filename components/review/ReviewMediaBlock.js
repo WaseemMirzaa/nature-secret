@@ -117,7 +117,7 @@ export function getVideoPresentation(url) {
 const videoShellClass =
   'relative aspect-video w-full min-h-[11.25rem] overflow-hidden rounded-lg bg-black sm:min-h-0';
 
-function videoMimeTypeFromUrl(url: string) {
+function videoMimeTypeFromUrl(url) {
   const path = String(url).split('?')[0].toLowerCase();
   if (path.endsWith('.webm')) return 'video/webm';
   if (path.endsWith('.mov') || path.endsWith('.qt')) return 'video/quicktime';
