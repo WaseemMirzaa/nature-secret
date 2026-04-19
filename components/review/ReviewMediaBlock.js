@@ -3,6 +3,13 @@
 import { useMemo, useRef, useCallback, useState, useEffect } from 'react';
 import Image from 'next/image';
 
+function getAudioMimeType(src) {
+  if (!src || typeof src !== 'string') return 'audio/mpeg';
+  const ext = src.split('?')[0].split('.').pop()?.toLowerCase();
+  const map = { mp3: 'audio/mpeg', m4a: 'audio/mp4', wav: 'audio/wav', ogg: 'audio/ogg', aac: 'audio/aac', weba: 'audio/webm' };
+  return map[ext] || 'audio/mpeg';
+}
+
 /** Coerce DB/API `media` into `{ type, url }[]` for rendering (handles JSON string or single object). */
 export function normalizeReviewMediaItems(review) {
   const raw = review?.media;
@@ -32,6 +39,14 @@ export function mediaItemIsVideo(item) {
   if (item.type === 'video') return true;
   const u = item.url.trim();
   return /youtube\.com|youtu\.be|vimeo\.com|\.mp4(\?|$)/i.test(u);
+}
+
+/** Treat as audio if type says so or URL extension is a known audio format. */
+export function mediaItemIsAudio(item) {
+  if (!item?.url || typeof item.url !== 'string') return false;
+  if (item.type === 'audio') return true;
+  const u = item.url.trim();
+  return /\.(mp3|m4a|wav|ogg|aac|weba)(\?|#|$)/i.test(u);
 }
 
 function parseYoutubeVideoId(parsed) {
@@ -215,7 +230,6 @@ function VideoErrorState({ manualRetryCount, onRetry, openHref, isFormatError })
 
 function NativeVideoPlayer({ src, onError }) {
   const videoRef = useRef(null);
-  const [isBuffering, setIsBuffering] = useState(true);
 
   // Cancel pending network requests when this instance unmounts (key-change retry or parent gone).
   useEffect(() => {
@@ -228,16 +242,8 @@ function NativeVideoPlayer({ src, onError }) {
     };
   }, []);
 
-  const stopBuffering = useCallback(() => setIsBuffering(false), []);
-  const startBuffering = useCallback(() => setIsBuffering(true), []);
-
   return (
     <div className={videoShellClass}>
-      {isBuffering && (
-        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-black/40">
-          <Spinner />
-        </div>
-      )}
       <video
         ref={videoRef}
         controls
@@ -245,12 +251,6 @@ function NativeVideoPlayer({ src, onError }) {
         preload="metadata"
         className="absolute inset-0 h-full w-full object-contain"
         controlsList="nodownload"
-        onLoadStart={startBuffering}
-        onWaiting={startBuffering}
-        onStalled={startBuffering}
-        onCanPlay={stopBuffering}
-        onCanPlayThrough={stopBuffering}
-        onPlaying={stopBuffering}
         onError={onError}
       >
         {/*
@@ -364,6 +364,50 @@ function ReviewVideoPlayer({ pres }) {
   );
 }
 
+function ReviewAudioPlayer({ src }) {
+  const audioRef = useRef(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      const el = audioRef.current;
+      if (!el) return;
+      try { el.pause(); } catch (_) {}
+      try { el.removeAttribute('src'); } catch (_) {}
+      try { el.load(); } catch (_) {}
+    };
+  }, []);
+
+  if (error) {
+    return (
+      <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-neutral-900 px-4 py-3">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 shrink-0 text-white/40" aria-hidden>
+          <line x1="2" y1="2" x2="22" y2="22" />
+          <path d="M10.66 6H14a2 2 0 0 1 2 2v2.34l1 1V8a3 3 0 0 0-3-3H7.16l1 1zM7 7.16 5.23 5.38A2 2 0 0 0 5 6.5v11A2 2 0 0 0 7 19.5H17a2 2 0 0 0 1.12-.35L16.78 17.8A2 2 0 0 1 17 18.5H7a1 1 0 0 1-1-1v-11a1 1 0 0 1 .16-.51z" />
+        </svg>
+        <span className="text-xs text-white/50">Could not play audio.</span>
+        <a href={src} target="_blank" rel="noopener noreferrer" className="ml-auto text-xs font-semibold text-white/70 underline hover:text-white">
+          Open audio
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-lg bg-neutral-900 px-3 py-2">
+      <audio
+        ref={audioRef}
+        controls
+        preload="metadata"
+        className="w-full"
+        onError={() => setError(true)}
+      >
+        <source src={src} type={getAudioMimeType(src)} />
+      </audio>
+    </div>
+  );
+}
+
 export function ReviewMediaBlock({ item, resolveImageUrl }) {
   const rawUrl = item?.url;
   const resolvedPlayUrl = useMemo(() => {
@@ -373,6 +417,11 @@ export function ReviewMediaBlock({ item, resolveImageUrl }) {
   }, [rawUrl, resolveImageUrl]);
 
   if (!rawUrl) return null;
+
+  if (mediaItemIsAudio(item)) {
+    const audioSrc = resolvedPlayUrl || rawUrl;
+    return <ReviewAudioPlayer src={audioSrc} />;
+  }
 
   if (!mediaItemIsVideo(item)) {
     const imgSrc = resolvedPlayUrl || rawUrl;

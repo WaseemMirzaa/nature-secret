@@ -45,14 +45,16 @@ export class ReviewsService {
     return qb.orderBy('r.createdAt', 'DESC').getMany();
   }
 
-  normalizeMedia(raw: unknown, maxItems = 8): Array<{ type: 'image' | 'video'; url: string }> | null {
+  normalizeMedia(raw: unknown, maxItems = 8): Array<{ type: 'image' | 'video' | 'audio'; url: string }> | null {
     if (!raw || !Array.isArray(raw)) return null;
-    const out: Array<{ type: 'image' | 'video'; url: string }> = [];
+    const out: Array<{ type: 'image' | 'video' | 'audio'; url: string }> = [];
     for (const item of raw.slice(0, maxItems)) {
       if (!item || typeof item !== 'object') continue;
       const url = String((item as { url?: string }).url || '').trim();
       if (!url || url.length > 2000) continue;
-      const t = (item as { type?: string }).type === 'video' ? 'video' : 'image';
+      const rawType = (item as { type?: string }).type;
+      const t: 'image' | 'video' | 'audio' =
+        rawType === 'video' ? 'video' : rawType === 'audio' ? 'audio' : 'image';
       out.push({ type: t, url });
     }
     return out.length ? out : null;

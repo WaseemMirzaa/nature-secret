@@ -27,8 +27,10 @@ import { UPLOAD_PATHS } from '../../common/upload-paths';
 
 const IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const VIDEO_MIMES = ['video/mp4', 'video/webm', 'video/quicktime'];
+const AUDIO_MIMES = ['audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/ogg', 'audio/aac', 'audio/x-m4a', 'audio/webm'];
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 25 * 1024 * 1024;
+const MAX_AUDIO_BYTES = 25 * 1024 * 1024;
 
 function contentTypeForReviewsUpload(filename: string): string {
   const ext = filename.split('.').pop()?.toLowerCase() ?? '';
@@ -42,6 +44,12 @@ function contentTypeForReviewsUpload(filename: string): string {
     webm: 'video/webm',
     mov: 'video/quicktime',
     qt: 'video/quicktime',
+    mp3: 'audio/mpeg',
+    m4a: 'audio/mp4',
+    wav: 'audio/wav',
+    ogg: 'audio/ogg',
+    aac: 'audio/aac',
+    weba: 'audio/webm',
   };
   return map[ext] || 'application/octet-stream';
 }
@@ -148,7 +156,7 @@ export class ReviewsController {
     FileInterceptor('file', {
       limits: { fileSize: MAX_VIDEO_BYTES },
       fileFilter: (_req, file, cb) => {
-        const ok = [...IMAGE_MIMES, ...VIDEO_MIMES].includes(file.mimetype);
+        const ok = [...IMAGE_MIMES, ...VIDEO_MIMES, ...AUDIO_MIMES].includes(file.mimetype);
         if (!ok) cb(new BadRequestException('Invalid file type'), false);
         else cb(null, true);
       },
@@ -164,8 +172,9 @@ export class ReviewsController {
         },
         filename: (_req, file, cb) => {
           const isVideo = VIDEO_MIMES.includes(file.mimetype);
-          const ext = (file.originalname && file.originalname.split('.').pop()) || 'jpg';
-          const safeExtRaw = ext.replace(/[^a-z0-9]/gi, '').slice(0, 5) || 'jpg';
+          const ext = (file.originalname && file.originalname.split('.').pop()) || 'bin';
+          const safeExtRaw = ext.replace(/[^a-z0-9]/gi, '').slice(0, 5) || 'bin';
+          // Videos always stored as .mp4 (server transcodes); images/audio keep original ext
           const safeExt = isVideo ? 'mp4' : safeExtRaw;
           cb(null, `r-${randomUUID().slice(0, 12)}.${safeExt}`);
         },
@@ -175,15 +184,17 @@ export class ReviewsController {
   uploadReviewFile(@UploadedFile() file: Express.Multer.File) {
     if (!file) throw new BadRequestException('No file');
     const isVideo = VIDEO_MIMES.includes(file.mimetype);
+    const isAudio = AUDIO_MIMES.includes(file.mimetype);
     const isImage = IMAGE_MIMES.includes(file.mimetype);
     if (isImage && file.size > MAX_IMAGE_BYTES) throw new BadRequestException('Image too large (max 5MB)');
     if (isVideo && file.size > MAX_VIDEO_BYTES) throw new BadRequestException('Video too large (max 25MB)');
+    if (isAudio && file.size > MAX_AUDIO_BYTES) throw new BadRequestException('Audio too large (max 25MB)');
     if (isVideo) {
       scheduleReviewVideoOptimize(file.path, file.mimetype);
     }
     const base = (process.env.API_PUBLIC_URL || '').replace(/\/$/, '');
     const path = `/api/v1/reviews/upload/${file.filename}`;
-    const type: 'image' | 'video' = isVideo ? 'video' : 'image';
+    const type: 'image' | 'video' | 'audio' = isVideo ? 'video' : isAudio ? 'audio' : 'image';
     return { url: base ? `${base}${path}` : path, type };
   }
 

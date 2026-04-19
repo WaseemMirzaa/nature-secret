@@ -972,7 +972,7 @@ export default function ProductDetailClient({
       for (const file of reviewFiles) {
         const ready = await compressReviewMediaFile(file);
         const res = await uploadReviewMedia(ready, { productId: product.id });
-        media.push({ type: res.type === 'video' ? 'video' : 'image', url: res.url });
+        media.push({ type: res.type === 'video' ? 'video' : res.type === 'audio' ? 'audio' : 'image', url: res.url });
       }
       await submitReview(product.id, {
         name: reviewName.trim(),
@@ -1805,12 +1805,12 @@ export default function ProductDetailClient({
                 htmlFor={`product-review-media-${formFieldSuffix}`}
                 className="mb-2 block text-xs font-medium text-neutral-700 sm:text-sm"
               >
-                Photos or video (optional, max 4)
+                Photos, video or audio (optional, max 4)
               </label>
               <input
                 id={`product-review-media-${formFieldSuffix}`}
                 type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
+                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,audio/mpeg,audio/mp4,audio/wav,audio/ogg,audio/aac"
                 multiple
                 onChange={onPickReviewMedia}
                 className="block w-full cursor-pointer text-xs text-neutral-600 file:mr-3 file:inline-flex file:min-h-[44px] file:cursor-pointer file:items-center file:rounded-xl file:border-0 file:bg-neutral-900 file:px-4 file:py-2.5 file:text-xs file:font-semibold file:text-white file:shadow-sm file:transition-colors hover:file:bg-neutral-800 sm:text-sm"

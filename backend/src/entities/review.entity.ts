@@ -29,9 +29,9 @@ export class Review {
   @Column({ type: 'boolean', default: true })
   approved: boolean;
 
-  /** Curated UGC: photos / video URLs (admin). */
+  /** Curated UGC: photos / video / audio URLs (admin + user). */
   @Column({ type: 'json', nullable: true })
-  media: Array<{ type: 'image' | 'video'; url: string }> | null;
+  media: Array<{ type: 'image' | 'video' | 'audio'; url: string }> | null;
 
   @Column({ type: 'int', default: 0 })
   sortOrder: number;
