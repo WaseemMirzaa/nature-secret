@@ -679,7 +679,17 @@ export default function ProductDetailClient({
   const visibleReviews = primaryReviews
     ? (reviewsExpanded ? primaryReviews : primaryReviews.slice(0, reviewPreviewCount))
     : [];
-  const mobileTopReviews = useMemo(() => primaryReviews.slice(0, 3), [primaryReviews]);
+  const mobileTopReviews = useMemo(() => {
+    const seen = new Set();
+    const out = [];
+    for (const r of [...liveReviewsList, ...primaryReviews]) {
+      if (out.length >= 3) break;
+      if (!r?.id || seen.has(r.id)) continue;
+      seen.add(r.id);
+      out.push(r);
+    }
+    return out;
+  }, [liveReviewsList, primaryReviews]);
 
   const customerRatingTrust = useMemo(() => {
     if (!product) return null;
