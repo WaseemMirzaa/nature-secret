@@ -3,6 +3,29 @@
 import { useState, useMemo, useRef, useEffect, useLayoutEffect, useId, useCallback } from 'react';
 import Image from 'next/image';
 
+/** Coerce DB/API `media` into `{ type, url }[]` for rendering (handles JSON string or single object). */
+export function normalizeReviewMediaItems(review) {
+  const raw = review?.media;
+  if (raw == null) return [];
+  if (Array.isArray(raw)) {
+    return raw.filter((m) => m && typeof m.url === 'string' && String(m.url).trim());
+  }
+  if (typeof raw === 'string') {
+    try {
+      const p = JSON.parse(raw.trim());
+      if (Array.isArray(p)) return p.filter((m) => m && typeof m.url === 'string' && String(m.url).trim());
+    } catch {
+      /* ignore */
+    }
+    return [];
+  }
+  if (typeof raw === 'object' && typeof raw.url === 'string' && String(raw.url).trim()) {
+    const type = raw.type === 'video' ? 'video' : 'image';
+    return [{ type, url: String(raw.url).trim() }];
+  }
+  return [];
+}
+
 /** Treat as video if type says so or URL is clearly a stream / file. */
 export function mediaItemIsVideo(item) {
   if (!item?.url || typeof item.url !== 'string') return false;

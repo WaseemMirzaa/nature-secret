@@ -40,7 +40,7 @@ import {
 import { compressReviewMediaFile } from '@/lib/compressReviewMedia';
 import { getDefaultHeroImageSrcForProduct } from '@/lib/productImageResolve';
 import { extractIntroParagraphsFromDescription, pickBestValueVariantId } from '@/lib/productDetailMobileParse';
-import { ReviewMediaBlock } from '@/components/review/ReviewMediaBlock';
+import { ReviewMediaBlock, normalizeReviewMediaItems } from '@/components/review/ReviewMediaBlock';
 import { canonicalVariantId } from '@/lib/cartLine';
 import {
   getWhatsAppHref,
@@ -223,7 +223,7 @@ function splitReviewQuoteAndOutcome(body) {
   return { quote: scrubMedicalTerms(raw), outcome: '' };
 }
 
-const PdpMobileReviewPeek = memo(function PdpMobileReviewPeek({ reviews, resolveImageUrl }) {
+function PdpMobileReviewPeek({ reviews, resolveImageUrl }) {
   if (!Array.isArray(reviews) || reviews.length === 0) return null;
   return (
     <div className="mt-4 border-t border-neutral-100 pt-4" aria-label="Recent buyer reviews">
@@ -231,11 +231,12 @@ const PdpMobileReviewPeek = memo(function PdpMobileReviewPeek({ reviews, resolve
       <ul className="space-y-2.5">
         {reviews.map((r) => {
           const { quote, outcome } = splitReviewQuoteAndOutcome(r.body);
+          const mediaItems = normalizeReviewMediaItems(r);
           return (
             <li key={r.id} className="rounded-xl border border-neutral-100 bg-neutral-50/90 px-3 py-2.5">
-              {Array.isArray(r.media) && r.media.length > 0 ? (
+              {mediaItems.length > 0 ? (
                 <div className="mb-2 space-y-2">
-                  {r.media.map((m, mi) => (
+                  {mediaItems.map((m, mi) => (
                     <ReviewMediaBlock
                       key={`${r.id}-peek-${mi}-${m.url?.slice?.(0, 20) || mi}`}
                       item={m}
@@ -260,7 +261,7 @@ const PdpMobileReviewPeek = memo(function PdpMobileReviewPeek({ reviews, resolve
       </ul>
     </div>
   );
-});
+}
 
 /** PDP Order Now: build cart line from latest ref snapshot (avoids stale closure while view finishes loading). */
 function buildOrderNowLineFromCtx(ctx) {
@@ -692,7 +693,7 @@ export default function ProductDetailClient({
     if (out.length < cap) {
       for (const r of liveReviewsList) {
         if (out.length >= cap) break;
-        if (!Array.isArray(r.media) || r.media.length === 0) continue;
+        if (normalizeReviewMediaItems(r).length === 0) continue;
         push(r);
       }
     }
@@ -1092,7 +1093,7 @@ export default function ProductDetailClient({
         {/* Mobile / tablet: premium purchase card (feature parity); desktop unchanged */}
         <div className="col-span-full lg:hidden w-full max-w-xl sm:max-w-2xl mx-auto px-1 pb-1 pt-1 sm:px-0">
           <article
-            className="overflow-hidden rounded-2xl border border-neutral-200/90 bg-white shadow-premium ring-1 ring-neutral-900/[0.035] sm:rounded-[1.75rem]"
+            className="overflow-x-hidden rounded-2xl border border-neutral-200/90 bg-white shadow-premium ring-1 ring-neutral-900/[0.035] sm:rounded-[1.75rem]"
             aria-label="Product details and purchase"
           >
             <header className="px-5 pb-5 pt-7 sm:px-7 sm:pb-6 sm:pt-8">
@@ -1706,14 +1707,16 @@ export default function ProductDetailClient({
               Customer stories
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
-              {liveReviewsList.map((r) => (
+              {liveReviewsList.map((r) => {
+                const liveMedia = normalizeReviewMediaItems(r);
+                return (
                 <article
                   key={r.id}
                   className="rounded-2xl border border-neutral-200/80 bg-white p-4 sm:p-5 shadow-sm ring-1 ring-black/[0.03]"
                 >
-                  {Array.isArray(r.media) && r.media.length > 0 ? (
+                  {liveMedia.length > 0 ? (
                     <div className="space-y-2 mb-3">
-                      {r.media.map((m, i) => (
+                      {liveMedia.map((m, i) => (
                         <ReviewMediaBlock
                           key={`${r.id}-m-${i}-${m.url?.slice?.(0, 24) || i}`}
                           item={m}
@@ -1743,7 +1746,8 @@ export default function ProductDetailClient({
                     );
                   })()}
                 </article>
-              ))}
+                );
+              })}
             </div>
           </div>
         ) : null}
@@ -1873,14 +1877,16 @@ export default function ProductDetailClient({
                 <h4 className="mb-1 text-base font-semibold text-neutral-900 sm:mb-2 sm:text-lg tracking-tight">
                   Recent reviews{fiveStarReviews.length > 0 ? ' (5-star highlights)' : ''}
                 </h4>
-                {visibleReviews.map((r) => (
+                {visibleReviews.map((r) => {
+                  const recentMedia = normalizeReviewMediaItems(r);
+                  return (
                   <div
                     key={r.id}
                     className="rounded-2xl border border-neutral-200/80 bg-neutral-50/40 p-4 shadow-sm ring-1 ring-black/[0.02] sm:p-5"
                   >
-                    {Array.isArray(r.media) && r.media.length > 0 ? (
+                    {recentMedia.length > 0 ? (
                       <div className="mb-3 space-y-2">
-                        {r.media.map((m, mi) => (
+                        {recentMedia.map((m, mi) => (
                           <ReviewMediaBlock
                             key={`${r.id}-um-${mi}`}
                             item={m}
@@ -1916,7 +1922,8 @@ export default function ProductDetailClient({
                       );
                     })()}
                   </div>
-                ))}
+                  );
+                })}
                 {primaryReviews.length > reviewPreviewCount && (
                   <button
                     type="button"
