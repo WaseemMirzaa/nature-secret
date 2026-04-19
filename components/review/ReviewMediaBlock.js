@@ -126,48 +126,19 @@ function videoMimeTypeFromUrl(url) {
 }
 
 function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl }) {
-  const shellRef = useRef(null);
   const videoRef = useRef(null);
-  const nativeRecoverRef = useRef(0);
   const [nativeError, setNativeError] = useState(false);
-  const [preloadPolicy, setPreloadPolicy] = useState('metadata');
   const openUrl = resolvedPlayUrl || getOpenVideoPageUrl(rawUrl);
 
   useEffect(() => {
-    const root = shellRef.current;
-    if (!root || typeof IntersectionObserver === 'undefined') {
-      setPreloadPolicy('auto');
-      return undefined;
-    }
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          setPreloadPolicy('auto');
-          io.disconnect();
-        }
-      },
-      { rootMargin: '200px', threshold: 0.01 },
-    );
-    io.observe(root);
-    return () => io.disconnect();
-  }, [pres.src]);
-
-  useEffect(() => {
-    nativeRecoverRef.current = 0;
     setNativeError(false);
   }, [pres.kind, pres.src]);
 
   const handleNativeVideoError = useCallback(() => {
     const el = videoRef.current;
-    if (el && nativeRecoverRef.current < 1) {
-      nativeRecoverRef.current += 1;
-      try {
-        el.load();
-      } catch {
-        setNativeError(true);
-      }
-      return;
-    }
+    const code = el?.error?.code;
+    // ABORTED: navigation / src change / internal cancel — do not treat as failure or call load().
+    if (code === 1) return;
     setNativeError(true);
   }, []);
 
@@ -192,12 +163,12 @@ function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl }) {
   const srcType = videoMimeTypeFromUrl(pres.src);
 
   return (
-    <div ref={shellRef} className={videoShellClass}>
+    <div className={videoShellClass}>
       <video
         ref={videoRef}
         controls
         playsInline
-        preload={preloadPolicy}
+        preload="metadata"
         className={`absolute inset-0 h-full w-full object-contain ${nativeError ? 'pointer-events-none opacity-0' : ''}`}
         controlsList="nodownload"
         onError={handleNativeVideoError}

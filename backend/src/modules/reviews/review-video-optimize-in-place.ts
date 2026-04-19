@@ -5,6 +5,8 @@ import { existsSync, renameSync, unlinkSync } from 'fs';
 const execFileAsync = promisify(execFile);
 
 const FFMPEG_TIMEOUT_MS = 300_000;
+/** Wait before replacing the file so in-flight playback is less likely to see a mid-stream swap (decoder pops/crackle). */
+const TRANSCODE_START_DELAY_MS = 90_000;
 
 /**
  * Re-encode review uploads in place for smoother playback (H.264, max width 1280, faststart).
@@ -15,7 +17,11 @@ const FFMPEG_TIMEOUT_MS = 300_000;
 export function scheduleReviewVideoOptimize(absPath: string, mimetype: string): void {
   if (process.env.REVIEW_VIDEO_TRANSCODE !== '1') return;
   if (!mimetype.startsWith('video/')) return;
-  void optimizeInPlace(absPath).catch(() => {});
+  const delay = Number(process.env.REVIEW_VIDEO_TRANSCODE_DELAY_MS || TRANSCODE_START_DELAY_MS);
+  const ms = Number.isFinite(delay) && delay >= 0 ? delay : TRANSCODE_START_DELAY_MS;
+  setTimeout(() => {
+    void optimizeInPlace(absPath).catch(() => {});
+  }, ms);
 }
 
 async function optimizeInPlace(absPath: string): Promise<void> {
