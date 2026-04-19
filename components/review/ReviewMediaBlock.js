@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { useState, useMemo, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import Image from 'next/image';
 
 /** Coerce DB/API `media` into `{ type, url }[]` for rendering (handles JSON string or single object). */
@@ -117,18 +117,20 @@ export function getVideoPresentation(url) {
 const videoShellClass =
   'relative aspect-video w-full min-h-[11.25rem] overflow-hidden rounded-lg bg-black sm:min-h-0';
 
-function videoMimeTypeFromUrl(url) {
-  const path = String(url).split('?')[0].toLowerCase();
-  if (path.endsWith('.webm')) return 'video/webm';
-  if (path.endsWith('.mov') || path.endsWith('.qt')) return 'video/quicktime';
-  if (path.endsWith('.ogg') || path.endsWith('.ogv')) return 'video/ogg';
-  return 'video/mp4';
+function mobileLikeUa() {
+  if (typeof navigator === 'undefined') return false;
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || '');
 }
 
 function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl }) {
   const videoRef = useRef(null);
   const [nativeError, setNativeError] = useState(false);
+  const [videoPreload, setVideoPreload] = useState('metadata');
   const openUrl = resolvedPlayUrl || getOpenVideoPageUrl(rawUrl);
+
+  useLayoutEffect(() => {
+    setVideoPreload(mobileLikeUa() ? 'none' : 'metadata');
+  }, []);
 
   useEffect(() => {
     setNativeError(false);
@@ -136,9 +138,19 @@ function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl }) {
 
   const handleNativeVideoError = useCallback(() => {
     const el = videoRef.current;
-    const code = el?.error?.code;
-    // ABORTED: navigation / src change / internal cancel — do not treat as failure or call load().
+    if (!el) {
+      setNativeError(true);
+      return;
+    }
+    const code = el.error?.code;
     if (code === 1) return;
+    try {
+      el.pause();
+      el.removeAttribute('src');
+      while (el.firstChild) el.removeChild(el.firstChild);
+    } catch {
+      /* ignore */
+    }
     setNativeError(true);
   }, []);
 
@@ -160,21 +172,18 @@ function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl }) {
     );
   }
 
-  const srcType = videoMimeTypeFromUrl(pres.src);
-
   return (
     <div className={videoShellClass}>
       <video
         ref={videoRef}
+        src={pres.src}
         controls
         playsInline
-        preload="metadata"
+        preload={videoPreload}
         className={`absolute inset-0 h-full w-full object-contain ${nativeError ? 'pointer-events-none opacity-0' : ''}`}
         controlsList="nodownload"
         onError={handleNativeVideoError}
-      >
-        <source src={pres.src} type={srcType} />
-      </video>
+      />
       {nativeError ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-900 px-3 text-center text-sm text-white">
           <p>Could not play this file in the browser.</p>
