@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { useMemo, useRef, useCallback } from 'react';
 import Image from 'next/image';
 
 /** Coerce DB/API `media` into `{ type, url }[]` for rendering (handles JSON string or single object). */
@@ -117,34 +117,21 @@ export function getVideoPresentation(url) {
 const videoShellClass =
   'relative aspect-video w-full min-h-[11.25rem] overflow-hidden rounded-lg bg-black sm:min-h-0';
 
-function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl }) {
+function ReviewVideoPlayer({ pres }) {
   const videoRef = useRef(null);
-  const [nativeError, setNativeError] = useState(false);
-  const openUrl = resolvedPlayUrl || getOpenVideoPageUrl(rawUrl);
-
-  useEffect(() => {
-    setNativeError(false);
-  }, [pres.kind, pres.src]);
 
   const handleNativeVideoError = useCallback(() => {
     const el = videoRef.current;
-    if (!el) {
-      setNativeError(true);
-      return;
-    }
-    const err = el.error;
-    if (!err) return;
-    if (err.code === 1) return;
-    try {
-      el.pause();
-      el.removeAttribute('src');
-      while (el.firstChild) el.removeChild(el.firstChild);
-      el.load();
-    } catch {
-      /* ignore */
-    }
-    setNativeError(true);
-  }, []);
+    const mediaError = el?.error;
+    console.error('[review-video]', {
+      mediaErrorCode: mediaError?.code,
+      mediaErrorMessage: mediaError?.message,
+      readyState: el?.readyState,
+      networkState: el?.networkState,
+      src: pres.src,
+      currentSrc: el?.currentSrc,
+    });
+  }, [pres.src]);
 
   if (pres.kind === 'embed') {
     return (
@@ -166,29 +153,17 @@ function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl }) {
 
   return (
     <div className={videoShellClass}>
-      {!nativeError ? (
-        <video
-          key={pres.src}
-          ref={videoRef}
-          src={pres.src}
-          controls
-          playsInline
-          preload="metadata"
-          className="absolute inset-0 h-full w-full object-contain"
-          controlsList="nodownload"
-          onError={handleNativeVideoError}
-        />
-      ) : null}
-      {nativeError ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-900 px-3 text-center text-sm text-white">
-          <p>Could not play this file in the browser.</p>
-          {openUrl ? (
-            <a href={openUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-gold-300 underline">
-              Open video link
-            </a>
-          ) : null}
-        </div>
-      ) : null}
+      <video
+        key={pres.src}
+        ref={videoRef}
+        src={pres.src}
+        controls
+        playsInline
+        preload="metadata"
+        className="absolute inset-0 h-full w-full object-contain"
+        controlsList="nodownload"
+        onError={handleNativeVideoError}
+      />
     </div>
   );
 }
@@ -236,5 +211,5 @@ export function ReviewMediaBlock({ item, resolveImageUrl }) {
   const nativeSrc = pres.kind === 'native' ? resolvedPlayUrl || pres.src : pres.src;
   const presForPlayer = pres.kind === 'native' ? { ...pres, src: nativeSrc } : pres;
 
-  return <ReviewVideoPlayer pres={presForPlayer} rawUrl={rawUrl} resolvedPlayUrl={resolvedPlayUrl} />;
+  return <ReviewVideoPlayer pres={presForPlayer} />;
 }
