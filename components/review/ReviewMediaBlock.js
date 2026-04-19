@@ -118,17 +118,20 @@ const videoShellClass =
   'relative aspect-video w-full min-h-[11.25rem] overflow-hidden rounded-lg bg-black sm:min-h-0';
 
 // MediaError codes
-// 1 = MEDIA_ERR_ABORTED  — user aborted (ignore)
-// 2 = MEDIA_ERR_NETWORK  — network blip (retryable)
-// 3 = MEDIA_ERR_DECODE   — bad frame / corrupt data (retryable)
-// 4 = MEDIA_ERR_SRC_NOT_SUPPORTED — impossible for MP4 on any modern browser
-const RETRYABLE_CODES = new Set([2, 3]);
+// 1 = MEDIA_ERR_ABORTED           — user aborted (ignore)
+// 2 = MEDIA_ERR_NETWORK           — network blip (short retry)
+// 3 = MEDIA_ERR_DECODE            — bad frame / corrupt data (short retry)
+// 4 = MEDIA_ERR_SRC_NOT_SUPPORTED — HEVC on unsupporting browser; server transcodes
+//                                   to H.264 within ~90s so retry with longer delay
+const NETWORK_ERROR_CODES = new Set([2, 3]);
+const FORMAT_ERROR_CODE = 4;
 
 // Mobile: silently retry this many times before surfacing the error UI.
 // Desktop: surface error immediately (stable connections, real failures).
 const MAX_SILENT_RETRIES = 2;
 const MAX_MANUAL_RETRIES = 2;
-const SILENT_RETRY_DELAY_MS = 700; // wait before remounting — gives network a chance to recover
+const NETWORK_RETRY_DELAY_MS = 700;  // network blip — retry quickly
+const FORMAT_RETRY_DELAY_MS = 4000;  // HEVC → wait for server FFmpeg transcode
 
 function checkIsMobile() {
   return (
@@ -155,7 +158,7 @@ function SpinnerShell() {
   );
 }
 
-function VideoErrorState({ manualRetryCount, onRetry, openHref }) {
+function VideoErrorState({ manualRetryCount, onRetry, openHref, isFormatError }) {
   return (
     <div className={`${videoShellClass} flex items-center justify-center`}>
       <div className="flex flex-col items-center gap-3 px-4 py-6 text-center">
@@ -176,7 +179,11 @@ function VideoErrorState({ manualRetryCount, onRetry, openHref }) {
         </svg>
         <div>
           <p className="text-sm font-medium text-white">Could not play this video</p>
-          <p className="mt-0.5 text-xs text-white/50">Network issue — please try again.</p>
+          <p className="mt-0.5 text-xs text-white/50">
+            {isFormatError
+              ? 'Video is being processed — try again in a moment.'
+              : 'Network issue — please try again.'}
+          </p>
         </div>
         <div className="flex gap-2">
           {manualRetryCount < MAX_MANUAL_RETRIES && (
@@ -263,6 +270,7 @@ function ReviewVideoPlayer({ pres }) {
 
   const [retryKey, setRetryKey] = useState(0);
   const [phase, setPhase] = useState('playing'); // 'playing' | 'silent-retry' | 'error'
+  const [isFormatError, setIsFormatError] = useState(false);
 
   // Separate counters: silent (automatic, mobile-only) vs manual (user clicks Retry)
   const silentRetryCount = useRef(0);
@@ -277,8 +285,10 @@ function ReviewVideoPlayer({ pres }) {
   const handleError = useCallback((e) => {
     const el = e?.currentTarget;
     const code = el?.error?.code ?? null;
-    // All MP4 errors are network/decode (codes 2–3); code 4 can't happen for MP4.
-    const retryable = code == null || RETRYABLE_CODES.has(code);
+    const formatError = code === FORMAT_ERROR_CODE; // HEVC on unsupporting browser
+    const retryable = formatError || code == null || NETWORK_ERROR_CODES.has(code);
+    // Format errors need a longer delay — server FFmpeg may still be transcoding HEVC→H.264
+    const delay = formatError ? FORMAT_RETRY_DELAY_MS : NETWORK_RETRY_DELAY_MS;
 
     console.error('[review-video]', {
       code,
@@ -289,23 +299,26 @@ function ReviewVideoPlayer({ pres }) {
       networkState: el?.networkState,
     });
 
-    // Mobile + retryable + budget remaining → silent retry, no error flash
+    // Mobile + retryable + budget remaining → silent retry behind spinner, no error flash
     if (isMobile && retryable && silentRetryCount.current < MAX_SILENT_RETRIES) {
       silentRetryCount.current += 1;
       setPhase('silent-retry');
       retryTimer.current = setTimeout(() => {
         setPhase('playing');
         setRetryKey((k) => k + 1);
-      }, SILENT_RETRY_DELAY_MS);
+      }, delay);
       return;
     }
 
+    // Desktop or budget exhausted — surface the error UI
+    setIsFormatError(formatError);
     setPhase('error');
   }, [isMobile, pres.src]);
 
   const handleManualRetry = useCallback(() => {
     manualRetryCount.current += 1;
     silentRetryCount.current = 0; // reset silent budget so mobile gets another quiet chance
+    setIsFormatError(false);
     setPhase('playing');
     setRetryKey((k) => k + 1);
   }, []);
@@ -337,6 +350,7 @@ function ReviewVideoPlayer({ pres }) {
         manualRetryCount={manualRetryCount.current}
         onRetry={handleManualRetry}
         openHref={pres.src}
+        isFormatError={isFormatError}
       />
     );
   }
