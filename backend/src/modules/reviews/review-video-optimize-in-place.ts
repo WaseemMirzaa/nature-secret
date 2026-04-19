@@ -12,7 +12,8 @@ const TRANSCODE_START_DELAY_MS = 90_000;
  * Re-encode review uploads in place for smoother playback (H.264, max width 1280, faststart).
  * Runs in the background: the upload response returns first; when done, the same URL serves the smaller file.
  *
- * Enable on the server: install `ffmpeg`, set `REVIEW_VIDEO_TRANSCODE=1` (and optional `FFMPEG_PATH`).
+ * Enable on the server: install `ffmpeg`, set `REVIEW_VIDEO_TRANSCODE=1` (and optional `FFMPEG_PATH`,
+ * `REVIEW_VIDEO_MAX_WIDTH` e.g. 854 for ~480p cap, `REVIEW_VIDEO_H264_PROFILE` main|high — default baseline for older phones).
  */
 export function scheduleReviewVideoOptimize(absPath: string, mimetype: string): void {
   if (process.env.REVIEW_VIDEO_TRANSCODE !== '1') return;
@@ -24,10 +25,25 @@ export function scheduleReviewVideoOptimize(absPath: string, mimetype: string): 
   }, ms);
 }
 
+function maxVideoWidthForScale(): number {
+  const raw = process.env.REVIEW_VIDEO_MAX_WIDTH;
+  if (raw == null || raw === '') return 1280;
+  const n = parseInt(String(raw), 10);
+  if (!Number.isFinite(n) || n < 320) return 1280;
+  return Math.min(n, 4096);
+}
+
+function h264ProfileForMobile(): string {
+  const p = (process.env.REVIEW_VIDEO_H264_PROFILE || 'baseline').toLowerCase();
+  return p === 'main' || p === 'high' ? p : 'baseline';
+}
+
 async function optimizeInPlace(absPath: string): Promise<void> {
   const ffmpeg = process.env.FFMPEG_PATH || 'ffmpeg';
   const tmp = `${absPath}.optpart`;
   const opts = { timeout: FFMPEG_TIMEOUT_MS, maxBuffer: 20 * 1024 * 1024 };
+  const maxW = maxVideoWidthForScale();
+  const profile = h264ProfileForMobile();
 
   const base = [
     '-hide_banner',
@@ -38,11 +54,11 @@ async function optimizeInPlace(absPath: string): Promise<void> {
     '-i',
     absPath,
     '-vf',
-    'scale=min(1280,iw):-2',
+    `scale=min(${maxW},iw):-2`,
     '-c:v',
     'libx264',
     '-profile:v',
-    'main',
+    profile,
     '-pix_fmt',
     'yuv420p',
     '-crf',

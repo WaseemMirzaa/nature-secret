@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 
 /** Coerce DB/API `media` into `{ type, url }[]` for rendering (handles JSON string or single object). */
@@ -117,20 +117,10 @@ export function getVideoPresentation(url) {
 const videoShellClass =
   'relative aspect-video w-full min-h-[11.25rem] overflow-hidden rounded-lg bg-black sm:min-h-0';
 
-function mobileLikeUa() {
-  if (typeof navigator === 'undefined') return false;
-  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || '');
-}
-
 function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl }) {
   const videoRef = useRef(null);
   const [nativeError, setNativeError] = useState(false);
-  const [videoPreload, setVideoPreload] = useState('metadata');
   const openUrl = resolvedPlayUrl || getOpenVideoPageUrl(rawUrl);
-
-  useLayoutEffect(() => {
-    setVideoPreload(mobileLikeUa() ? 'none' : 'metadata');
-  }, []);
 
   useEffect(() => {
     setNativeError(false);
@@ -142,12 +132,14 @@ function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl }) {
       setNativeError(true);
       return;
     }
-    const code = el.error?.code;
-    if (code === 1) return;
+    const err = el.error;
+    if (!err) return;
+    if (err.code === 1) return;
     try {
       el.pause();
       el.removeAttribute('src');
       while (el.firstChild) el.removeChild(el.firstChild);
+      el.load();
     } catch {
       /* ignore */
     }
@@ -174,16 +166,19 @@ function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl }) {
 
   return (
     <div className={videoShellClass}>
-      <video
-        ref={videoRef}
-        src={pres.src}
-        controls
-        playsInline
-        preload={videoPreload}
-        className={`absolute inset-0 h-full w-full object-contain ${nativeError ? 'pointer-events-none opacity-0' : ''}`}
-        controlsList="nodownload"
-        onError={handleNativeVideoError}
-      />
+      {!nativeError ? (
+        <video
+          key={pres.src}
+          ref={videoRef}
+          src={pres.src}
+          controls
+          playsInline
+          preload="metadata"
+          className="absolute inset-0 h-full w-full object-contain"
+          controlsList="nodownload"
+          onError={handleNativeVideoError}
+        />
+      ) : null}
       {nativeError ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-900 px-3 text-center text-sm text-white">
           <p>Could not play this file in the browser.</p>
