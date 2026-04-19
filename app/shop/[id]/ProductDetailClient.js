@@ -689,7 +689,13 @@ export default function ProductDetailClient({
       seen.add(r.id);
       out.push(r);
     };
-    for (const r of primaryReviews) push(r);
+    const withMedia = [];
+    const textOnly = [];
+    for (const r of primaryReviews) {
+      if (normalizeReviewMediaItems(r).length > 0) withMedia.push(r);
+      else textOnly.push(r);
+    }
+    for (const r of [...withMedia, ...textOnly]) push(r);
     if (out.length < cap) {
       for (const r of liveReviewsList) {
         if (out.length >= cap) break;
