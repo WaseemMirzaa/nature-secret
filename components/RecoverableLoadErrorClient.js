@@ -11,13 +11,12 @@ import {
 } from '@/lib/networkRetry';
 
 /**
- * Next.js `error.js` / `global-error.js`: any error → automatic full reloads with progress
- * (no Try again until {@link MAX_PAGE_LOAD_RETRIES} attempts). Retry count resets on successful `load` (ChunkLoadErrorHandler).
+ * Next.js `error.js` / `global-error.js`: any error → automatic full reloads (circular loader only;
+ * no Try again until {@link MAX_PAGE_LOAD_RETRIES} attempts). Retry count resets on successful `load` (ChunkLoadErrorHandler).
  */
 export function RecoverableLoadErrorClient({ error }) {
   const stored = typeof window !== 'undefined' ? readPageLoadRetryState() : { count: 0, first: Date.now() };
   const exhausted = stored.count >= MAX_PAGE_LOAD_RETRIES;
-  const displayAttempt = exhausted ? MAX_PAGE_LOAD_RETRIES : Math.min(stored.count + 1, MAX_PAGE_LOAD_RETRIES);
 
   useEffect(() => {
     if (typeof window === 'undefined' || exhausted) return undefined;
@@ -41,5 +40,5 @@ export function RecoverableLoadErrorClient({ error }) {
     return <PageLoadExhaustedError />;
   }
 
-  return <PageLoadRetryLoader attempt={displayAttempt} max={MAX_PAGE_LOAD_RETRIES} />;
+  return <PageLoadRetryLoader />;
 }

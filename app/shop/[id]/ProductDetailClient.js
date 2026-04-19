@@ -33,6 +33,7 @@ import {
 import { compressReviewMediaFile } from '@/lib/compressReviewMedia';
 import { getDefaultHeroImageSrcForProduct } from '@/lib/productImageResolve';
 import { extractIntroParagraphsFromDescription, pickBestValueVariantId } from '@/lib/productDetailMobileParse';
+import { ReviewMediaBlock } from '@/components/review/ReviewMediaBlock';
 import { canonicalVariantId } from '@/lib/cartLine';
 import { InlineLoader, Spinner } from '@/components/ui/PageLoader';
 
@@ -184,65 +185,6 @@ const ProductTrustBar = memo(function ProductTrustBar({ product, className = '',
   );
 });
 
-function getVideoPresentation(url) {
-  if (!url || typeof url !== 'string') return null;
-  const u = url.trim();
-  try {
-    const parsed = new URL(u);
-    if (parsed.hostname.includes('youtu.be')) {
-      const id = parsed.pathname.replace(/^\//, '').split('/')[0];
-      if (id) return { kind: 'embed', src: `https://www.youtube-nocookie.com/embed/${id}` };
-    }
-    if (parsed.hostname.includes('youtube.com')) {
-      const id = parsed.searchParams.get('v');
-      if (id) return { kind: 'embed', src: `https://www.youtube-nocookie.com/embed/${id}` };
-      const short = parsed.pathname.match(/\/embed\/([^/?]+)/);
-      if (short) return { kind: 'embed', src: `https://www.youtube-nocookie.com/embed/${short[1]}` };
-    }
-    if (parsed.hostname.includes('vimeo.com')) {
-      const m = parsed.pathname.match(/\/(\d+)/);
-      if (m) return { kind: 'embed', src: `https://player.vimeo.com/video/${m[1]}` };
-    }
-  } catch {
-    if (/\.(mp4|webm|ogg)(\?|$)/i.test(u)) return { kind: 'native', src: u };
-    return null;
-  }
-  if (/\.(mp4|webm|ogg)(\?|$)/i.test(u)) return { kind: 'native', src: u };
-  return { kind: 'native', src: u };
-}
-
-function ReviewMediaBlock({ item, resolveImageUrl }) {
-  const rawUrl = item?.url;
-  if (!rawUrl) return null;
-  const isVideo = item.type === 'video';
-  if (!isVideo) {
-    const imgSrc = resolveImageUrl(rawUrl) || rawUrl;
-    return (
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-neutral-100">
-        <Image src={imgSrc} alt="" fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
-      </div>
-    );
-  }
-  const pres = getVideoPresentation(rawUrl);
-  if (!pres) return null;
-  if (pres.kind === 'embed') {
-    return (
-      <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
-        <iframe
-          title="Review video"
-          src={pres.src}
-          className="absolute inset-0 h-full w-full"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-        />
-      </div>
-    );
-  }
-  return (
-    <video src={pres.src} controls playsInline className="w-full rounded-lg bg-black max-h-[280px]" />
-  );
-}
-
 function scrubMedicalTerms(input = '') {
   const text = String(input || '');
   return text;
@@ -268,7 +210,7 @@ function splitReviewQuoteAndOutcome(body) {
   return { quote: scrubMedicalTerms(raw), outcome: '' };
 }
 
-const PdpMobileReviewPeek = memo(function PdpMobileReviewPeek({ reviews }) {
+const PdpMobileReviewPeek = memo(function PdpMobileReviewPeek({ reviews, resolveImageUrl }) {
   if (!Array.isArray(reviews) || reviews.length === 0) return null;
   return (
     <div className="mt-4 border-t border-neutral-100 pt-4" aria-label="Recent buyer reviews">
@@ -282,6 +224,17 @@ const PdpMobileReviewPeek = memo(function PdpMobileReviewPeek({ reviews }) {
                 <span className="truncate text-xs font-semibold text-neutral-900">{r.authorName}</span>
                 <ReviewStarsInline rating={r.rating} className="scale-90" />
               </div>
+              {Array.isArray(r.media) && r.media.length > 0 ? (
+                <div className="mb-2 space-y-2">
+                  {r.media.map((m, mi) => (
+                    <ReviewMediaBlock
+                      key={`${r.id}-peek-${mi}-${m.url?.slice?.(0, 20) || mi}`}
+                      item={m}
+                      resolveImageUrl={resolveImageUrl}
+                    />
+                  ))}
+                </div>
+              ) : null}
               {quote ? <p className="text-[12px] leading-snug text-neutral-700">{quote}</p> : null}
               {outcome ? (
                 <p className="mt-1.5 border-t border-neutral-200/80 pt-1.5 text-[11px] font-semibold leading-snug text-emerald-900">
@@ -1251,7 +1204,7 @@ export default function ProductDetailClient({
                       </>
                     )}
                   </button>
-                  <PdpMobileReviewPeek reviews={mobileTopReviews} />
+                  <PdpMobileReviewPeek reviews={mobileTopReviews} resolveImageUrl={resolveImageUrl} />
                   <button
                     type="button"
                     disabled={orderNowNavigating}

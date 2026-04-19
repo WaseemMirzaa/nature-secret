@@ -1,49 +1,54 @@
 'use client';
 
-import { MAX_PAGE_LOAD_RETRIES } from '@/lib/networkRetry';
-
-/** Spinner graphic only (no copy). */
-export function PageLoadSpinner() {
+/** Indeterminate circular loader (no attempt count or linear progress). */
+export function PageLoadCircularIndeterminate({ className = '' } = {}) {
   return (
     <div
-      className="h-10 w-10 border-2 border-neutral-200 border-t-neutral-900 rounded-full animate-spin shrink-0"
-      aria-hidden
-    />
+      className={`relative flex items-center justify-center ${className}`}
+      role="status"
+      aria-label="Loading"
+    >
+      <svg
+        className="h-12 w-12 text-neutral-900 animate-spin"
+        style={{ animationDuration: '0.75s' }}
+        viewBox="0 0 48 48"
+        fill="none"
+        aria-hidden
+      >
+        <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="2.5" className="text-neutral-200" />
+        <circle
+          cx="24"
+          cy="24"
+          r="20"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeDasharray="31.4 94.2"
+          className="text-neutral-800"
+        />
+      </svg>
+    </div>
   );
 }
 
-/**
- * Full-screen overlay during automatic reload retries: progress bar + attempt count.
- * No buttons until parent shows exhausted UI.
- */
-export function PageLoadRetryLoader({
-  attempt = 1,
-  max = MAX_PAGE_LOAD_RETRIES,
-} = {}) {
-  const safeMax = Math.max(1, max);
-  const safeAttempt = Math.min(Math.max(1, attempt), safeMax);
-  const pct = Math.round((safeAttempt / safeMax) * 100);
+/** Same ring as full-page retry loader (legacy export). */
+export function PageLoadSpinner() {
+  return <PageLoadCircularIndeterminate />;
+}
 
+/**
+ * Full-screen overlay during automatic reload retries: circular loader only (no copy, no retry fraction).
+ */
+export function PageLoadRetryLoader() {
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6 bg-neutral-50/95 px-6 backdrop-blur-sm supports-[backdrop-filter]:bg-neutral-50/80"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-neutral-50/95 px-6 backdrop-blur-sm supports-[backdrop-filter]:bg-neutral-50/80"
       aria-busy="true"
       role="status"
       aria-live="polite"
-      aria-label={`Loading, attempt ${safeAttempt} of ${safeMax}`}
+      aria-label="Loading"
     >
-      <PageLoadSpinner />
-      <div className="w-full max-w-xs space-y-2">
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
-          <div
-            className="h-full rounded-full bg-neutral-900 transition-[width] duration-300 ease-out"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-        <p className="text-center text-xs font-medium text-neutral-700">
-          Reconnecting… {safeAttempt} / {safeMax}
-        </p>
-      </div>
+      <PageLoadCircularIndeterminate />
     </div>
   );
 }

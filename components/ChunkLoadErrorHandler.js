@@ -111,7 +111,7 @@ export function ChunkLoadErrorHandler({ children }) {
   }
 
   if (retryUi) {
-    return <PageLoadRetryLoader attempt={retryUi.nextCount} max={MAX_PAGE_LOAD_RETRIES} />;
+    return <PageLoadRetryLoader />;
   }
 
   return <>{children}</>;
