@@ -21,6 +21,7 @@ import { diskStorage } from 'multer';
 import { randomUUID } from 'crypto';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { ReviewsService } from './reviews.service';
+import { scheduleReviewVideoOptimize } from './review-video-optimize-in-place';
 import { Public } from '../../common/decorators/public.decorator';
 import { UPLOAD_PATHS } from '../../common/upload-paths';
 
@@ -162,8 +163,10 @@ export class ReviewsController {
           }
         },
         filename: (_req, file, cb) => {
+          const isVideo = VIDEO_MIMES.includes(file.mimetype);
           const ext = (file.originalname && file.originalname.split('.').pop()) || 'jpg';
-          const safeExt = ext.replace(/[^a-z0-9]/gi, '').slice(0, 5) || 'jpg';
+          const safeExtRaw = ext.replace(/[^a-z0-9]/gi, '').slice(0, 5) || 'jpg';
+          const safeExt = isVideo ? 'mp4' : safeExtRaw;
           cb(null, `r-${randomUUID().slice(0, 12)}.${safeExt}`);
         },
       }),
@@ -175,6 +178,9 @@ export class ReviewsController {
     const isImage = IMAGE_MIMES.includes(file.mimetype);
     if (isImage && file.size > MAX_IMAGE_BYTES) throw new BadRequestException('Image too large (max 5MB)');
     if (isVideo && file.size > MAX_VIDEO_BYTES) throw new BadRequestException('Video too large (max 25MB)');
+    if (isVideo) {
+      scheduleReviewVideoOptimize(file.path, file.mimetype);
+    }
     const base = (process.env.API_PUBLIC_URL || '').replace(/\/$/, '');
     const path = `/api/v1/reviews/upload/${file.filename}`;
     const type: 'image' | 'video' = isVideo ? 'video' : 'image';
