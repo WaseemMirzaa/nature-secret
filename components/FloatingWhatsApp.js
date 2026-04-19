@@ -28,15 +28,38 @@ export function FloatingWhatsApp() {
 
   const waHref = getWhatsAppHref(phoneDigits);
 
-  return (
+  const fabClass =
+    'flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition hover:scale-110 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#25D366] focus:ring-offset-2';
+
+  const bottomFab = (
     <a
       href={waHref}
       onClick={(e) => handleWhatsAppClick(e, phoneDigits, 'floating')}
       rel="noopener noreferrer"
-      className="fixed right-6 z-[55] flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition hover:scale-110 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#25D366] focus:ring-offset-2 bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px)+var(--ns-pdp-sticky-bottom,0px))]"
+      className={`fixed right-6 z-[55] ${fabClass} bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px)+var(--ns-pdp-sticky-bottom,0px))]`}
       aria-label="Chat on WhatsApp"
     >
       <WhatsAppGlyphIcon />
     </a>
   );
+
+  if (isProductDetail) {
+    return (
+      <>
+        <a
+          href={waHref}
+          onClick={(e) => handleWhatsAppClick(e, phoneDigits, 'floating-pdp-top')}
+          rel="noopener noreferrer"
+          title="WhatsApp"
+          aria-label="Chat on WhatsApp"
+          className={`fixed z-[55] ${fabClass} right-[max(1rem,env(safe-area-inset-right,0px))] top-[calc(3.5rem+0.75rem+env(safe-area-inset-top,0px))] sm:top-[calc(4rem+0.75rem+env(safe-area-inset-top,0px))]`}
+        >
+          <WhatsAppGlyphIcon />
+        </a>
+        {bottomFab}
+      </>
+    );
+  }
+
+  return bottomFab;
 }
