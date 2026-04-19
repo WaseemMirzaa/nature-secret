@@ -51,7 +51,7 @@ export function FloatingWhatsApp() {
     if (!pathname) return null;
     if (!isHome && !isProductDetail) return null;
 
-    const bottomFab = (
+    return (
       <a
         key="wa-bottom"
         href={waHref}
@@ -63,27 +63,6 @@ export function FloatingWhatsApp() {
         <WhatsAppGlyphIcon />
       </a>
     );
-
-    if (isProductDetail) {
-      return (
-        <>
-          <a
-            key="wa-top"
-            href={waHref}
-            onClick={(e) => handleWhatsAppClick(e, phoneDigits, 'floating-pdp-top')}
-            rel="noopener noreferrer"
-            title="WhatsApp"
-            aria-label="Chat on WhatsApp"
-            className={`fixed z-[80] ${fabClass} right-[max(1rem,env(safe-area-inset-right,0px))] top-[calc(3.5rem+0.75rem+env(safe-area-inset-top,0px))] sm:top-[calc(4rem+0.75rem+env(safe-area-inset-top,0px))]`}
-          >
-            <WhatsAppGlyphIcon />
-          </a>
-          {bottomFab}
-        </>
-      );
-    }
-
-    return bottomFab;
   }, [pathname, isHome, isProductDetail, waHref, phoneDigits]);
 
   if (!portalEl || !nodes) return null;

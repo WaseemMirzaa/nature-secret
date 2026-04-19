@@ -11,7 +11,6 @@ import {
   PRODUCT_HERO_IMAGE_SIZES,
   SHIPPING_POLICY,
   RETURN_POLICY,
-  DEFAULT_CONTACT,
 } from '@/lib/constants';
 import {
   trackViewContentWhenReady,
@@ -35,19 +34,12 @@ import {
   uploadReviewMedia,
   productPath,
   getContentSettings,
-  getContactSettings,
 } from '@/lib/api';
 import { compressReviewMediaFile } from '@/lib/compressReviewMedia';
 import { getDefaultHeroImageSrcForProduct } from '@/lib/productImageResolve';
 import { extractIntroParagraphsFromDescription, pickBestValueVariantId } from '@/lib/productDetailMobileParse';
 import { ReviewMediaBlock, normalizeReviewMediaItems } from '@/components/review/ReviewMediaBlock';
 import { canonicalVariantId } from '@/lib/cartLine';
-import {
-  getWhatsAppHref,
-  handleWhatsAppClick,
-  normalizeWhatsAppDigits,
-  WhatsAppGlyphIcon,
-} from '@/lib/whatsappLink';
 import { InlineLoader, Spinner } from '@/components/ui/PageLoader';
 
 const isUuid = (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
@@ -389,20 +381,6 @@ export default function ProductDetailClient({
       : '',
   );
   const [disclaimerExpanded, setDisclaimerExpanded] = useState(false);
-  const [waPhoneDigits, setWaPhoneDigits] = useState(
-    () => normalizeWhatsAppDigits(DEFAULT_CONTACT.whatsappNumber) || '',
-  );
-
-  useEffect(() => {
-    getContactSettings()
-      .then((r) => {
-        const n =
-          normalizeWhatsAppDigits(r?.whatsappNumber) ||
-          normalizeWhatsAppDigits(DEFAULT_CONTACT.whatsappNumber);
-        if (n) setWaPhoneDigits(n);
-      })
-      .catch(() => {});
-  }, []);
 
   useLayoutEffect(() => {
     if (typeof document === 'undefined') return undefined;
@@ -2014,18 +1992,6 @@ export default function ProductDetailClient({
             >
               Add to cart
             </button>
-            {waPhoneDigits ? (
-              <a
-                href={getWhatsAppHref(waPhoneDigits)}
-                onClick={(e) => handleWhatsAppClick(e, waPhoneDigits, 'pdp-sticky-mobile')}
-                rel="noopener noreferrer"
-                title={`WhatsApp — ${productDisplayName}`}
-                aria-label="Chat on WhatsApp"
-                className="flex h-[3.25rem] w-[3.25rem] shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white shadow-md ring-1 ring-black/10 transition hover:brightness-95 active:scale-[0.98]"
-              >
-                <WhatsAppGlyphIcon className="h-6 w-6" />
-              </a>
-            ) : null}
             <button
               type="button"
               disabled={orderNowNavigating}
@@ -2116,18 +2082,6 @@ export default function ProductDetailClient({
                   Buy now
                 </span>
               </button>
-              {waPhoneDigits ? (
-                <a
-                  href={getWhatsAppHref(waPhoneDigits)}
-                  onClick={(e) => handleWhatsAppClick(e, waPhoneDigits, 'pdp-sticky-desktop')}
-                  rel="noopener noreferrer"
-                  title={`WhatsApp — ${productDisplayName}`}
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white shadow-md ring-1 ring-black/10 transition hover:scale-[1.04] hover:shadow-lg xl:h-12 xl:w-12"
-                  aria-label="Chat on WhatsApp"
-                >
-                  <WhatsAppGlyphIcon className="h-6 w-6 xl:h-7 xl:w-7" />
-                </a>
-              ) : null}
             </div>
           </div>
         </div>
