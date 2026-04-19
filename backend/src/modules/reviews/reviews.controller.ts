@@ -3,17 +3,19 @@ import {
   Body,
   Controller,
   Get,
+  Head,
   Param,
   Post,
   Query,
+  Req,
   Res,
   UploadedFile,
   UseInterceptors,
   UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
-import { createReadStream, existsSync, mkdirSync } from 'fs';
+import { Request, Response } from 'express';
+import { createReadStream, existsSync, mkdirSync, statSync } from 'fs';
 import { join } from 'path';
 import { diskStorage } from 'multer';
 import { randomUUID } from 'crypto';
@@ -26,6 +28,22 @@ const IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const VIDEO_MIMES = ['video/mp4', 'video/webm', 'video/quicktime'];
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 25 * 1024 * 1024;
+
+function contentTypeForReviewsUpload(filename: string): string {
+  const ext = filename.split('.').pop()?.toLowerCase() ?? '';
+  const map: Record<string, string> = {
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    webp: 'image/webp',
+    gif: 'image/gif',
+    mp4: 'video/mp4',
+    webm: 'video/webm',
+    mov: 'video/quicktime',
+    qt: 'video/quicktime',
+  };
+  return map[ext] || 'application/octet-stream';
+}
 
 @Controller('reviews')
 export class ReviewsController {
@@ -45,16 +63,80 @@ export class ReviewsController {
   }
 
   @Public()
-  @Get('upload/:filename')
-  serveUpload(@Param('filename') filename: string, @Res() res: Response) {
+  @Head('upload/:filename')
+  headUpload(@Param('filename') filename: string, @Res() res: Response) {
     const safe = filename.replace(/[^a-zA-Z0-9._-]/g, '');
     const filePath = join(UPLOAD_PATHS.reviews(), safe);
     if (!existsSync(filePath)) {
       res.status(404).end();
       return;
     }
+    const { size } = statSync(filePath);
+    res.setHeader('Accept-Ranges', 'bytes');
+    res.setHeader('Content-Length', String(size));
+    res.setHeader('Content-Type', contentTypeForReviewsUpload(safe));
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    createReadStream(filePath).pipe(res);
+    res.status(200).end();
+  }
+
+  @Public()
+  @Get('upload/:filename')
+  serveUpload(@Param('filename') filename: string, @Req() req: Request, @Res() res: Response) {
+    const safe = filename.replace(/[^a-zA-Z0-9._-]/g, '');
+    const filePath = join(UPLOAD_PATHS.reviews(), safe);
+    if (!existsSync(filePath)) {
+      res.status(404).end();
+      return;
+    }
+
+    const { size: fileSize } = statSync(filePath);
+    const contentType = contentTypeForReviewsUpload(safe);
+
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.setHeader('Accept-Ranges', 'bytes');
+
+    const range = req.headers.range;
+    if (range && /^bytes=/i.test(String(range))) {
+      const m = /^bytes=(\d*)-(\d*)$/i.exec(String(range).trim());
+      if (!m) {
+        res.status(416).setHeader('Content-Range', `bytes */${fileSize}`).end();
+        return;
+      }
+      let start = m[1] === '' ? 0 : parseInt(m[1], 10);
+      let end = m[2] === '' ? fileSize - 1 : parseInt(m[2], 10);
+      if (Number.isNaN(start)) start = 0;
+      if (Number.isNaN(end)) end = fileSize - 1;
+      if (start >= fileSize) {
+        res.status(416).setHeader('Content-Range', `bytes */${fileSize}`).end();
+        return;
+      }
+      end = Math.min(end, fileSize - 1);
+      if (start > end) {
+        res.status(416).setHeader('Content-Range', `bytes */${fileSize}`).end();
+        return;
+      }
+      const chunkSize = end - start + 1;
+      res.status(206);
+      res.setHeader('Content-Range', `bytes ${start}-${end}/${fileSize}`);
+      res.setHeader('Content-Length', String(chunkSize));
+      res.setHeader('Content-Type', contentType);
+      const stream = createReadStream(filePath, { start, end });
+      stream.on('error', () => {
+        if (!res.headersSent) res.status(500).end();
+        else res.end();
+      });
+      stream.pipe(res);
+      return;
+    }
+
+    res.setHeader('Content-Length', String(fileSize));
+    res.setHeader('Content-Type', contentType);
+    const stream = createReadStream(filePath);
+    stream.on('error', () => {
+      if (!res.headersSent) res.status(500).end();
+      else res.end();
+    });
+    stream.pipe(res);
   }
 
   @Public()
