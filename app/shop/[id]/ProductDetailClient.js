@@ -233,10 +233,6 @@ const PdpMobileReviewPeek = memo(function PdpMobileReviewPeek({ reviews, resolve
           const { quote, outcome } = splitReviewQuoteAndOutcome(r.body);
           return (
             <li key={r.id} className="rounded-xl border border-neutral-100 bg-neutral-50/90 px-3 py-2.5">
-              <div className="mb-1 flex items-center justify-between gap-2">
-                <span className="truncate text-xs font-semibold text-neutral-900">{r.authorName}</span>
-                <ReviewStarsInline rating={r.rating} className="scale-90" />
-              </div>
               {Array.isArray(r.media) && r.media.length > 0 ? (
                 <div className="mb-2 space-y-2">
                   {r.media.map((m, mi) => (
@@ -248,6 +244,10 @@ const PdpMobileReviewPeek = memo(function PdpMobileReviewPeek({ reviews, resolve
                   ))}
                 </div>
               ) : null}
+              <div className="mb-1 flex flex-wrap items-center gap-2">
+                <ReviewStarsInline rating={r.rating} className="scale-90" />
+                <span className="truncate text-xs font-semibold text-neutral-900">{r.authorName}</span>
+              </div>
               {quote ? <p className="text-[12px] leading-snug text-neutral-700">{quote}</p> : null}
               {outcome ? (
                 <p className="mt-1.5 border-t border-neutral-200/80 pt-1.5 text-[11px] font-semibold leading-snug text-emerald-900">
@@ -680,16 +680,24 @@ export default function ProductDetailClient({
     ? (reviewsExpanded ? primaryReviews : primaryReviews.slice(0, reviewPreviewCount))
     : [];
   const mobileTopReviews = useMemo(() => {
+    const cap = 3;
     const seen = new Set();
     const out = [];
-    for (const r of [...liveReviewsList, ...primaryReviews]) {
-      if (out.length >= 3) break;
-      if (!r?.id || seen.has(r.id)) continue;
+    const push = (r) => {
+      if (!r?.id || seen.has(r.id) || out.length >= cap) return;
       seen.add(r.id);
       out.push(r);
+    };
+    for (const r of primaryReviews) push(r);
+    if (out.length < cap) {
+      for (const r of liveReviewsList) {
+        if (out.length >= cap) break;
+        if (!Array.isArray(r.media) || r.media.length === 0) continue;
+        push(r);
+      }
     }
     return out;
-  }, [liveReviewsList, primaryReviews]);
+  }, [primaryReviews, liveReviewsList]);
 
   const customerRatingTrust = useMemo(() => {
     if (!product) return null;

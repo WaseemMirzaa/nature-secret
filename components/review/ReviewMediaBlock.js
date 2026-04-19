@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect, useId, useCallback } from 'react';
+import { useState, useMemo, useRef, useEffect, useLayoutEffect, useId, useCallback } from 'react';
 import Image from 'next/image';
 
 /** Treat as video if type says so or URL is clearly a stream / file. */
@@ -91,18 +91,39 @@ export function getVideoPresentation(url) {
   return { kind: 'native', src: u };
 }
 
-const VIDEO_REPLAY_MAX = 3;
+const NATIVE_REPLAY_MAX_DESKTOP = 4;
+const NATIVE_REPLAY_MAX_TOUCH = 8;
+const EMBED_REPLAY_MAX_DESKTOP = 4;
+const EMBED_REPLAY_MAX_TOUCH = 8;
+const STALL_RELOAD_AFTER_MS = 2800;
+
+function touchUiLikely() {
+  if (typeof window === 'undefined') return false;
+  try {
+    if (window.matchMedia('(pointer: coarse)').matches) return true;
+    if (window.matchMedia('(max-width: 1023px)').matches) return true;
+  } catch {
+    /* ignore */
+  }
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || '');
+}
 
 function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl }) {
   const idBase = useId();
   const videoRef = useRef(null);
   const nativeReplayRef = useRef(0);
   const embedReplayRef = useRef(0);
+  const touchUiRef = useRef(false);
+  const stallTimerRef = useRef(null);
   const [nativeError, setNativeError] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [videoReplayNonce, setVideoReplayNonce] = useState(0);
   const [embedReplayNonce, setEmbedReplayNonce] = useState(0);
   const openUrl = resolvedPlayUrl || getOpenVideoPageUrl(rawUrl);
+
+  useLayoutEffect(() => {
+    touchUiRef.current = touchUiLikely();
+  }, []);
 
   useEffect(() => {
     nativeReplayRef.current = 0;
@@ -119,25 +140,72 @@ function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl }) {
     }
   }, [playbackRate, pres.kind, videoReplayNonce]);
 
-  const handleNativeVideoError = useCallback(() => {
-    if (nativeReplayRef.current < VIDEO_REPLAY_MAX) {
-      nativeReplayRef.current += 1;
-      window.setTimeout(() => {
-        setVideoReplayNonce((n) => n + 1);
-      }, 350);
-      return;
-    }
-    setNativeError(true);
+  useEffect(() => {
+    return () => {
+      if (stallTimerRef.current != null) {
+        window.clearTimeout(stallTimerRef.current);
+        stallTimerRef.current = null;
+      }
+    };
   }, []);
 
-  const handleEmbedError = useCallback(() => {
-    if (embedReplayRef.current < VIDEO_REPLAY_MAX) {
-      embedReplayRef.current += 1;
-      window.setTimeout(() => {
-        setEmbedReplayNonce((n) => n + 1);
-      }, 400);
+  const nativeReplayCap = useCallback(() => (touchUiRef.current ? NATIVE_REPLAY_MAX_TOUCH : NATIVE_REPLAY_MAX_DESKTOP), []);
+  const embedReplayCap = useCallback(() => (touchUiRef.current ? EMBED_REPLAY_MAX_TOUCH : EMBED_REPLAY_MAX_DESKTOP), []);
+
+  const bumpNativeReplay = useCallback(() => {
+    const cap = nativeReplayCap();
+    if (nativeReplayRef.current < cap) {
+      nativeReplayRef.current += 1;
+      const step = nativeReplayRef.current;
+      const delay = touchUiRef.current ? 180 + step * 120 : 280 + step * 100;
+      window.setTimeout(() => setVideoReplayNonce((n) => n + 1), delay);
+      return true;
+    }
+    return false;
+  }, [nativeReplayCap]);
+
+  const handleNativeVideoError = useCallback(() => {
+    if (bumpNativeReplay()) return;
+    setNativeError(true);
+  }, [bumpNativeReplay]);
+
+  const handleNativeStalled = useCallback(() => {
+    if (pres.kind !== 'native') return;
+    if (stallTimerRef.current != null) window.clearTimeout(stallTimerRef.current);
+    stallTimerRef.current = window.setTimeout(() => {
+      stallTimerRef.current = null;
+      const el = videoRef.current;
+      if (!el) return;
+      if (el.readyState >= 3) return;
+      if (!bumpNativeReplay()) setNativeError(true);
+    }, STALL_RELOAD_AFTER_MS);
+  }, [pres.kind, bumpNativeReplay]);
+
+  const clearStallTimer = useCallback(() => {
+    if (stallTimerRef.current != null) {
+      window.clearTimeout(stallTimerRef.current);
+      stallTimerRef.current = null;
     }
   }, []);
+
+  const handleNativeWaiting = useCallback(() => {
+    clearStallTimer();
+  }, [clearStallTimer]);
+
+  const handleNativePlaying = useCallback(() => {
+    clearStallTimer();
+  }, [clearStallTimer]);
+
+  const handleEmbedError = useCallback(() => {
+    const cap = embedReplayCap();
+    if (embedReplayRef.current < cap) {
+      embedReplayRef.current += 1;
+      const delay = touchUiRef.current ? 220 + embedReplayRef.current * 140 : 400;
+      window.setTimeout(() => {
+        setEmbedReplayNonce((n) => n + 1);
+      }, delay);
+    }
+  }, [embedReplayCap]);
 
   const embedSrc = useMemo(() => {
     if (pres.kind !== 'embed') return '';
@@ -213,6 +281,11 @@ function ReviewVideoPlayer({ pres, rawUrl, resolvedPlayUrl }) {
         className="max-h-[min(70vh,26rem)] w-full rounded-lg bg-black"
         controlsList="nodownload"
         onError={handleNativeVideoError}
+        onStalled={handleNativeStalled}
+        onWaiting={handleNativeWaiting}
+        onPlaying={handleNativePlaying}
+        onSeeking={clearStallTimer}
+        onCanPlay={clearStallTimer}
       />
       <div className="flex flex-wrap items-center gap-2 text-[11px] text-neutral-600 sm:text-xs">
         <label htmlFor={`${idBase}-rate`} className="font-medium text-neutral-700">
