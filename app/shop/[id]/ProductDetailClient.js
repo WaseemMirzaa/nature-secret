@@ -38,7 +38,7 @@ import {
 import { compressReviewMediaFile } from '@/lib/compressReviewMedia';
 import { getDefaultHeroImageSrcForProduct } from '@/lib/productImageResolve';
 import { extractIntroParagraphsFromDescription, pickBestValueVariantId } from '@/lib/productDetailMobileParse';
-import { ReviewMediaBlock, normalizeReviewMediaItems } from '@/components/review/ReviewMediaBlock';
+import { ReviewMediaBlock, normalizeReviewMediaItems, mediaItemIsVideo, mediaItemIsAudio } from '@/components/review/ReviewMediaBlock';
 import { canonicalVariantId } from '@/lib/cartLine';
 import { InlineLoader, Spinner } from '@/components/ui/PageLoader';
 
@@ -221,20 +221,28 @@ function PdpMobileReviewPeek({ reviews, resolveImageUrl }) {
     <div className="mt-4 border-t border-neutral-100 pt-4" aria-label="Recent buyer reviews">
       <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-500">What buyers say</p>
       <ul className="space-y-2.5">
-        {reviews.map((r) => {
+        {(() => {
+          let imgPrioLeft = 5;
+          return reviews.map((r) => {
           const { quote, outcome } = splitReviewQuoteAndOutcome(r.body);
           const mediaItems = normalizeReviewMediaItems(r);
           return (
             <li key={r.id} className="rounded-xl border border-neutral-100 bg-neutral-50/90 px-3 py-2.5">
               {mediaItems.length > 0 ? (
                 <div className="mb-2 space-y-2">
-                  {mediaItems.map((m, mi) => (
+                  {mediaItems.map((m, mi) => {
+                    const isImg = !mediaItemIsVideo(m) && !mediaItemIsAudio(m);
+                    // eslint-disable-next-line no-plusplus
+                    const prio = isImg && imgPrioLeft > 0 ? (imgPrioLeft--, true) : false;
+                    return (
                     <ReviewMediaBlock
                       key={`${r.id}-peek-${mi}-${m.url?.slice?.(0, 20) || mi}`}
                       item={m}
                       resolveImageUrl={resolveImageUrl}
+                      priority={prio}
                     />
-                  ))}
+                    );
+                  })}
                 </div>
               ) : null}
               <div className="mb-1 flex flex-wrap items-center gap-2">
@@ -249,7 +257,8 @@ function PdpMobileReviewPeek({ reviews, resolveImageUrl }) {
               ) : null}
             </li>
           );
-        })}
+          });
+        })()}
       </ul>
     </div>
   );
@@ -646,7 +655,12 @@ export default function ProductDetailClient({
 
   const liveReviewsList = useMemo(() => {
     if (!Array.isArray(reviews)) return [];
-    return reviews.filter((r) => r.collection === 'live');
+    const list = reviews.filter((r) => r.collection === 'live');
+    return [...list].sort((a, b) => {
+      const aHas = normalizeReviewMediaItems(a).length > 0 ? 0 : 1;
+      const bHas = normalizeReviewMediaItems(b).length > 0 ? 0 : 1;
+      return aHas - bHas;
+    });
   }, [reviews]);
 
   const fiveStarReviews = useMemo(
@@ -1691,7 +1705,9 @@ export default function ProductDetailClient({
               Customer stories
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
-              {liveReviewsList.map((r) => {
+              {(() => {
+                let imgPrioLeft = 5;
+                return liveReviewsList.map((r) => {
                 const liveMedia = normalizeReviewMediaItems(r);
                 return (
                 <article
@@ -1700,13 +1716,19 @@ export default function ProductDetailClient({
                 >
                   {liveMedia.length > 0 ? (
                     <div className="space-y-2 mb-3">
-                      {liveMedia.map((m, i) => (
+                      {liveMedia.map((m, i) => {
+                        const isImg = !mediaItemIsVideo(m) && !mediaItemIsAudio(m);
+                        // eslint-disable-next-line no-plusplus
+                        const prio = isImg && imgPrioLeft > 0 ? (imgPrioLeft--, true) : false;
+                        return (
                         <ReviewMediaBlock
                           key={`${r.id}-m-${i}-${m.url?.slice?.(0, 24) || i}`}
                           item={m}
                           resolveImageUrl={resolveImageUrl}
+                          priority={prio}
                         />
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : null}
                   <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 mb-2">
@@ -1731,7 +1753,8 @@ export default function ProductDetailClient({
                   })()}
                 </article>
                 );
-              })}
+              });
+              })()}
             </div>
           </div>
         ) : null}

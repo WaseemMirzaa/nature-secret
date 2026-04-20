@@ -408,7 +408,11 @@ function ReviewAudioPlayer({ src }) {
   );
 }
 
-export function ReviewMediaBlock({ item, resolveImageUrl }) {
+// 1×1 neutral-gray pixel — instant blur placeholder for remote images
+const BLUR_DATA_URL =
+  'data:image/gif;base64,R0lGODlhAQABAPAAANLS0gAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==';
+
+export function ReviewMediaBlock({ item, resolveImageUrl, priority = false }) {
   const rawUrl = item?.url;
   const resolvedPlayUrl = useMemo(() => {
     if (!rawUrl || typeof rawUrl !== 'string') return '';
@@ -432,8 +436,11 @@ export function ReviewMediaBlock({ item, resolveImageUrl }) {
           alt=""
           fill
           className="object-cover"
-          sizes="(max-width: 768px) 100vw, 50vw"
-          loading="lazy"
+          sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 1024px) calc(100vw - 3rem), calc(50vw - 6rem)"
+          priority={priority}
+          loading={priority ? undefined : 'lazy'}
+          placeholder="blur"
+          blurDataURL={BLUR_DATA_URL}
         />
       </div>
     );
