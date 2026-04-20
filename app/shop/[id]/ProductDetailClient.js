@@ -221,28 +221,21 @@ function PdpMobileReviewPeek({ reviews, resolveImageUrl }) {
     <div className="mt-4 border-t border-neutral-100 pt-4" aria-label="Recent buyer reviews">
       <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-500">What buyers say</p>
       <ul className="space-y-2.5">
-        {(() => {
-          let imgPrioLeft = 5;
-          return reviews.map((r) => {
+        {reviews.map((r) => {
           const { quote, outcome } = splitReviewQuoteAndOutcome(r.body);
           const mediaItems = normalizeReviewMediaItems(r);
           return (
             <li key={r.id} className="rounded-xl border border-neutral-100 bg-neutral-50/90 px-3 py-2.5">
               {mediaItems.length > 0 ? (
                 <div className="mb-2 space-y-2">
-                  {mediaItems.map((m, mi) => {
-                    const isImg = !mediaItemIsVideo(m) && !mediaItemIsAudio(m);
-                    // eslint-disable-next-line no-plusplus
-                    const prio = isImg && imgPrioLeft > 0 ? (imgPrioLeft--, true) : false;
-                    return (
+                  {mediaItems.map((m, mi) => (
                     <ReviewMediaBlock
                       key={`${r.id}-peek-${mi}-${m.url?.slice?.(0, 20) || mi}`}
                       item={m}
                       resolveImageUrl={resolveImageUrl}
-                      priority={prio}
+                      priority={false}
                     />
-                    );
-                  })}
+                  ))}
                 </div>
               ) : null}
               <div className="mb-1 flex flex-wrap items-center gap-2">
@@ -257,8 +250,7 @@ function PdpMobileReviewPeek({ reviews, resolveImageUrl }) {
               ) : null}
             </li>
           );
-          });
-        })()}
+        })}
       </ul>
     </div>
   );
@@ -361,6 +353,7 @@ export default function ProductDetailClient({
   const orderNowNavBusyRef = useRef(false);
   const [addCartMobileNavigating, setAddCartMobileNavigating] = useState(false);
   const addCartMobileNavBusyRef = useRef(false);
+  const [reviewMediaReady, setReviewMediaReady] = useState(false);
   const orderNowLiveRef = useRef({
     productLoading: true,
     product: null,
@@ -455,6 +448,21 @@ export default function ProductDetailClient({
     obs.observe(el);
     return () => obs.disconnect();
   }, [isLg, product?.id]);
+
+  // Defer review images/videos until after the hero + buy section has painted
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let id;
+    if (typeof window.requestIdleCallback === 'function') {
+      id = window.requestIdleCallback(() => setReviewMediaReady(true), { timeout: 2000 });
+    } else {
+      id = setTimeout(() => setReviewMediaReady(true), 300);
+    }
+    return () => {
+      if (typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(id);
+      else clearTimeout(id);
+    };
+  }, []);
 
   useEffect(() => {
     if (initialContentSettings != null) {
@@ -1333,7 +1341,7 @@ export default function ProductDetailClient({
                       </>
                     )}
                   </button>
-                  <PdpMobileReviewPeek reviews={mobileTopReviews} resolveImageUrl={resolveImageUrl} />
+                  {reviewMediaReady && <PdpMobileReviewPeek reviews={mobileTopReviews} resolveImageUrl={resolveImageUrl} />}
                   <button
                     type="button"
                     disabled={orderNowNavigating || addCartMobileNavigating}
