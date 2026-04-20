@@ -7,6 +7,7 @@ import {
   getAdminUploadsList,
   getAdminUploadRefs,
   deleteAdminUploadFile,
+  bulkDeleteAdminUploadFiles,
   formatApiError,
   resolveImageUrl,
 } from '@/lib/api';
@@ -40,6 +41,8 @@ export default function AdminUploadsPage() {
   const [detailFilename, setDetailFilename] = useState(null);
   const [detailRefs, setDetailRefs] = useState([]);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [selected, setSelected] = useState(() => new Set());
+  const [bulkMessage, setBulkMessage] = useState('');
 
   const loadZones = useCallback(() => {
     getAdminUploadZones()
@@ -67,6 +70,22 @@ export default function AdminUploadsPage() {
   useEffect(() => {
     loadFiles();
   }, [loadFiles]);
+
+  useEffect(() => {
+    setSelected(new Set());
+    setBulkMessage('');
+  }, [zone]);
+
+  useEffect(() => {
+    setSelected((prev) => {
+      const names = new Set(files.map((f) => f.filename));
+      const next = new Set();
+      for (const n of prev) {
+        if (names.has(n)) next.add(n);
+      }
+      return next;
+    });
+  }, [files]);
 
   const openDetail = (filename) => {
     setDetailFilename(filename);
@@ -100,6 +119,61 @@ export default function AdminUploadsPage() {
     }
   };
 
+  const toggleSelect = (filename) => {
+    setSelected((prev) => {
+      const n = new Set(prev);
+      if (n.has(filename)) n.delete(filename);
+      else n.add(filename);
+      return n;
+    });
+  };
+
+  const selectAllVisible = () => {
+    setSelected(new Set(files.map((f) => f.filename)));
+  };
+
+  const clearSelection = () => {
+    setSelected(new Set());
+  };
+
+  const handleBulkDelete = async () => {
+    const names = [...selected];
+    if (!names.length) return;
+    setBulkMessage('');
+    setError('');
+    if (!window.confirm(`Delete ${names.length} selected file(s)? In-use files are skipped unless you confirm a second step.`)) return;
+    try {
+      const r = await bulkDeleteAdminUploadFiles(zone, names, { force: false });
+      const deletedN = r?.deleted?.length ?? 0;
+      const skipped = Array.isArray(r?.skipped) ? r.skipped : [];
+      const trunc = r?.truncated > 0 ? ` (${r.truncated} name(s) not processed — max ${100} per request)` : '';
+      let msg = `Removed ${deletedN} file(s). Skipped ${skipped.length}.${trunc}`;
+      const refSkipped = skipped.filter((s) => s.reason === 'referenced');
+      let forceDeleted = [];
+      if (refSkipped.length > 0) {
+        if (window.confirm(`${refSkipped.length} in-use file(s) were skipped. Force-delete them from disk? (Broken links.)`)) {
+          const r2 = await bulkDeleteAdminUploadFiles(
+            zone,
+            refSkipped.map((s) => s.filename),
+            { force: true },
+          );
+          forceDeleted = Array.isArray(r2?.deleted) ? r2.deleted : [];
+          msg += ` Force-deleted ${forceDeleted.length} more.`;
+        }
+      }
+      setBulkMessage(msg);
+      setSelected(new Set());
+      const removed = new Set([...(r?.deleted || []), ...forceDeleted]);
+      if (detailFilename && removed.has(detailFilename)) setDetailFilename(null);
+      loadFiles();
+    } catch (e) {
+      setError(formatApiError(e));
+    }
+  };
+
+  const selectedCount = selected.size;
+  const allSelected = files.length > 0 && files.every((f) => selected.has(f.filename));
+
   return (
     <div>
       <h1 className="text-2xl font-semibold text-neutral-900">Upload files</h1>
@@ -125,11 +199,34 @@ export default function AdminUploadsPage() {
       </div>
 
       {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+      {bulkMessage ? <p className="mt-2 text-sm text-emerald-800">{bulkMessage}</p> : null}
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          disabled={!selectedCount}
+          onClick={handleBulkDelete}
+          className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-800 disabled:opacity-40"
+        >
+          Delete selected ({selectedCount})
+        </button>
+        <button
+          type="button"
+          disabled={!files.length}
+          onClick={allSelected ? clearSelection : selectAllVisible}
+          className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 disabled:opacity-40"
+        >
+          {allSelected ? 'Clear selection' : 'Select all'}
+        </button>
+      </div>
 
       <div className="mt-6 overflow-x-auto rounded-2xl border border-neutral-200 bg-white">
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-neutral-200 bg-neutral-50 text-xs font-semibold uppercase tracking-wide text-neutral-500">
             <tr>
+              <th className="w-10 px-2 py-3">
+                <span className="sr-only">Select</span>
+              </th>
               <th className="px-4 py-3">Preview</th>
               <th className="px-4 py-3">Filename</th>
               <th className="px-4 py-3">Size</th>
@@ -140,19 +237,28 @@ export default function AdminUploadsPage() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-neutral-500">
+                <td colSpan={6} className="px-4 py-8 text-center text-neutral-500">
                   Loading…
                 </td>
               </tr>
             ) : files.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-neutral-500">
+                <td colSpan={6} className="px-4 py-8 text-center text-neutral-500">
                   No files in this folder.
                 </td>
               </tr>
             ) : (
               files.map((f) => (
                 <tr key={f.filename} className="border-b border-neutral-100 last:border-0">
+                  <td className="px-2 py-2 align-middle">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-neutral-300"
+                      checked={selected.has(f.filename)}
+                      onChange={() => toggleSelect(f.filename)}
+                      aria-label={`Select ${f.filename}`}
+                    />
+                  </td>
                   <td className="px-4 py-2">
                     {isProbablyImage(f.filename) ? (
                       // eslint-disable-next-line @next/next/no-img-element

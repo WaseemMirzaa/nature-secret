@@ -63,6 +63,15 @@ export type UploadRef = {
   adminHref: string;
 };
 
+const BULK_DELETE_MAX_FILES = 100;
+
+export type BulkDeleteSkip = {
+  filename: string;
+  reason: 'invalid' | 'referenced' | 'not_found' | 'error';
+  referenceCount?: number;
+  message?: string;
+};
+
 @Injectable()
 export class AdminUploadsService {
   constructor(
@@ -146,6 +155,52 @@ export class AdminUploadsService {
       throw e;
     }
     return { ok: true, deleted: safe };
+  }
+
+  /**
+   * Delete many files in one zone. Skips invalid names, missing files, and (unless force) DB-referenced files.
+   * At most {@link BULK_DELETE_MAX_FILES} names per request.
+   */
+  async bulkDeleteFiles(
+    zone: UploadZone,
+    filenames: unknown[],
+    force: boolean,
+  ): Promise<{ deleted: string[]; skipped: BulkDeleteSkip[]; truncated: number }> {
+    this.assertZone(zone);
+    const dir = zoneDir(zone);
+    const unique = [...new Set((Array.isArray(filenames) ? filenames : []).map((x) => String(x ?? '').trim()))].filter(
+      Boolean,
+    );
+    const truncated = Math.max(0, unique.length - BULK_DELETE_MAX_FILES);
+    const capped = unique.slice(0, BULK_DELETE_MAX_FILES);
+    const deleted: string[] = [];
+    const skipped: BulkDeleteSkip[] = [];
+
+    for (const raw of capped) {
+      let safe: string;
+      try {
+        safe = assertSafeFilename(raw);
+      } catch {
+        skipped.push({ filename: raw, reason: 'invalid' });
+        continue;
+      }
+      const refs = await this.findReferences(zone, safe);
+      if (refs.length > 0 && !force) {
+        skipped.push({ filename: safe, reason: 'referenced', referenceCount: refs.length });
+        continue;
+      }
+      const full = join(dir, safe);
+      try {
+        await unlink(full);
+        deleted.push(safe);
+      } catch (e) {
+        const code = (e as NodeJS.ErrnoException)?.code;
+        if (code === 'ENOENT') skipped.push({ filename: safe, reason: 'not_found' });
+        else skipped.push({ filename: safe, reason: 'error', message: e instanceof Error ? e.message : String(e) });
+      }
+    }
+
+    return { deleted, skipped, truncated };
   }
 
   private assertZone(z: string): asserts z is UploadZone {

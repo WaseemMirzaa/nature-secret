@@ -1,7 +1,9 @@
 import {
+  Body,
   Controller,
   Get,
   Delete,
+  Post,
   Param,
   Query,
   UseGuards,
@@ -37,6 +39,18 @@ export class AdminUploadsController {
   async list(@Param('zone', new ParseEnumPipe(UploadZoneParam)) zoneParam: UploadZoneParam) {
     const zone = zoneParam as UploadZone;
     return { zone, files: await this.uploads.listZone(zone) };
+  }
+
+  /** Multi-file delete (body: `{ filenames: string[], force?: boolean }`). */
+  @Post(':zone/bulk-delete')
+  async bulkDelete(
+    @Param('zone', new ParseEnumPipe(UploadZoneParam)) zoneParam: UploadZoneParam,
+    @Body() body: { filenames?: unknown[]; force?: boolean | string },
+  ) {
+    const zone = zoneParam as UploadZone;
+    const filenames = Array.isArray(body?.filenames) ? body.filenames : [];
+    const force = body?.force === true || String(body?.force) === 'true';
+    return this.uploads.bulkDeleteFiles(zone, filenames, force);
   }
 
   @Get(':zone/:filename')
