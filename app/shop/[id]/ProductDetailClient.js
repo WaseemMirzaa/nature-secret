@@ -1012,9 +1012,9 @@ export default function ProductDetailClient({
         showStickyBar ? 'lg:pb-28 xl:pb-32' : ''
       } ${product.inventory !== 0 ? 'max-lg:pb-28' : ''}`}
     >
-      <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-14 xl:gap-x-20 max-lg:gap-y-3 sm:max-lg:gap-y-4 animate-slide-up items-start">
-        {/* Left: gallery — premium frame on mobile, unchanged on desktop */}
-        <div className="relative w-full lg:max-w-xl xl:max-w-md lg:mx-0 mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-8 xl:gap-x-10 max-lg:gap-y-3 sm:max-lg:gap-y-4 animate-slide-up items-start">
+        {/* Left: gallery — wider column on lg+ for editorial layout */}
+        <div className="relative w-full lg:col-span-7 lg:max-w-none lg:mx-0 mx-auto">
           <div className="max-lg:rounded-xl max-lg:overflow-hidden max-lg:border max-lg:border-neutral-200 max-lg:bg-neutral-50 max-lg:p-1.5 sm:max-lg:p-2 max-lg:flex max-lg:flex-col max-lg:items-stretch max-lg:gap-2.5 sm:max-lg:gap-3 lg:contents">
           <div
             className="relative w-full shrink-0 overflow-hidden rounded-lg sm:rounded-xl lg:rounded-2xl bg-neutral-100 shadow-sm lg:shadow-premium ring-1 ring-neutral-200/60 max-lg:rounded-[1.1rem] max-lg:border max-lg:border-white/90 max-lg:bg-neutral-50 max-lg:shadow-lift max-lg:ring-neutral-900/[0.04] max-lg:frame-media-inset"
@@ -1303,11 +1303,11 @@ export default function ProductDetailClient({
           </article>
         </div>
 
-        <div className="min-w-0 space-y-2 sm:space-y-3 lg:space-y-5 xl:space-y-6">
-          {/* Desktop: purchase column (scrolls with page; disclaimer lives below FAQ in main column) */}
+        <div className="min-w-0 space-y-2 sm:space-y-3 lg:space-y-5 xl:space-y-6 lg:col-span-5">
+          {/* Desktop: purchase column — sticky card rail; FAQ + policies live inside on lg+ */}
           <div
             ref={purchasePanelRef}
-            className="max-lg:hidden block space-y-3 xl:space-y-4 pb-6 lg:pb-8 rounded-2xl lg:pl-0 xl:pl-1"
+            className="max-lg:hidden block space-y-3 xl:space-y-4 pb-6 lg:pb-8 rounded-2xl lg:rounded-2xl lg:border lg:border-neutral-200/85 lg:bg-white lg:p-6 xl:p-7 lg:shadow-premium lg:ring-1 lg:ring-neutral-900/[0.04] lg:sticky lg:top-24 xl:top-28 lg:self-start lg:pl-0 xl:pl-0"
           >
             <div>
               <h1 className="text-3xl xl:text-[2.125rem] font-semibold text-neutral-900 tracking-tight leading-[1.15]">{productDisplayName}</h1>
@@ -1477,6 +1477,111 @@ export default function ProductDetailClient({
                 Free shipping
               </p>
             </div>
+
+            {/* Desktop (lg+): FAQ, disclaimer, badges, shipping — inside sticky rail */}
+            <div className="mt-8 border-t border-neutral-100 pt-8">
+              {(product.faq || []).length > 0 && (
+                <div>
+                  <h3 className="text-base font-semibold text-neutral-900 mb-4 tracking-tight">FAQ</h3>
+                  <ul className="space-y-1">
+                    {(product.faq || []).map((item, i) => (
+                      <li key={i} className="border-b border-neutral-100">
+                        <button
+                          type="button"
+                          onClick={() => setFaqOpen(faqOpen === i ? null : i)}
+                          className="w-full py-3.5 text-left text-sm text-neutral-700 flex justify-between gap-4 font-medium"
+                        >
+                          <span className="min-w-0 pr-2">{scrubMedicalTerms(item.q)}</span>
+                          <span className="shrink-0">{faqOpen === i ? '−' : '+'}</span>
+                        </button>
+                        {faqOpen === i ? (
+                          <p className="pb-3.5 text-sm text-neutral-500 leading-relaxed">{scrubMedicalTerms(item.a)}</p>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {disclaimerEnabled ? (
+                <div className={`${(product.faq || []).length ? 'mt-8' : ''}`}>
+                  <div className="flex w-full items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50/90 px-3 py-2.5">
+                    <span className="min-w-0 text-[11px] font-semibold text-neutral-900">{disclaimerTitleToShow}</span>
+                    <button
+                      type="button"
+                      onClick={() => setDisclaimerExpanded((v) => !v)}
+                      className="shrink-0 rounded-lg border border-neutral-200 bg-white px-3 py-1 text-[11px] font-semibold text-neutral-900 shadow-sm transition hover:bg-neutral-50"
+                      aria-expanded={disclaimerExpanded}
+                      aria-controls="product-disclaimer-panel-desktop"
+                      id="product-disclaimer-toggle-desktop"
+                    >
+                      {disclaimerExpanded ? 'Hide' : 'View'}
+                    </button>
+                  </div>
+                  {disclaimerExpanded ? (
+                    <div
+                      id="product-disclaimer-panel-desktop"
+                      role="region"
+                      aria-labelledby="product-disclaimer-toggle-desktop"
+                      className="mt-2 rounded-xl border border-neutral-200 bg-white px-3 py-2.5"
+                    >
+                      <ul className="space-y-1 text-[11px] text-neutral-700 leading-relaxed list-disc pl-4">
+                        {disclaimerItemsToShow.map((item, idx) => (
+                          <li key={`d-rail-${idx}-${item.slice(0, 12)}`}>{scrubMedicalTerms(item)}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+              <div
+                className={`rounded-2xl bg-neutral-50 border border-neutral-100 p-5 text-sm text-neutral-600 space-y-3 leading-relaxed ${
+                  (product.faq || []).length || disclaimerEnabled ? 'mt-8' : ''
+                }`}
+              >
+                <p>
+                  <strong>Shipping:</strong> {SHIPPING_POLICY}
+                </p>
+                <p>
+                  <strong>Returns:</strong> {RETURN_POLICY}
+                </p>
+              </div>
+              {customProductBadges.length > 0 ? (
+                <div className="mt-6 flex flex-wrap items-center" style={{ gap: 10 }}>
+                  {customProductBadges.map((b, idx) => {
+                    const src = resolveImageUrl(b.imageUrl);
+                    const alt = String(b.label || 'Badge').trim() || 'Badge';
+                    const bypassOpt = typeof src === 'string' && (src.startsWith('data:') || src.startsWith('blob:'));
+                    const img = src ? (
+                      <Image
+                        src={src}
+                        alt={alt}
+                        width={124}
+                        height={124}
+                        className="h-[124px] w-[124px] object-contain"
+                        loading="lazy"
+                        sizes="124px"
+                        unoptimized={bypassOpt}
+                      />
+                    ) : null;
+                    return b.href ? (
+                      <a
+                        key={`badge-rail-${idx}`}
+                        href={b.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="shrink-0 hover:opacity-90"
+                      >
+                        {img}
+                      </a>
+                    ) : (
+                      <span key={`badge-rail-${idx}`} className="shrink-0">
+                        {img}
+                      </span>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
           </div>
 
           {/* Mobile / tablet: out of stock only (trust + shipping live in purchase card) */}
@@ -1491,100 +1596,6 @@ export default function ProductDetailClient({
           </div>
         </div>
       </div>
-
-      {/* Desktop: FAQ + policies only */}
-      <section className="max-lg:hidden block mt-16 xl:mt-20 pt-12 xl:pt-16 border-t border-neutral-200">
-        {(product.faq || []).length > 0 && (
-          <div>
-            <h3 className="text-base font-semibold text-neutral-900 mb-4 xl:mb-5 tracking-tight">FAQ</h3>
-            <ul className="space-y-1 max-w-2xl xl:max-w-3xl">
-              {(product.faq || []).map((item, i) => (
-                <li key={i} className="border-b border-neutral-100">
-                  <button type="button" onClick={() => setFaqOpen(faqOpen === i ? null : i)} className="w-full py-3.5 xl:py-4 text-left text-sm text-neutral-700 flex justify-between gap-4 font-medium">
-                    <span className="min-w-0 pr-2">{scrubMedicalTerms(item.q)}</span><span className="shrink-0">{faqOpen === i ? '−' : '+'}</span>
-                  </button>
-                  {faqOpen === i && <p className="pb-3.5 xl:pb-4 text-sm text-neutral-500 leading-relaxed max-w-2xl">{scrubMedicalTerms(item.a)}</p>}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {disclaimerEnabled ? (
-          <div className={`max-w-2xl xl:max-w-3xl ${(product.faq || []).length ? 'mt-8 xl:mt-10' : ''}`}>
-            <div className="flex w-full items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50/90 px-3 py-2.5">
-              <span className="min-w-0 text-[11px] xl:text-xs font-semibold text-neutral-900">{disclaimerTitleToShow}</span>
-              <button
-                type="button"
-                onClick={() => setDisclaimerExpanded((v) => !v)}
-                className="shrink-0 rounded-lg border border-neutral-200 bg-white px-3 py-1 text-[11px] xl:text-xs font-semibold text-neutral-900 shadow-sm transition hover:bg-neutral-50"
-                aria-expanded={disclaimerExpanded}
-                aria-controls="product-disclaimer-panel-desktop"
-                id="product-disclaimer-toggle-desktop"
-              >
-                {disclaimerExpanded ? 'Hide' : 'View'}
-              </button>
-            </div>
-            {disclaimerExpanded ? (
-              <div
-                id="product-disclaimer-panel-desktop"
-                role="region"
-                aria-labelledby="product-disclaimer-toggle-desktop"
-                className="mt-2 rounded-xl border border-neutral-200 bg-white px-3 py-2.5"
-              >
-                <ul className="space-y-1 text-[11px] xl:text-sm text-neutral-700 leading-relaxed list-disc pl-4">
-                  {disclaimerItemsToShow.map((item, idx) => (
-                    <li key={`d-${idx}-${item.slice(0, 12)}`}>{scrubMedicalTerms(item)}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-        <div
-          className={`rounded-2xl bg-neutral-50 border border-neutral-100 p-6 xl:p-8 text-sm xl:text-[15px] text-neutral-600 space-y-3 leading-relaxed max-w-2xl xl:max-w-3xl ${
-            (product.faq || []).length || disclaimerEnabled ? 'mt-10 xl:mt-12' : ''
-          }`}
-        >
-          <p><strong>Shipping:</strong> {SHIPPING_POLICY}</p>
-          <p><strong>Returns:</strong> {RETURN_POLICY}</p>
-        </div>
-        {customProductBadges.length > 0 ? (
-          <div className="mt-6 xl:mt-8 flex flex-wrap items-center" style={{ gap: 10 }}>
-            {customProductBadges.map((b, idx) => {
-              const src = resolveImageUrl(b.imageUrl);
-              const alt = String(b.label || 'Badge').trim() || 'Badge';
-              const bypassOpt = typeof src === 'string' && (src.startsWith('data:') || src.startsWith('blob:'));
-              const img = src ? (
-                <Image
-                  src={src}
-                  alt={alt}
-                  width={124}
-                  height={124}
-                  className="h-[124px] w-[124px] object-contain"
-                  loading="lazy"
-                  sizes="124px"
-                  unoptimized={bypassOpt}
-                />
-              ) : null;
-              return b.href ? (
-                <a
-                  key={`badge-${idx}`}
-                  href={b.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 hover:opacity-90"
-                >
-                  {img}
-                </a>
-              ) : (
-                <span key={`badge-${idx}`} className="shrink-0">
-                  {img}
-                </span>
-              );
-            })}
-        </div>
-        ) : null}
-      </section>
 
       {/* Product details: name, description, FAQs (mobile / tablet) */}
       <section className="mt-5 sm:mt-8 lg:mt-16 pt-5 sm:pt-8 lg:pt-12 border-t border-neutral-200 lg:hidden">
@@ -1695,7 +1706,7 @@ export default function ProductDetailClient({
       </section>
 
       {/* Write review + recent reviews */}
-      <section className="mt-6 sm:mt-10 lg:mt-16 xl:mt-20 pt-6 sm:pt-10 lg:pt-14 xl:pt-16 border-t border-neutral-200">
+      <section className="mt-6 sm:mt-10 lg:mt-16 xl:mt-20 pt-6 sm:pt-10 lg:pt-14 xl:pt-16 border-t border-neutral-200 xl:max-w-6xl xl:mx-auto">
         <h3 className="font-display text-xl sm:text-2xl lg:text-3xl font-semibold text-neutral-900 tracking-tight mb-6 sm:mb-8 lg:mb-10">
           Reviews
         </h3>
