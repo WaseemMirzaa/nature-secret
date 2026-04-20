@@ -359,6 +359,8 @@ export default function ProductDetailClient({
   const [orderNowVibrate, setOrderNowVibrate] = useState(false);
   const [orderNowNavigating, setOrderNowNavigating] = useState(false);
   const orderNowNavBusyRef = useRef(false);
+  const [addCartMobileNavigating, setAddCartMobileNavigating] = useState(false);
+  const addCartMobileNavBusyRef = useRef(false);
   const orderNowLiveRef = useRef({
     productLoading: true,
     product: null,
@@ -615,6 +617,7 @@ export default function ProductDetailClient({
 
   const addItem = useCartStore((s) => s.addItem);
   const openCart = useCartOpenStore((s) => s.open);
+  const cartTotalQty = useCartStore((s) => s.items.reduce((n, i) => n + (Number(i.qty) || 1), 0));
   const wishlist = useWishlistStore((s) => s.productIds);
   const toggleWishlist = useWishlistStore((s) => s.toggle);
   const { setLastSegmentLabel } = useBreadcrumbLabel() || {};
@@ -853,6 +856,62 @@ export default function ProductDetailClient({
       /* continue */
     }
     await applyAddToCartFromFetched();
+  }
+
+  /** Mobile-only: fixes double-add bug by setting qty (not accumulating), then goes straight to /checkout. */
+  async function handleAddToCartMobile() {
+    if (typeof window === 'undefined') return;
+    if (addCartMobileNavBusyRef.current) return;
+    addCartMobileNavBusyRef.current = true;
+    setAddCartMobileNavigating(true);
+    try {
+      if (!useCartStore.persist.hasHydrated()) {
+        await useCartStore.persist.rehydrate();
+      }
+      const qty = effectiveQty;
+      let p = product;
+      if (slugOrId) {
+        try {
+          const fetched = await (isUuid(slugOrId) ? getProductById(slugOrId) : getProductBySlug(slugOrId));
+          if (fetched?.id) p = fetched;
+        } catch { /* use in-memory product */ }
+      }
+      if (!p?.id) return;
+      const vForLine = variantForFetchedProduct(p, variant);
+      const line = buildCartLinePayload(p, vForLine, qty);
+      if (!line) return;
+      const vk = String(line.variantId ?? '');
+      const existing = useCartStore.getState().items.find(
+        (i) => i.productId === line.productId && String(i.variantId ?? '') === vk
+      );
+      // SET qty instead of accumulating — prevents double-price bug on revisit
+      if (existing) {
+        useCartStore.getState().updateQty(line.productId, line.variantId, line.qty);
+      } else {
+        addItem(line);
+      }
+      trackAddToCart(p, line.price / 100, Math.max(1, Number(line.qty) || 1), currency);
+      // Go straight to checkout — no cart drawer friction
+      try {
+        const navP = router.push('/checkout');
+        if (navP && typeof navP.then === 'function') {
+          await Promise.race([
+            navP,
+            new Promise((_, reject) => setTimeout(() => reject(new Error('nav-timeout')), 15000)),
+          ]);
+          if (!/^\/checkout(\/|$)/.test(window.location.pathname)) {
+            window.location.assign('/checkout');
+          }
+        } else {
+          window.location.assign('/checkout');
+        }
+      } catch {
+        window.location.assign('/checkout');
+      }
+    } finally {
+      addCartMobileNavBusyRef.current = false;
+      setAddCartMobileNavigating(false);
+    }
   }
 
   /** Loader + retry; waits for live PDP data (ref) so checkout still runs after loading settles. */
@@ -1278,10 +1337,10 @@ export default function ProductDetailClient({
                   <PdpMobileReviewPeek reviews={mobileTopReviews} resolveImageUrl={resolveImageUrl} />
                   <button
                     type="button"
-                    disabled={orderNowNavigating}
+                    disabled={orderNowNavigating || addCartMobileNavigating}
                     onClick={() => {
-                      if (orderNowNavigating) return;
-                      void handleAddToCart();
+                      if (orderNowNavigating || addCartMobileNavigating) return;
+                      void handleAddToCartMobile();
                       setAddCartVibrate(true);
                       setTimeout(() => setAddCartVibrate(false), 400);
                     }}
@@ -1289,7 +1348,7 @@ export default function ProductDetailClient({
                       addCartVibrate ? 'animate-vibrate' : ''
                     }`}
                   >
-                    Add to cart
+                    {addCartMobileNavigating ? 'Going to checkout…' : 'Add to cart'}
                   </button>
                   <div className="ns-accent-glass flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-center text-[11px] font-semibold leading-snug text-neutral-800 sm:text-xs">
                     <span className="relative z-[1] flex items-center justify-center gap-2">
@@ -2004,16 +2063,22 @@ export default function ProductDetailClient({
             </div>
             <button
               type="button"
+              disabled={addCartMobileNavigating || orderNowNavigating}
               onClick={() => {
-                void handleAddToCart();
+                if (addCartMobileNavigating || orderNowNavigating) return;
+                void handleAddToCartMobile();
                 setAddCartVibrate(true);
                 setTimeout(() => setAddCartVibrate(false), 400);
               }}
-              className={`shrink-0 rounded-full border border-neutral-900/20 bg-white px-3 py-2.5 text-[12px] font-semibold text-neutral-900 shadow-sm transition hover:bg-neutral-50 min-h-[3.25rem] ${
+              className={`shrink-0 rounded-full border border-neutral-900/20 bg-white px-3 py-2.5 text-[12px] font-semibold text-neutral-900 shadow-sm transition hover:bg-neutral-50 min-h-[3.25rem] disabled:opacity-60 disabled:pointer-events-none ${
                 addCartVibrate ? 'animate-vibrate' : ''
               }`}
             >
-              Add to cart
+              {addCartMobileNavigating ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <Spinner className="h-3.5 w-3.5 border-neutral-400 border-t-neutral-900" />
+                </span>
+              ) : 'Add to cart'}
             </button>
             <button
               type="button"
@@ -2040,6 +2105,24 @@ export default function ProductDetailClient({
             </button>
           </div>
         </div>
+      )}
+
+      {/* Mobile: floating View Cart button — appears above sticky action bar when cart has items */}
+      {cartTotalQty > 0 && product.inventory !== 0 && (
+        <button
+          type="button"
+          onClick={openCart}
+          className="lg:hidden fixed z-40 bottom-[5.5rem] right-4 flex items-center gap-2 rounded-full bg-neutral-900/95 px-4 py-2.5 text-[13px] font-semibold text-white shadow-lg backdrop-blur-sm"
+          aria-label={`View cart — ${cartTotalQty} item${cartTotalQty !== 1 ? 's' : ''}`}
+        >
+          <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          View Cart
+          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-[11px] font-bold text-neutral-900">
+            {cartTotalQty}
+          </span>
+        </button>
       )}
 
       {/* Desktop: sticky bottom bar when purchase panel scrolls out */}
