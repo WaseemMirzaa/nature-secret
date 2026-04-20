@@ -72,6 +72,7 @@ module.exports = {
         'vibrate': 'vibrate 0.35s ease-out',
         'stagger-in': 'staggerIn 0.5s ease-out forwards',
         'gold-pulse': 'goldPulse 1.8s ease-in-out infinite',
+        'pdp-reviews-marquee': 'pdpReviewsMarquee 55s linear infinite',
       },
       keyframes: {
         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
@@ -89,6 +90,11 @@ module.exports = {
         vibrate: { '0%, 100%': { transform: 'translateX(0) scale(1)' }, '15%': { transform: 'translateX(-4px) scale(1.02)' }, '35%': { transform: 'translateX(4px) scale(0.98)' }, '55%': { transform: 'translateX(-3px) scale(1.01)' }, '75%': { transform: 'translateX(3px) scale(0.99)' }, '90%': { transform: 'translateX(-1px) scale(1)' } },
         goldPulse: { '0%, 100%': { transform: 'scale(1)' }, '50%': { transform: 'scale(1.03)' } },
         staggerIn: { '0%': { opacity: '0', transform: 'translateY(12px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+        /** PDP web: seamless horizontal review strip (track is 2× duplicated content). */
+        pdpReviewsMarquee: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
       },
     },
   },

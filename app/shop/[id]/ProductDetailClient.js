@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useMemo, useEffect, useLayoutEffect, useRef, memo } from 'react';
+import { useState, useMemo, useEffect, useLayoutEffect, useRef, memo, Fragment } from 'react';
 import Link from '@/components/Link';
 import Image, { getImageProps } from 'next/image';
 import { useProductsStore, useCartStore, useCartOpenStore, useWishlistStore, useCurrencyStore } from '@/lib/store';
@@ -215,6 +215,101 @@ function splitReviewQuoteAndOutcome(body) {
   return { quote: scrubMedicalTerms(raw), outcome: '' };
 }
 
+/** Web (lg+): infinite horizontal marquee; duplicate lane for seamless -50% translate. */
+function PdpReviewsMarqueeRow({ items, ariaLabel, renderItem }) {
+  if (!Array.isArray(items) || items.length === 0) return null;
+  return (
+    <div
+      className="group relative overflow-hidden rounded-xl border border-neutral-200/70 bg-gradient-to-b from-white to-neutral-50/40 py-3 shadow-sm motion-reduce:overflow-x-auto [mask-image:linear-gradient(90deg,transparent,black_6%,black_94%,transparent)] motion-reduce:[mask-image:none]"
+      role="region"
+      aria-label={ariaLabel}
+    >
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-[1] w-8 bg-gradient-to-r from-white to-transparent lg:w-10" aria-hidden />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-[1] w-8 bg-gradient-to-l from-white to-transparent lg:w-10" aria-hidden />
+      <div className="flex w-max animate-pdp-reviews-marquee motion-reduce:animate-none will-change-transform group-hover:[animation-play-state:paused]">
+        {[0, 1].map((dup) => (
+          <div key={dup} className="flex shrink-0 gap-4 pr-4">
+            {items.map((r) => (
+              <Fragment key={`${dup}-${r.id}`}>{renderItem(r)}</Fragment>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const PdpCustomerStoryCard = memo(function PdpCustomerStoryCard({ review: r, resolveImageUrl, imagePriority }) {
+  const liveMedia = normalizeReviewMediaItems(r);
+  let imgPrioLeft = imagePriority ? 5 : 0;
+  const { quote, outcome } = splitReviewQuoteAndOutcome(r.body);
+  return (
+    <article className="w-[min(18rem,calc(100vw-4rem))] shrink-0 rounded-2xl border border-neutral-200/80 bg-white p-4 shadow-sm ring-1 ring-black/[0.03] sm:w-72 sm:p-5 lg:w-80 lg:p-4">
+      {liveMedia.length > 0 ? (
+        <div className="mb-2 space-y-2">
+          {liveMedia.map((m, i) => {
+            const isImg = !mediaItemIsVideo(m) && !mediaItemIsAudio(m);
+            // eslint-disable-next-line no-plusplus
+            const prio = isImg && imgPrioLeft > 0 ? (imgPrioLeft--, true) : false;
+            return (
+              <ReviewMediaBlock
+                key={`${r.id}-story-${i}-${m.url?.slice?.(0, 20) || i}`}
+                item={m}
+                resolveImageUrl={resolveImageUrl}
+                priority={prio}
+              />
+            );
+          })}
+        </div>
+      ) : null}
+      <div className="mb-1.5 flex flex-wrap items-center gap-2">
+        <span className={`${REVIEW_STAR_FILLED} text-sm tracking-[0.08em]`} aria-hidden>
+          {'★'.repeat(Math.min(5, r.rating || 0))}
+        </span>
+        <span className={`${REVIEW_STAR_EMPTY} text-sm tracking-[0.08em]`} aria-hidden>
+          {'★'.repeat(5 - Math.min(5, r.rating || 0))}
+        </span>
+        <span className="truncate text-xs font-semibold text-neutral-900">{r.authorName}</span>
+      </div>
+      {quote ? <p className="line-clamp-4 text-xs leading-relaxed text-neutral-600">{quote}</p> : null}
+      {outcome ? (
+        <p className="mt-1.5 line-clamp-2 border-t border-neutral-100 pt-1.5 text-[11px] font-semibold leading-snug text-emerald-900">
+          Outcome: {outcome}
+        </p>
+      ) : null}
+    </article>
+  );
+});
+
+const PdpRecentReviewMarqueeCard = memo(function PdpRecentReviewMarqueeCard({ review: r, resolveImageUrl }) {
+  const recentMedia = normalizeReviewMediaItems(r);
+  const { quote, outcome } = splitReviewQuoteAndOutcome(r.body);
+  return (
+    <article className="w-[min(18rem,calc(100vw-4rem))] shrink-0 rounded-2xl border border-neutral-200/80 bg-neutral-50/50 p-4 shadow-sm ring-1 ring-black/[0.02] sm:w-72 lg:w-80">
+      {recentMedia.length > 0 ? (
+        <div className="mb-2 space-y-2">
+          {recentMedia.map((m, mi) => (
+            <ReviewMediaBlock key={`${r.id}-marq-${mi}`} item={m} resolveImageUrl={resolveImageUrl} priority={false} />
+          ))}
+        </div>
+      ) : null}
+      <div className="mb-1.5 flex flex-wrap items-center gap-2">
+        <span className={`${REVIEW_STAR_FILLED} text-sm tracking-[0.08em]`} aria-hidden>
+          {'★'.repeat(Math.min(5, r.rating || 0))}
+        </span>
+        <span className={`${REVIEW_STAR_EMPTY} text-sm tracking-[0.08em]`} aria-hidden>
+          {'★'.repeat(5 - Math.min(5, r.rating || 0))}
+        </span>
+        <span className="truncate text-sm font-semibold text-neutral-900">{r.authorName}</span>
+      </div>
+      {quote ? <p className="line-clamp-4 text-sm leading-relaxed text-neutral-600">{quote}</p> : null}
+      {outcome ? (
+        <p className="mt-1.5 line-clamp-2 text-xs font-semibold leading-snug text-emerald-900 sm:text-sm">Outcome: {outcome}</p>
+      ) : null}
+    </article>
+  );
+});
+
 function PdpMobileReviewPeek({ reviews, resolveImageUrl }) {
   if (!Array.isArray(reviews) || reviews.length === 0) return null;
   return (
@@ -350,6 +445,8 @@ export default function ProductDetailClient({
   );
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [faqOpen, setFaqOpen] = useState(null);
+  /** Desktop PDP: single open accordion id (`faq-0`, `details`, `shipping`, `disclaimer`). */
+  const [webAccordion, setWebAccordion] = useState(null);
   const [zoom, setZoom] = useState(false);
   const [addCartVibrate, setAddCartVibrate] = useState(false);
   const [reviews, setReviews] = useState(() => (Array.isArray(initialReviews) ? initialReviews : []));
@@ -1009,83 +1106,116 @@ export default function ProductDetailClient({
 
   return (
     <div
-      className={`mx-auto max-w-7xl px-3 sm:px-5 lg:px-10 xl:px-12 py-3 sm:py-5 lg:py-14 xl:py-16 lg:bg-[linear-gradient(180deg,#f7f6f4_0%,#ffffff_22%)] ${
-        showStickyBar ? 'lg:pb-28 xl:pb-32' : ''
+      className={`mx-auto max-w-7xl px-3 sm:px-5 lg:px-8 xl:px-10 py-3 sm:py-5 lg:py-7 xl:py-8 lg:bg-[linear-gradient(180deg,#f7f6f4_0%,#ffffff_18%)] ${
+        showStickyBar ? 'lg:pb-24 xl:pb-28' : ''
       } ${product.inventory !== 0 ? 'max-lg:pb-28' : ''}`}
     >
-      <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-10 xl:gap-x-14 max-lg:gap-y-3 sm:max-lg:gap-y-4 animate-slide-up items-start">
-        {/* Left: gallery — premium canvas (Shopify-style) on lg+ */}
-        <div className="relative w-full lg:col-span-7 lg:max-w-none lg:mx-0 mx-auto">
-          <div className="max-lg:rounded-xl max-lg:overflow-hidden max-lg:border max-lg:border-neutral-200 max-lg:bg-neutral-50 max-lg:p-1.5 sm:max-lg:p-2 max-lg:flex max-lg:flex-col max-lg:items-stretch max-lg:gap-2.5 sm:max-lg:gap-3 lg:contents">
-          <div
-            className="relative w-full shrink-0 overflow-hidden rounded-lg sm:rounded-xl lg:rounded-[1.35rem] bg-neutral-100 shadow-sm ring-1 ring-neutral-200/60 max-lg:rounded-[1.1rem] max-lg:border max-lg:border-white/90 max-lg:bg-neutral-50 max-lg:shadow-lift max-lg:ring-neutral-900/[0.04] max-lg:frame-media-inset lg:bg-gradient-to-br lg:from-white lg:to-neutral-100/90 lg:p-3 lg:shadow-[0_24px_60px_-28px_rgba(15,15,15,0.18)] lg:ring-neutral-900/[0.06]"
-            onMouseEnter={() => setZoom(true)}
-            onMouseLeave={() => setZoom(false)}
-          >
-            {pctOff != null && pctOff > 0 ? (
-              <span className="absolute left-3 top-3 z-20 rounded-full border border-rose-200/80 bg-gradient-to-br from-rose-50 to-white px-2.5 py-1 text-[10px] sm:text-[11px] font-bold uppercase tracking-wide text-rose-900 shadow-sm sm:left-4 sm:top-4 lg:left-5 lg:top-5">
-                {pctOff}% off
-              </span>
-            ) : null}
-            {/* h-0 + padding-bottom reserves height before image paint (flex/`contents` + aspect-ratio can still CLS). */}
-            <div className="relative isolate w-full h-0 pb-[125%] lg:pb-[100%]">
-              <div
-                className={`absolute inset-0 transition-transform duration-150 [transform-origin:center] ${
-                  zoom ? 'scale-110' : ''
-                }`}
-              >
-                {serverHeroValid ? (
-                  serverHeroImage
-                ) : (
-                  <Image
-                    src={mainImage}
-                    alt={productDisplayName}
-                    fill
-                    className="object-contain"
-                    sizes={PRODUCT_HERO_IMAGE_SIZES}
-                    priority={true}
-                    fetchPriority="high"
-                    quality={PRODUCT_HERO_IMAGE_QUALITY}
-                    decoding="async"
-                    loading="eager"
-                  />
-                )}
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleWishlistToggle}
-              className="absolute top-3 right-3 z-30 p-2.5 rounded-full bg-white/95 shadow-sm border border-neutral-200/80 hover:border-neutral-400 transition backdrop-blur-sm lg:z-10 lg:bg-white/90 lg:shadow-md lg:hover:bg-white lg:hover:shadow-lg"
-              aria-label="Wishlist"
+      <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-7 xl:gap-x-9 max-lg:gap-y-3 sm:max-lg:gap-y-4 animate-slide-up items-start">
+        {/* Left: gallery — mobile: hero + horizontal thumbs; desktop: vertical thumbs + hero (reference-style) */}
+        <div className="relative mx-auto w-full lg:col-span-7 lg:mx-0 lg:max-w-none">
+          <div className="flex flex-col gap-2.5 max-lg:rounded-xl max-lg:border max-lg:border-neutral-200 max-lg:bg-neutral-50 max-lg:p-1.5 sm:gap-3 sm:max-lg:p-2 lg:flex-row lg:items-start lg:gap-3 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0">
+            <div
+              className="relative w-full shrink-0 overflow-hidden rounded-lg sm:rounded-xl max-lg:rounded-[1.1rem] max-lg:border max-lg:border-white/90 max-lg:bg-neutral-50 max-lg:shadow-lift max-lg:ring-neutral-900/[0.04] max-lg:frame-media-inset lg:order-2 lg:min-w-0 lg:flex-1 lg:rounded-xl lg:border lg:border-neutral-200/60 lg:bg-gradient-to-br lg:from-white lg:to-neutral-100/90 lg:p-2 lg:shadow-[0_16px_44px_-24px_rgba(15,15,15,0.14)] lg:ring-1 lg:ring-neutral-900/[0.05]"
+              onMouseEnter={() => setZoom(true)}
+              onMouseLeave={() => setZoom(false)}
             >
-              <svg className="w-5 h-5 text-neutral-700" fill={wishlist.includes(product.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
-            </button>
-          </div>
-          <div className="mt-1.5 sm:mt-2.5 lg:mt-6 flex w-full flex-row flex-nowrap items-center justify-start gap-2 overflow-x-auto overflow-y-visible pb-0.5 sm:pb-1 sm:gap-2.5 lg:justify-center lg:gap-3 lg:pb-0 [scrollbar-width:thin]">
-            {variantImageList.map((url, i) => {
-              const resolved = resolveImageUrl(url);
-              return resolved ? (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setSelectedImageIndex(i)}
-                  className={`relative flex h-[3.75rem] w-[3.75rem] shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 sm:h-16 sm:w-16 lg:h-[4.5rem] lg:w-[4.5rem] sm:rounded-xl lg:rounded-xl lg:bg-white/90 lg:shadow-sm ${selectedImageIndex === i ? 'border-neutral-900 ring-2 ring-neutral-900/15 ring-offset-2 ring-offset-white' : 'border-neutral-200/90 lg:border-neutral-200 hover:border-neutral-400'}`}
+              {pctOff != null && pctOff > 0 ? (
+                <span className="absolute left-3 top-3 z-20 rounded-full border border-rose-200/80 bg-gradient-to-br from-rose-50 to-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-rose-900 shadow-sm sm:left-4 sm:top-4 lg:left-3 lg:top-3">
+                  {pctOff}% off
+                </span>
+              ) : null}
+              <div className="relative isolate h-0 w-full pb-[125%] lg:pb-[100%]">
+                <div
+                  className={`absolute inset-0 transition-transform duration-150 [transform-origin:center] ${
+                    zoom ? 'scale-110' : ''
+                  }`}
                 >
-                  <Image
-                    src={resolved}
-                    alt={`${productDisplayName} ${i + 1}`}
-                    width={80}
-                    height={80}
-                    className="h-full w-full object-contain"
-                    sizes="(max-width: 1023px) 72px, 76px"
-                    quality={65}
-                    loading="eager"
-                    fetchPriority="low"
-                  />
-                </button>
-              ) : null;
-            })}
-          </div>
+                  {serverHeroValid ? (
+                    serverHeroImage
+                  ) : (
+                    <Image
+                      src={mainImage}
+                      alt={productDisplayName}
+                      fill
+                      className="object-contain"
+                      sizes={PRODUCT_HERO_IMAGE_SIZES}
+                      priority={true}
+                      fetchPriority="high"
+                      quality={PRODUCT_HERO_IMAGE_QUALITY}
+                      decoding="async"
+                      loading="eager"
+                    />
+                  )}
+                </div>
+              </div>
+              {variantImageList.length > 1 ? (
+                <>
+                  <button
+                    type="button"
+                    aria-label="Previous image"
+                    onClick={() =>
+                      setSelectedImageIndex((idx) =>
+                        (idx - 1 + variantImageList.length) % variantImageList.length,
+                      )
+                    }
+                    className="max-lg:hidden absolute left-2 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/90 bg-white/95 text-neutral-800 shadow-md transition hover:bg-white"
+                  >
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Next image"
+                    onClick={() => setSelectedImageIndex((idx) => (idx + 1) % variantImageList.length)}
+                    className="max-lg:hidden absolute right-2 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/90 bg-white/95 text-neutral-800 shadow-md transition hover:bg-white"
+                  >
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
+                    </svg>
+                  </button>
+                </>
+              ) : null}
+              <button
+                type="button"
+                onClick={handleWishlistToggle}
+                className="absolute right-3 top-3 z-30 rounded-full border border-neutral-200/80 bg-white/95 p-2.5 shadow-sm backdrop-blur-sm transition hover:border-neutral-400 lg:z-10 lg:bg-white/90 lg:shadow-md lg:hover:bg-white lg:hover:shadow-lg"
+                aria-label="Wishlist"
+              >
+                <svg className="h-5 w-5 text-neutral-700" fill={wishlist.includes(product.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                </svg>
+              </button>
+            </div>
+            <div className="mt-1.5 flex w-full flex-row flex-nowrap items-center justify-start gap-2 overflow-x-auto overflow-y-visible pb-0.5 [scrollbar-width:thin] sm:mt-2.5 sm:gap-2.5 sm:pb-1 lg:order-1 lg:mt-0 lg:w-[4.25rem] lg:max-h-[min(560px,72vh)] lg:shrink-0 lg:flex-col lg:items-stretch lg:justify-start lg:gap-2 lg:overflow-y-auto lg:overflow-x-visible lg:pb-0 lg:pr-0.5">
+              {variantImageList.map((url, i) => {
+                const resolved = resolveImageUrl(url);
+                return resolved ? (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setSelectedImageIndex(i)}
+                    className={`relative flex h-[3.75rem] w-[3.75rem] shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 sm:h-16 sm:w-16 sm:rounded-xl lg:h-[3.35rem] lg:w-full lg:max-w-[4.25rem] lg:rounded-md lg:bg-white/90 lg:shadow-sm ${
+                      selectedImageIndex === i
+                        ? 'border-neutral-900 ring-2 ring-neutral-900/15 ring-offset-2 ring-offset-white'
+                        : 'border-neutral-200/90 lg:border-neutral-200 hover:border-neutral-400'
+                    }`}
+                  >
+                    <Image
+                      src={resolved}
+                      alt={`${productDisplayName} ${i + 1}`}
+                      width={80}
+                      height={80}
+                      className="h-full w-full object-contain"
+                      sizes="(max-width: 1023px) 72px, 64px"
+                      quality={65}
+                      loading="eager"
+                      fetchPriority="low"
+                    />
+                  </button>
+                ) : null;
+              })}
+            </div>
           </div>
         </div>
 
@@ -1304,13 +1434,13 @@ export default function ProductDetailClient({
           </article>
         </div>
 
-        <div className="min-w-0 space-y-2 sm:space-y-3 lg:space-y-5 xl:space-y-6 lg:col-span-5">
-          {/* Desktop: purchase column — sticky card rail; FAQ + policies live inside on lg+ */}
+        <div className="min-w-0 space-y-2 sm:space-y-3 lg:space-y-3 lg:col-span-5">
+          {/* Desktop (lg+): compact sales rail — FAQ + policies inside sticky card */}
           <div
             ref={purchasePanelRef}
-            className="max-lg:hidden block space-y-4 xl:space-y-5 pb-6 lg:pb-0 rounded-2xl lg:rounded-[1.75rem] lg:border-0 lg:bg-white/95 lg:backdrop-blur-sm lg:p-8 xl:p-9 lg:shadow-[0_32px_64px_-28px_rgba(15,15,15,0.22),0_0_0_1px_rgba(15,15,15,0.05)] lg:ring-1 lg:ring-white/80 lg:sticky lg:top-28 xl:top-32 lg:self-start"
+            className="max-lg:hidden block space-y-3 xl:space-y-3.5 pb-6 lg:pb-0 rounded-2xl lg:rounded-xl lg:border lg:border-neutral-200/80 lg:bg-white lg:p-5 xl:p-6 lg:shadow-[0_12px_40px_-18px_rgba(15,23,42,0.1)] lg:ring-1 lg:ring-neutral-900/[0.04] lg:sticky lg:top-24 xl:top-28 lg:self-start"
           >
-            <nav className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium uppercase tracking-[0.18em] text-neutral-400" aria-label="Breadcrumb">
+            <nav className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400" aria-label="Breadcrumb">
               <Link href="/shop" className="transition hover:text-neutral-700">
                 Shop
               </Link>
@@ -1325,43 +1455,63 @@ export default function ProductDetailClient({
                 </>
               ) : null}
             </nav>
-            <div className="lg:pt-1">
-              <h1 className="font-display text-[1.85rem] xl:text-[2.4rem] font-medium text-neutral-900 tracking-tight leading-[1.08]">
-                {productDisplayName}
-              </h1>
+            <h1 className="font-display text-[1.65rem] font-semibold leading-[1.08] tracking-tight text-neutral-900 xl:text-[1.85rem]">
+              {productDisplayName}
+            </h1>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <ProductRatingSummary
+                product={product}
+                starClassName="text-sm leading-none"
+                countClassName="text-xs text-neutral-500"
+                className="flex flex-wrap items-center gap-x-1"
+              />
             </div>
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 pt-1">
-              <p className="text-2xl xl:text-[2rem] font-semibold text-neutral-900 tabular-nums tracking-tight">
+            <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+              <p className="text-xl font-bold tabular-nums tracking-tight text-neutral-900 xl:text-2xl">
                 {(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice) && (
-                  <span className="text-neutral-400 line-through mr-2 text-lg xl:text-xl font-medium">
+                  <span className="mr-2 text-base font-medium text-neutral-400 line-through xl:text-lg">
                     {formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}
                   </span>
                 )}
                 {formatPrice(price, currency)}
               </p>
               {pctOff != null && pctOff > 0 ? (
-                <span className="rounded-full bg-neutral-900 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+                <span className="rounded-full bg-neutral-900 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white">
                   Save {pctOff}%
                 </span>
               ) : null}
             </div>
+            {introParagraphs.length > 0 ? (
+              <p className="text-[13px] leading-relaxed text-neutral-600 line-clamp-4">{scrubMedicalTerms(introParagraphs[0])}</p>
+            ) : null}
             {customerRatingTrust ? (
-              <div className="pt-2 xl:pt-3">
-                <CustomerRatingsTrustCard count={customerRatingTrust.count} average={customerRatingTrust.average} />
+              <div>
+                <CustomerRatingsTrustCard
+                  count={customerRatingTrust.count}
+                  average={customerRatingTrust.average}
+                  className="lg:!rounded-lg lg:!px-3 lg:!py-2.5"
+                />
               </div>
             ) : null}
             {product.inventory !== 0 ? (
-              <div className="pt-2">
-                <ProductTrustBar product={product} variant="pills" className="lg:gap-2" />
+              <div>
+                <ProductTrustBar product={product} variant="pills" className="lg:gap-1.5" />
               </div>
             ) : null}
-            <div className="h-px w-full bg-gradient-to-r from-transparent via-neutral-200/90 to-transparent lg:my-1" aria-hidden />
-            <div className="pt-1 lg:pt-0">
-              <div className="flex flex-wrap items-start justify-between gap-3 xl:gap-4">
-                {product.variants?.length > 1 ? (
+            <div className="h-px w-full bg-neutral-100" aria-hidden />
+            <div>
+              <div className="flex flex-wrap items-start gap-3">
+                {product.variants?.length === 1 ? (
                   <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-[0.14em] mb-2.5">Size / variant</p>
-                    <div className="flex flex-wrap gap-2 lg:gap-2">
+                    <p className="mb-2 text-[11px] font-semibold tracking-wide text-neutral-800">Size</p>
+                    <span className="inline-flex rounded-lg border border-neutral-900 bg-neutral-900 px-4 py-2 text-sm font-medium text-white">
+                      {product.variants[0].name}
+                    </span>
+                  </div>
+                ) : product.variants?.length > 1 ? (
+                  <div className="min-w-0 flex-1">
+                    <p className="mb-2 text-[11px] font-semibold tracking-wide text-neutral-800">Size</p>
+                    <div className="flex flex-wrap gap-1.5">
                       {product.variants.map((v) => {
                         const sel = variant?.id === v.id;
                         const showStrike = v.compareAtPrice != null && Number(v.compareAtPrice) > Number(v.price || 0);
@@ -1370,9 +1520,9 @@ export default function ProductDetailClient({
                             key={v.id}
                             type="button"
                             onClick={() => setSelectedVariant(v)}
-                            className={`min-w-[5.25rem] rounded-xl border px-4 py-2.5 text-left text-sm font-medium transition duration-200 lg:min-w-[5.5rem] lg:py-3 ${
+                            className={`min-w-[4.75rem] rounded-lg border px-3 py-2 text-left text-[13px] font-medium transition duration-200 lg:min-w-[5rem] ${
                               sel
-                                ? 'border-neutral-900 bg-neutral-900 text-white shadow-md ring-2 ring-neutral-900/10 ring-offset-2 ring-offset-white'
+                                ? 'border-neutral-900 bg-neutral-900 text-white shadow-md ring-1 ring-neutral-900/15 ring-offset-1 ring-offset-white'
                                 : 'border-neutral-200/90 bg-neutral-50/80 text-neutral-800 shadow-sm hover:border-neutral-400 hover:bg-white hover:shadow'
                             }`}
                           >
@@ -1381,7 +1531,7 @@ export default function ProductDetailClient({
                               {formatPrice(v.price, currency)}
                             </span>
                             {showStrike ? (
-                              <span className={`mt-0.5 block text-[11px] tabular-nums line-through ${sel ? 'text-neutral-400' : 'text-neutral-400'}`}>
+                              <span className="mt-0.5 block text-[11px] tabular-nums line-through text-neutral-400">
                                 {formatPrice(v.compareAtPrice, currency)}
                               </span>
                             ) : null}
@@ -1390,64 +1540,46 @@ export default function ProductDetailClient({
                       })}
                     </div>
                   </div>
-                ) : (
-                  <div className="min-w-0 flex-1" aria-hidden />
-                )}
-                <div className="shrink-0 pt-0.5 text-right lg:max-w-[11rem] xl:max-w-none">
-                  <ProductRatingSummary
-                    product={product}
-                    starClassName="text-lg xl:text-xl leading-none"
-                    countClassName="text-sm mt-1 sm:mt-0 sm:ml-1"
-                    className="flex flex-col items-end gap-0 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-x-1"
-                  />
-                </div>
+                ) : null}
               </div>
             </div>
-            <div className="pt-0.5 lg:pt-1">
-              <label
-                htmlFor={`product-qty-${formFieldSuffix}`}
-                className="block text-[11px] font-semibold text-neutral-500 uppercase tracking-[0.14em] mb-2"
-              >
-                Quantity
-              </label>
-              <div className="inline-flex items-stretch overflow-hidden rounded-xl border border-neutral-200/90 bg-white shadow-sm">
-                <button
-                  type="button"
-                  onClick={() => setQty((n) => Math.max(1, (n || 1) - 1))}
-                  className="w-12 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 text-lg leading-none transition"
-                  aria-label="Decrease"
-                >
-                  −
-                </button>
-                <div className="flex min-w-[3.25rem] items-center justify-center border-x border-neutral-100 bg-neutral-50/40 px-1">
-                  <input
-                    id={`product-qty-${formFieldSuffix}`}
-                    name="quantity"
-                    type="number"
-                    min={1}
-                    max={99}
-                    value={effectiveQty}
-                    onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
-                    className="w-full min-w-0 text-center text-sm font-semibold tabular-nums text-neutral-900 border-0 bg-transparent p-0 m-0 h-11 leading-none align-middle focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setQty((n) => Math.min(99, (n || 1) + 1))}
-                  className="w-12 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 text-lg leading-none transition"
-                  aria-label="Increase"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-            <div className="flex flex-col gap-3 lg:gap-3.5 pt-2 lg:pt-3">
-              {product.inventory === 0 ? (
-                <span className="rounded-2xl border border-neutral-200 bg-neutral-100 py-3 lg:py-3.5 text-center text-sm font-medium text-neutral-500">
-                  Out of stock
-                </span>
-              ) : (
-                <>
+            {product.inventory === 0 ? (
+              <span className="rounded-xl border border-neutral-200 bg-neutral-100 py-2.5 text-center text-sm font-medium text-neutral-500">
+                Out of stock
+              </span>
+            ) : (
+              <>
+                <div className="flex items-stretch gap-2 pt-1">
+                  <div className="inline-flex shrink-0 items-stretch overflow-hidden rounded-lg border border-neutral-900/20 bg-white shadow-sm">
+                    <button
+                      type="button"
+                      onClick={() => setQty((n) => Math.max(1, (n || 1) - 1))}
+                      className="flex h-11 w-10 items-center justify-center text-lg leading-none text-neutral-700 transition hover:bg-neutral-50"
+                      aria-label="Decrease quantity"
+                    >
+                      −
+                    </button>
+                    <div className="flex min-w-[2.75rem] items-center justify-center border-x border-neutral-200 bg-neutral-50/50 px-1">
+                      <input
+                        id={`product-qty-${formFieldSuffix}`}
+                        name="quantity"
+                        type="number"
+                        min={1}
+                        max={99}
+                        value={effectiveQty}
+                        onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
+                        className="m-0 h-11 w-full min-w-0 border-0 bg-transparent p-0 text-center text-sm font-semibold tabular-nums text-neutral-900 focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setQty((n) => Math.min(99, (n || 1) + 1))}
+                      className="flex h-11 w-10 items-center justify-center text-lg leading-none text-neutral-700 transition hover:bg-neutral-50"
+                      aria-label="Increase quantity"
+                    >
+                      +
+                    </button>
+                  </div>
                   <button
                     type="button"
                     disabled={orderNowNavigating}
@@ -1457,149 +1589,161 @@ export default function ProductDetailClient({
                       setAddCartVibrate(true);
                       setTimeout(() => setAddCartVibrate(false), 400);
                     }}
-                    className={`w-full rounded-xl border-2 border-neutral-900 bg-white py-3 lg:py-3.5 text-[13px] font-semibold tracking-wide text-neutral-900 shadow-sm transition hover:bg-neutral-50 disabled:opacity-50 disabled:pointer-events-none ${
+                    className={`min-h-[2.75rem] flex-1 rounded-lg border-2 border-neutral-900 bg-neutral-100 px-4 text-center text-[12px] font-bold uppercase tracking-[0.06em] text-neutral-900 shadow-sm transition hover:bg-neutral-200 disabled:pointer-events-none disabled:opacity-50 ${
                       addCartVibrate ? 'animate-vibrate' : ''
                     }`}
                   >
                     Add to cart
                   </button>
+                </div>
+                <button
+                  type="button"
+                  disabled={orderNowNavigating}
+                  aria-busy={orderNowNavigating}
+                  onClick={() => {
+                    if (orderNowNavigating) return;
+                    setOrderNowVibrate(true);
+                    setTimeout(() => setOrderNowVibrate(false), 400);
+                    void handleOrderNowNavigate();
+                  }}
+                  className={`btn-pdp-order-now relative z-0 w-full rounded-lg py-3.5 text-[12px] font-bold uppercase tracking-[0.1em] text-white shadow-md transition hover:shadow-lg disabled:opacity-90 disabled:pointer-events-none ${
+                    orderNowVibrate && !orderNowNavigating ? 'animate-vibrate' : ''
+                  }`}
+                >
+                  <span className="relative z-10 inline-flex items-center justify-center gap-1.5">
+                    {orderNowNavigating ? (
+                      <span aria-hidden>
+                        <Spinner className="h-3.5 w-3.5 border-white/30 border-t-white" />
+                      </span>
+                    ) : null}
+                    Order now — cash on delivery
+                  </span>
+                </button>
+              </>
+            )}
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-gold-800">
+              <svg className="h-3.5 w-3.5 shrink-0 text-gold-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1h-1m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+              </svg>
+              Free shipping
+            </p>
+
+            <div className="mt-4 border-t border-neutral-200 pt-1">
+              {product.description ? (
+                <div className="border-b border-neutral-100">
                   <button
                     type="button"
-                    disabled={orderNowNavigating}
-                    aria-busy={orderNowNavigating}
-                    onClick={() => {
-                      if (orderNowNavigating) return;
-                      setOrderNowVibrate(true);
-                      setTimeout(() => setOrderNowVibrate(false), 400);
-                      void handleOrderNowNavigate();
-                    }}
-                    className={`w-full rounded-xl bg-neutral-900 py-3.5 lg:py-4 text-[13px] font-semibold tracking-wide text-white shadow-[0_14px_28px_-8px_rgba(0,0,0,0.35)] transition hover:bg-neutral-800 hover:shadow-[0_18px_34px_-10px_rgba(0,0,0,0.4)] disabled:opacity-90 disabled:pointer-events-none ${
-                      orderNowVibrate && !orderNowNavigating ? 'animate-vibrate' : ''
-                    }`}
+                    className="flex w-full items-center justify-between py-3 text-left text-sm font-medium text-neutral-900"
+                    aria-expanded={webAccordion === 'details'}
+                    onClick={() => setWebAccordion(webAccordion === 'details' ? null : 'details')}
                   >
-                    <span className="relative z-10 inline-flex items-center justify-center gap-1.5">
-                      {orderNowNavigating ? (
-                        <span aria-hidden>
-                          <Spinner className="h-3.5 w-3.5 border-white/30 border-t-white" />
-                        </span>
-                      ) : null}
-                      Order now — cash on delivery
-                    </span>
+                    <span>Product details</span>
+                    <span className="text-lg leading-none text-neutral-400 tabular-nums">{webAccordion === 'details' ? '−' : '+'}</span>
                   </button>
-                </>
-              )}
-              <p className="text-xs font-medium text-gold-700 flex items-center gap-1.5 pt-1 lg:pt-1.5">
-                <svg className="w-4 h-4 text-gold-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1h-1m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                </svg>
-                Free shipping
-              </p>
-            </div>
-
-            {/* Desktop (lg+): FAQ, disclaimer, badges, shipping — inside sticky rail */}
-            <div className="mt-8 border-t border-neutral-100/90 pt-8">
-              {(product.faq || []).length > 0 && (
-                <div>
-                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500 mb-3">FAQ</h3>
-                  <ul className="space-y-0.5 rounded-xl border border-neutral-100 bg-neutral-50/50 p-1">
-                    {(product.faq || []).map((item, i) => (
-                      <li key={i} className="rounded-lg border border-transparent bg-white/80 first:mt-0">
-                        <button
-                          type="button"
-                          onClick={() => setFaqOpen(faqOpen === i ? null : i)}
-                          className="w-full rounded-lg px-3 py-3 text-left text-[13px] text-neutral-800 flex justify-between gap-3 font-medium transition hover:bg-neutral-50"
-                        >
-                          <span className="min-w-0 pr-2">{scrubMedicalTerms(item.q)}</span>
-                          <span className="shrink-0">{faqOpen === i ? '−' : '+'}</span>
-                        </button>
-                        {faqOpen === i ? (
-                          <p className="pb-3.5 text-sm text-neutral-500 leading-relaxed">{scrubMedicalTerms(item.a)}</p>
-                        ) : null}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {disclaimerEnabled ? (
-                <div className={`${(product.faq || []).length ? 'mt-8' : ''}`}>
-                  <div className="flex w-full items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50/90 px-3 py-2.5">
-                    <span className="min-w-0 text-[11px] font-semibold text-neutral-900">{disclaimerTitleToShow}</span>
-                    <button
-                      type="button"
-                      onClick={() => setDisclaimerExpanded((v) => !v)}
-                      className="shrink-0 rounded-lg border border-neutral-200 bg-white px-3 py-1 text-[11px] font-semibold text-neutral-900 shadow-sm transition hover:bg-neutral-50"
-                      aria-expanded={disclaimerExpanded}
-                      aria-controls="product-disclaimer-panel-desktop"
-                      id="product-disclaimer-toggle-desktop"
-                    >
-                      {disclaimerExpanded ? 'Hide' : 'View'}
-                    </button>
-                  </div>
-                  {disclaimerExpanded ? (
+                  {webAccordion === 'details' ? (
                     <div
-                      id="product-disclaimer-panel-desktop"
-                      role="region"
-                      aria-labelledby="product-disclaimer-toggle-desktop"
-                      className="mt-2 rounded-xl border border-neutral-200 bg-white px-3 py-2.5"
-                    >
-                      <ul className="space-y-1 text-[11px] text-neutral-700 leading-relaxed list-disc pl-4">
-                        {disclaimerItemsToShow.map((item, idx) => (
-                          <li key={`d-rail-${idx}-${item.slice(0, 12)}`}>{scrubMedicalTerms(item)}</li>
-                        ))}
-                      </ul>
-                    </div>
+                      id="product-details-lg"
+                      className="product-description pb-4 text-[13px] leading-relaxed text-neutral-600 [&_li]:my-0.5 [&_p]:mb-2 [&_ul]:my-2"
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(scrubMedicalTerms(product.description)) }}
+                    />
                   ) : null}
                 </div>
               ) : null}
-              <div
-                className={`rounded-2xl bg-neutral-50 border border-neutral-100 p-5 text-sm text-neutral-600 space-y-3 leading-relaxed ${
-                  (product.faq || []).length || disclaimerEnabled ? 'mt-8' : ''
-                }`}
-              >
-                <p>
-                  <strong>Shipping:</strong> {SHIPPING_POLICY}
-                </p>
-                <p>
-                  <strong>Returns:</strong> {RETURN_POLICY}
-                </p>
-              </div>
-              {customProductBadges.length > 0 ? (
-                <div className="mt-6 flex flex-wrap items-center" style={{ gap: 10 }}>
-                  {customProductBadges.map((b, idx) => {
-                    const src = resolveImageUrl(b.imageUrl);
-                    const alt = String(b.label || 'Badge').trim() || 'Badge';
-                    const bypassOpt = typeof src === 'string' && (src.startsWith('data:') || src.startsWith('blob:'));
-                    const img = src ? (
-                      <Image
-                        src={src}
-                        alt={alt}
-                        width={124}
-                        height={124}
-                        className="h-[124px] w-[124px] object-contain"
-                        loading="lazy"
-                        sizes="124px"
-                        unoptimized={bypassOpt}
-                      />
-                    ) : null;
-                    return b.href ? (
-                      <a
-                        key={`badge-rail-${idx}`}
-                        href={b.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="shrink-0 hover:opacity-90"
-                      >
-                        {img}
-                      </a>
-                    ) : (
-                      <span key={`badge-rail-${idx}`} className="shrink-0">
-                        {img}
+              {(product.faq || []).map((item, i) => {
+                const accKey = `faq-${i}`;
+                return (
+                  <div key={accKey} className="border-b border-neutral-100">
+                    <button
+                      type="button"
+                      className="flex w-full items-center justify-between py-3 text-left text-sm font-medium text-neutral-900"
+                      aria-expanded={webAccordion === accKey}
+                      onClick={() => setWebAccordion(webAccordion === accKey ? null : accKey)}
+                    >
+                      <span className="min-w-0 pr-2">{scrubMedicalTerms(item.q)}</span>
+                      <span className="shrink-0 text-lg leading-none text-neutral-400 tabular-nums">
+                        {webAccordion === accKey ? '−' : '+'}
                       </span>
-                    );
-                  })}
+                    </button>
+                    {webAccordion === accKey ? (
+                      <p className="pb-4 text-[13px] leading-relaxed text-neutral-600">{scrubMedicalTerms(item.a)}</p>
+                    ) : null}
+                  </div>
+                );
+              })}
+              <div className="border-b border-neutral-100">
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between py-3 text-left text-sm font-medium text-neutral-900"
+                  aria-expanded={webAccordion === 'shipping'}
+                  onClick={() => setWebAccordion(webAccordion === 'shipping' ? null : 'shipping')}
+                >
+                  <span>Shipping & returns</span>
+                  <span className="text-lg leading-none text-neutral-400 tabular-nums">{webAccordion === 'shipping' ? '−' : '+'}</span>
+                </button>
+                {webAccordion === 'shipping' ? (
+                  <div className="space-y-2 pb-4 text-[13px] leading-relaxed text-neutral-600">
+                    <p>
+                      <strong className="text-neutral-800">Shipping:</strong> {SHIPPING_POLICY}
+                    </p>
+                    <p>
+                      <strong className="text-neutral-800">Returns:</strong> {RETURN_POLICY}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+              {disclaimerEnabled ? (
+                <div className="border-b border-neutral-100">
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between py-3 text-left text-sm font-medium text-neutral-900"
+                    aria-expanded={webAccordion === 'disclaimer'}
+                    onClick={() => setWebAccordion(webAccordion === 'disclaimer' ? null : 'disclaimer')}
+                  >
+                    <span className="min-w-0 pr-2">{disclaimerTitleToShow}</span>
+                    <span className="shrink-0 text-lg leading-none text-neutral-400 tabular-nums">
+                      {webAccordion === 'disclaimer' ? '−' : '+'}
+                    </span>
+                  </button>
+                  {webAccordion === 'disclaimer' ? (
+                    <ul className="list-disc space-y-1 pb-4 pl-4 text-[12px] leading-relaxed text-neutral-700">
+                      {disclaimerItemsToShow.map((item, idx) => (
+                        <li key={`d-acc-${idx}-${item.slice(0, 12)}`}>{scrubMedicalTerms(item)}</li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </div>
               ) : null}
             </div>
+            {customProductBadges.length > 0 ? (
+              <div className="mt-4 flex flex-wrap items-center" style={{ gap: 10 }}>
+                {customProductBadges.map((b, idx) => {
+                  const src = resolveImageUrl(b.imageUrl);
+                  const alt = String(b.label || 'Badge').trim() || 'Badge';
+                  const bypassOpt = typeof src === 'string' && (src.startsWith('data:') || src.startsWith('blob:'));
+                  const img = src ? (
+                    <Image
+                      src={src}
+                      alt={alt}
+                      width={124}
+                      height={124}
+                      className="h-[124px] w-[124px] object-contain"
+                      loading="lazy"
+                      sizes="124px"
+                      unoptimized={bypassOpt}
+                    />
+                  ) : null;
+                  return b.href ? (
+                    <a key={`badge-rail-${idx}`} href={b.href} target="_blank" rel="noopener noreferrer" className="shrink-0 hover:opacity-90">
+                      {img}
+                    </a>
+                  ) : (
+                    <span key={`badge-rail-${idx}`} className="shrink-0">
+                      {img}
+                    </span>
+                  );
+                })}
+              </div>
+            ) : null}
           </div>
 
           {/* Mobile / tablet: out of stock only (trust + shipping live in purchase card) */}
@@ -1614,26 +1758,6 @@ export default function ProductDetailClient({
           </div>
         </div>
 
-        {product.description ? (
-          <div id="product-details-lg" className="hidden lg:col-span-7 lg:block lg:pt-4 xl:pt-6">
-            <div className="rounded-[1.35rem] border border-neutral-200/70 bg-white/90 p-7 xl:p-9 shadow-[0_20px_50px_-32px_rgba(0,0,0,0.12)] ring-1 ring-neutral-900/[0.03]">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">About this product</p>
-              <div
-                className={`mt-4 text-[15px] xl:text-base text-neutral-600 leading-[1.7] product-description transition-all xl:leading-[1.75] [&_p]:mb-3 [&_ul]:my-3 [&_li]:my-1 ${
-                  descriptionExpanded ? '' : 'line-clamp-5 max-h-[9.5rem] overflow-hidden'
-                }`}
-                dangerouslySetInnerHTML={{ __html: sanitizeHtml(scrubMedicalTerms(product.description)) }}
-              />
-              <button
-                type="button"
-                onClick={() => setDescriptionExpanded((v) => !v)}
-                className="mt-4 text-xs font-semibold text-neutral-900 underline decoration-neutral-300 decoration-2 underline-offset-4 hover:decoration-neutral-500"
-              >
-                {descriptionExpanded ? 'Show less' : 'Read full details'}
-              </button>
-            </div>
-          </div>
-        ) : null}
       </div>
 
       {/* Product details: name, description, FAQs (mobile / tablet) */}
@@ -1745,71 +1869,36 @@ export default function ProductDetailClient({
       </section>
 
       {/* Write review + recent reviews */}
-      <section className="mt-6 sm:mt-10 lg:mt-16 xl:mt-20 pt-6 sm:pt-10 lg:pt-14 xl:pt-16 border-t border-neutral-200 xl:max-w-6xl xl:mx-auto">
-        <h3 className="font-display text-xl sm:text-2xl lg:text-3xl font-semibold text-neutral-900 tracking-tight mb-6 sm:mb-8 lg:mb-10">
+      <section className="mt-6 sm:mt-10 border-t border-neutral-200 pt-6 sm:pt-10 lg:mt-8 lg:pt-8 xl:mx-auto xl:max-w-6xl xl:mt-10 xl:pt-10">
+        <h3 className="mb-6 font-display text-xl tracking-tight text-neutral-900 sm:mb-8 sm:text-2xl lg:mb-5 lg:text-2xl xl:text-[1.65rem]">
           Reviews
         </h3>
         {liveReviewsList.length > 0 ? (
-          <div className="mb-8 sm:mb-10 lg:mb-12">
-            <h4 className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.15em] text-gold-700/90 mb-1.5">
+          <div className="mb-8 sm:mb-10 lg:mb-6">
+            <h4 className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-gold-700/90 sm:text-[11px]">
               Customer stories
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
-              {(() => {
-                let imgPrioLeft = 5;
-                return liveReviewsList.map((r) => {
-                const liveMedia = normalizeReviewMediaItems(r);
-                return (
-                <article
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:hidden">
+              {liveReviewsList.map((r, idx) => (
+                <PdpCustomerStoryCard
                   key={r.id}
-                  className="rounded-2xl border border-neutral-200/80 bg-white p-4 sm:p-5 shadow-sm ring-1 ring-black/[0.03]"
-                >
-                  {liveMedia.length > 0 ? (
-                    <div className="space-y-2 mb-3">
-                      {liveMedia.map((m, i) => {
-                        const isImg = !mediaItemIsVideo(m) && !mediaItemIsAudio(m);
-                        // eslint-disable-next-line no-plusplus
-                        const prio = isImg && imgPrioLeft > 0 ? (imgPrioLeft--, true) : false;
-                        return (
-                        <ReviewMediaBlock
-                          key={`${r.id}-m-${i}-${m.url?.slice?.(0, 24) || i}`}
-                          item={m}
-                          resolveImageUrl={resolveImageUrl}
-                          priority={prio}
-                        />
-                        );
-                      })}
-                    </div>
-                  ) : null}
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 mb-2">
-                    <span className={`${REVIEW_STAR_FILLED} text-base sm:text-lg tracking-[0.08em]`} aria-hidden>
-                      {'★'.repeat(Math.min(5, r.rating || 0))}
-                    </span>
-                    <span className={`${REVIEW_STAR_EMPTY} text-base sm:text-lg tracking-[0.08em]`} aria-hidden>
-                      {'★'.repeat(5 - Math.min(5, r.rating || 0))}
-                    </span>
-                    <span className="text-xs sm:text-sm font-semibold text-neutral-900">{r.authorName}</span>
-                  </div>
-                  {(() => {
-                    const { quote, outcome } = splitReviewQuoteAndOutcome(r.body);
-                    return (
-                      <>
-                        <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">{quote}</p>
-                        {outcome ? (
-                          <p className="mt-2 text-xs font-semibold leading-snug text-emerald-900 sm:text-sm">Outcome: {outcome}</p>
-                        ) : null}
-                      </>
-                    );
-                  })()}
-                </article>
-                );
-              });
-              })()}
+                  review={r}
+                  resolveImageUrl={resolveImageUrl}
+                  imagePriority={idx < 2}
+                />
+              ))}
+            </div>
+            <div className="hidden lg:block">
+              <PdpReviewsMarqueeRow
+                items={liveReviewsList}
+                ariaLabel="Customer stories"
+                renderItem={(r) => <PdpCustomerStoryCard review={r} resolveImageUrl={resolveImageUrl} imagePriority={false} />}
+              />
             </div>
           </div>
         ) : null}
-        <div className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-sm sm:p-6 lg:p-8 lg:shadow-premium">
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
+        <div className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-sm sm:p-6 lg:p-6 lg:shadow-sm">
+          <div className="flex flex-col gap-8">
           <div>
             <p className="text-sm sm:text-base text-neutral-600 mb-4 sm:mb-5 leading-relaxed">
               Share your experience with this product.
@@ -1928,75 +2017,84 @@ export default function ProductDetailClient({
             </button>
             </form>
           </div>
-          <div className="min-w-0 border-t border-neutral-200/80 pt-8 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0 xl:pl-12">
+          <div className="min-w-0 border-t border-neutral-200/80 pt-8 lg:pt-6">
             {primaryReviews && primaryReviews.length > 0 ? (
-              <div className="space-y-4 sm:space-y-5">
-                <h4 className="mb-1 text-base font-semibold text-neutral-900 sm:mb-2 sm:text-lg tracking-tight">
+              <>
+                <h4 className="mb-3 text-base font-semibold tracking-tight text-neutral-900 sm:mb-2 sm:text-lg lg:mb-2">
                   Recent reviews{fiveStarReviews.length > 0 ? ' (5-star highlights)' : ''}
                 </h4>
-                {visibleReviews.map((r) => {
-                  const recentMedia = normalizeReviewMediaItems(r);
-                  return (
-                  <div
-                    key={r.id}
-                    className="rounded-2xl border border-neutral-200/80 bg-neutral-50/40 p-4 shadow-sm ring-1 ring-black/[0.02] sm:p-5"
-                  >
-                    {recentMedia.length > 0 ? (
-                      <div className="mb-3 space-y-2">
-                        {recentMedia.map((m, mi) => (
-                          <ReviewMediaBlock
-                            key={`${r.id}-um-${mi}`}
-                            item={m}
-                            resolveImageUrl={resolveImageUrl}
-                          />
-                        ))}
+                <div className="space-y-4 sm:space-y-5 lg:hidden">
+                  {visibleReviews.map((r) => {
+                    const recentMedia = normalizeReviewMediaItems(r);
+                    return (
+                      <div
+                        key={r.id}
+                        className="rounded-2xl border border-neutral-200/80 bg-neutral-50/40 p-4 shadow-sm ring-1 ring-black/[0.02] sm:p-5"
+                      >
+                        {recentMedia.length > 0 ? (
+                          <div className="mb-3 space-y-2">
+                            {recentMedia.map((m, mi) => (
+                              <ReviewMediaBlock
+                                key={`${r.id}-um-${mi}`}
+                                item={m}
+                                resolveImageUrl={resolveImageUrl}
+                              />
+                            ))}
+                          </div>
+                        ) : null}
+                        <div className="mb-2 flex flex-wrap items-center gap-2 sm:gap-2.5">
+                          <span
+                            className={`${REVIEW_STAR_FILLED} text-base sm:text-lg tracking-[0.08em]`}
+                            aria-hidden
+                          >
+                            {'★'.repeat(Math.min(5, r.rating || 0))}
+                          </span>
+                          <span
+                            className={`${REVIEW_STAR_EMPTY} text-base sm:text-lg tracking-[0.08em]`}
+                            aria-hidden
+                          >
+                            {'★'.repeat(5 - Math.min(5, r.rating || 0))}
+                          </span>
+                          <span className="text-sm font-semibold text-neutral-900">{r.authorName}</span>
+                        </div>
+                        {(() => {
+                          const { quote, outcome } = splitReviewQuoteAndOutcome(r.body);
+                          return (
+                            <>
+                              <p className="text-sm leading-relaxed text-neutral-600 sm:text-[15px] sm:leading-[1.65]">{quote}</p>
+                              {outcome ? (
+                                <p className="mt-2 text-sm font-semibold leading-snug text-emerald-900 sm:text-[15px]">
+                                  Outcome: {outcome}
+                                </p>
+                              ) : null}
+                            </>
+                          );
+                        })()}
                       </div>
-                    ) : null}
-                    <div className="mb-2 flex flex-wrap items-center gap-2 sm:gap-2.5">
-                      <span
-                        className={`${REVIEW_STAR_FILLED} text-base sm:text-lg tracking-[0.08em]`}
-                        aria-hidden
-                      >
-                        {'★'.repeat(Math.min(5, r.rating || 0))}
-                      </span>
-                      <span
-                        className={`${REVIEW_STAR_EMPTY} text-base sm:text-lg tracking-[0.08em]`}
-                        aria-hidden
-                      >
-                        {'★'.repeat(5 - Math.min(5, r.rating || 0))}
-                      </span>
-                      <span className="text-sm font-semibold text-neutral-900">{r.authorName}</span>
-                    </div>
-                    {(() => {
-                      const { quote, outcome } = splitReviewQuoteAndOutcome(r.body);
-                      return (
-                        <>
-                          <p className="text-sm leading-relaxed text-neutral-600 sm:text-[15px] sm:leading-[1.65]">{quote}</p>
-                          {outcome ? (
-                            <p className="mt-2 text-sm font-semibold leading-snug text-emerald-900 sm:text-[15px]">Outcome: {outcome}</p>
-                          ) : null}
-                        </>
-                      );
-                    })()}
-                  </div>
-                  );
-                })}
-                {primaryReviews.length > reviewPreviewCount && (
-                  <button
-                    type="button"
-                    onClick={() => setReviewsExpanded((v) => !v)}
-                    className="text-sm font-medium text-neutral-900 hover:text-neutral-700 border-b border-neutral-300 pb-0.5"
-                  >
-                    {reviewsExpanded
-                      ? 'View less'
-                      : isLg
-                        ? `View all reviews (${primaryReviews.length - reviewPreviewCount} more)`
+                    );
+                  })}
+                  {primaryReviews.length > reviewPreviewCount ? (
+                    <button
+                      type="button"
+                      onClick={() => setReviewsExpanded((v) => !v)}
+                      className="border-b border-neutral-300 pb-0.5 text-sm font-medium text-neutral-900 hover:text-neutral-700"
+                    >
+                      {reviewsExpanded
+                        ? 'View less'
                         : `View more reviews (${primaryReviews.length - reviewPreviewCount} more)`}
-                  </button>
-                )}
-              </div>
+                    </button>
+                  ) : null}
+                </div>
+                <div className="hidden lg:block">
+                  <PdpReviewsMarqueeRow
+                    items={primaryReviews}
+                    ariaLabel="Recent reviews"
+                    renderItem={(r) => <PdpRecentReviewMarqueeCard review={r} resolveImageUrl={resolveImageUrl} />}
+                  />
+                </div>
+              </>
             ) : (
-              <p className="text-sm text-neutral-500 leading-relaxed sm:text-base">
+              <p className="text-sm leading-relaxed text-neutral-500 sm:text-base">
                 {liveReviewsList.length > 0
                   ? 'No community reviews yet. Be the first to leave one.'
                   : 'No reviews yet. Be the first to review this product.'}
@@ -2008,9 +2106,11 @@ export default function ProductDetailClient({
       </section>
 
       {related.length > 0 && (
-        <section className="mt-6 sm:mt-12 lg:mt-20 xl:mt-24 pt-6 sm:pt-10 lg:pt-16 xl:pt-20 border-t border-neutral-200">
-          <h2 className="text-lg sm:text-xl lg:text-2xl xl:text-[1.75rem] font-semibold text-neutral-900 mb-3 sm:mb-6 lg:mb-8 xl:mb-10 tracking-tight">You may also like</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 xl:gap-8">
+        <section className="mt-6 border-t border-neutral-200 pt-6 sm:mt-12 sm:pt-10 lg:mt-10 lg:pt-8 xl:mt-12 xl:pt-10">
+          <h2 className="mb-3 text-lg font-semibold tracking-tight text-neutral-900 sm:mb-6 sm:text-xl lg:mb-5 lg:text-xl xl:text-[1.35rem]">
+            You may also like
+          </h2>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 lg:gap-5 xl:gap-6">
             {related.map((p, i) => {
               const img = resolveImageUrl(p.images?.[0]) || '/assets/nature-secret-logo.svg';
               const name = p.name ?? p.slug ?? 'Product';
@@ -2027,8 +2127,12 @@ export default function ProductDetailClient({
                       quality={75}
                     />
                   </div>
-                  <p className="mt-2 sm:mt-3 lg:mt-4 text-xs sm:text-sm lg:text-base font-medium text-neutral-900 line-clamp-2 leading-snug">{name}</p>
-                  <p className="text-[11px] sm:text-sm lg:text-base text-neutral-500 tabular-nums mt-0.5 lg:mt-1">{formatPrice(p.price, currency)}</p>
+                  <p className="mt-2 line-clamp-2 text-xs font-medium leading-snug text-neutral-900 sm:mt-3 sm:text-sm lg:mt-2 lg:text-sm xl:text-base">
+                    {name}
+                  </p>
+                  <p className="mt-0.5 text-[11px] tabular-nums text-neutral-500 sm:text-sm lg:mt-0.5 lg:text-sm xl:text-base">
+                    {formatPrice(p.price, currency)}
+                  </p>
                 </Link>
               );
             })}
