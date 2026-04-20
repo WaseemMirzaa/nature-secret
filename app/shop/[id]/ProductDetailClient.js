@@ -858,28 +858,29 @@ export default function ProductDetailClient({
     await applyAddToCartFromFetched();
   }
 
-  /** Mobile-only: fixes double-add bug by setting qty (not accumulating), then goes straight to /checkout. */
+  /** Mobile-only: waits for product data (handles page-load taps), sets qty (no accumulate), goes to /checkout. */
   async function handleAddToCartMobile() {
     if (typeof window === 'undefined') return;
     if (addCartMobileNavBusyRef.current) return;
     addCartMobileNavBusyRef.current = true;
     setAddCartMobileNavigating(true);
+    const readyDeadlineMs = 25000;
+    const readyStarted = Date.now();
     try {
       if (!useCartStore.persist.hasHydrated()) {
         await useCartStore.persist.rehydrate();
       }
-      const qty = effectiveQty;
-      let p = product;
-      if (slugOrId) {
-        try {
-          const fetched = await (isUuid(slugOrId) ? getProductById(slugOrId) : getProductBySlug(slugOrId));
-          if (fetched?.id) p = fetched;
-        } catch { /* use in-memory product */ }
+      // Wait for live product data (same pattern as Order Now — handles taps during page load)
+      while (Date.now() - readyStarted < readyDeadlineMs) {
+        const ctx = orderNowLiveRef.current;
+        if (buildOrderNowLineFromCtx(ctx)) break;
+        if (!ctx.productLoading) break;
+        await new Promise((r) => setTimeout(r, 80));
       }
-      if (!p?.id) return;
-      const vForLine = variantForFetchedProduct(p, variant);
-      const line = buildCartLinePayload(p, vForLine, qty);
-      if (!line) return;
+      const ctx = orderNowLiveRef.current;
+      const line = buildOrderNowLineFromCtx(ctx);
+      const p = ctx.product;
+      if (!line || !p) return;
       const vk = String(line.variantId ?? '');
       const existing = useCartStore.getState().items.find(
         (i) => i.productId === line.productId && String(i.variantId ?? '') === vk
@@ -888,9 +889,9 @@ export default function ProductDetailClient({
       if (existing) {
         useCartStore.getState().updateQty(line.productId, line.variantId, line.qty);
       } else {
-        addItem(line);
+        useCartStore.getState().addItem(line);
+        trackAddToCart(p, line.price / 100, Math.max(1, Number(line.qty) || 1), ctx.currency);
       }
-      trackAddToCart(p, line.price / 100, Math.max(1, Number(line.qty) || 1), currency);
       // Go straight to checkout — no cart drawer friction
       try {
         const navP = router.push('/checkout');
@@ -942,13 +943,11 @@ export default function ProductDetailClient({
           const beforeRow = itemsBefore.find(
             (i) => i.productId === line.productId && String(i.variantId ?? '') === vk
           );
-          const prevQty = beforeRow?.qty ?? 0;
-          useCartStore.getState().addItem(line);
-          const afterRow = useCartStore.getState().items.find(
-            (i) => i.productId === line.productId && String(i.variantId ?? '') === vk
-          );
-          const delta = (afterRow?.qty ?? 0) - prevQty;
-          if (delta > 0) trackAddToCart(p, line.price / 100, delta, ctx.currency);
+          // Only add if not already in cart — prevents re-adding on repeat taps
+          if (!beforeRow) {
+            useCartStore.getState().addItem(line);
+            trackAddToCart(p, line.price / 100, Math.max(1, Number(line.qty) || 1), ctx.currency);
+          }
           const itemsAfter = useCartStore.getState().items;
           if (itemsAfter.length) {
             const grandCents = itemsAfter.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.qty) || 1), 0);
