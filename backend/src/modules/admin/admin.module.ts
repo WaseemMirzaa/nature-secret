@@ -5,10 +5,15 @@ import { Product } from '../../entities/product.entity';
 import { Customer } from '../../entities/customer.entity';
 import { BlogPost } from '../../entities/blog-post.entity';
 import { BlogCategory } from '../../entities/blog-category.entity';
+import { ProductVariant } from '../../entities/product-variant.entity';
+import { Review } from '../../entities/review.entity';
+import { HeroSlide } from '../../entities/hero-slide.entity';
 import { AdminController } from './admin.controller';
 import { AdminProductUploadController } from './admin-product-upload.controller';
 import { AdminBlogUploadController } from './admin-blog-upload.controller';
+import { AdminUploadsController } from './admin-uploads.controller';
 import { AdminService } from './admin.service';
+import { AdminUploadsService } from './admin-uploads.service';
 import { OrdersModule } from '../orders/orders.module';
 import { ProductsModule } from '../products/products.module';
 import { NotificationsModule } from '../notifications/notifications.module';
@@ -19,7 +24,16 @@ import { CategoriesModule } from '../categories/categories.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Order, Product, Customer, BlogPost, BlogCategory]),
+    TypeOrmModule.forFeature([
+      Order,
+      Product,
+      ProductVariant,
+      Customer,
+      BlogPost,
+      BlogCategory,
+      Review,
+      HeroSlide,
+    ]),
     OrdersModule,
     ProductsModule,
     NotificationsModule,
@@ -28,7 +42,12 @@ import { CategoriesModule } from '../categories/categories.module';
     AnalyticsModule,
     CategoriesModule,
   ],
-  controllers: [AdminController, AdminProductUploadController, AdminBlogUploadController],
-  providers: [AdminService],
+  controllers: [
+    AdminController,
+    AdminProductUploadController,
+    AdminBlogUploadController,
+    AdminUploadsController,
+  ],
+  providers: [AdminService, AdminUploadsService],
 })
 export class AdminModule {}
