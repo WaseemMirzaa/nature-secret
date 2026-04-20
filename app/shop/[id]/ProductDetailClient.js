@@ -342,6 +342,8 @@ export default function ProductDetailClient({
   );
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [faqOpen, setFaqOpen] = useState(null);
+  /** Desktop (lg+): single open accordion id — details | ship | disc | faq-{i} */
+  const [webAccordion, setWebAccordion] = useState(null);
   const [zoom, setZoom] = useState(false);
   const [addCartVibrate, setAddCartVibrate] = useState(false);
   const [reviews, setReviews] = useState(() => (Array.isArray(initialReviews) ? initialReviews : []));
@@ -415,6 +417,7 @@ export default function ProductDetailClient({
 
   useLayoutEffect(() => {
     setDisclaimerExpanded(false);
+    setWebAccordion(null);
     viewContentSentForKeyRef.current = null;
     if (typeof window === 'undefined') return;
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
@@ -657,6 +660,15 @@ export default function ProductDetailClient({
     () => (product?.description ? extractIntroParagraphsFromDescription(product.description) : []),
     [product?.description],
   );
+  const categoryCrumb = useMemo(() => {
+    const c = product?.category;
+    if (!c || typeof c !== 'object') return null;
+    const name = String(c.name || '').trim();
+    const slug = String(c.slug || '').trim();
+    if (!name) return null;
+    return { name, slug: slug || null };
+  }, [product?.category]);
+  const storyBullets = useMemo(() => introParagraphs.slice(0, 3).filter(Boolean), [introParagraphs]);
   const bestValueVariantId = useMemo(() => pickBestValueVariantId(product?.variants), [product?.variants]);
 
   const userReviewsList = useMemo(() => {
@@ -1078,79 +1090,145 @@ export default function ProductDetailClient({
         showStickyBar ? 'lg:pb-28 xl:pb-32' : ''
       } ${product.inventory !== 0 ? 'max-lg:pb-28' : ''}`}
     >
-      <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-14 xl:gap-x-20 max-lg:gap-y-3 sm:max-lg:gap-y-4 animate-slide-up items-start">
-        {/* Left: gallery — premium frame on mobile, unchanged on desktop */}
-        <div className="relative w-full lg:max-w-xl xl:max-w-md lg:mx-0 mx-auto">
-          <div className="max-lg:rounded-xl max-lg:overflow-hidden max-lg:border max-lg:border-neutral-200 max-lg:bg-neutral-50 max-lg:p-1.5 sm:max-lg:p-2 max-lg:flex max-lg:flex-col max-lg:items-stretch max-lg:gap-2.5 sm:max-lg:gap-3 lg:contents">
-          <div
-            className="relative w-full shrink-0 overflow-hidden rounded-lg sm:rounded-xl lg:rounded-2xl bg-neutral-100 shadow-sm lg:shadow-premium ring-1 ring-neutral-200/60 max-lg:rounded-[1.1rem] max-lg:border max-lg:border-white/90 max-lg:bg-neutral-50 max-lg:shadow-lift max-lg:ring-neutral-900/[0.04] max-lg:frame-media-inset"
-            onMouseEnter={() => setZoom(true)}
-            onMouseLeave={() => setZoom(false)}
-          >
-            {pctOff != null && pctOff > 0 ? (
-              <span className="absolute top-3 right-12 z-20 rounded-full border border-neutral-900/12 bg-accent-cream px-2 py-1 text-[10px] sm:text-[11px] font-bold text-neutral-900 shadow-sm lg:hidden">
-                {pctOff}% OFF
-              </span>
-            ) : null}
-            {/* h-0 + padding-bottom reserves height before image paint (flex/`contents` + aspect-ratio can still CLS). */}
-            <div className="relative isolate w-full h-0 pb-[125%] lg:pb-[100%]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-10 xl:gap-x-14 max-lg:gap-y-3 sm:max-lg:gap-y-4 animate-slide-up items-start">
+        {/* Left: gallery — rail thumbs + arrows on lg; mobile strip unchanged */}
+        <div className="relative w-full mx-auto lg:col-span-7 lg:mx-0 lg:max-w-none">
+          <div className="max-lg:rounded-xl max-lg:overflow-hidden max-lg:border max-lg:border-neutral-200 max-lg:bg-neutral-50 max-lg:p-1.5 sm:max-lg:p-2 max-lg:flex max-lg:flex-col max-lg:items-stretch max-lg:gap-2.5 sm:max-lg:gap-3 lg:flex lg:flex-row lg:items-start lg:gap-4 lg:border-0 lg:bg-transparent lg:p-0">
+            <div className="hidden w-[4.75rem] shrink-0 flex-col gap-2 overflow-y-auto overflow-x-hidden pr-0.5 [scrollbar-width:thin] lg:flex max-h-[min(70vh,34rem)]">
+              {variantImageList.length > 1
+                ? variantImageList.map((url, i) => {
+                    const resolved = resolveImageUrl(url);
+                    return resolved ? (
+                      <button
+                        key={`lg-v-${i}`}
+                        type="button"
+                        onClick={() => setSelectedImageIndex(i)}
+                        className={`relative flex h-[4.75rem] w-[4.75rem] shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 ${
+                          selectedImageIndex === i
+                            ? 'border-neutral-900 ring-2 ring-neutral-400'
+                            : 'border-neutral-300'
+                        }`}
+                      >
+                        <Image
+                          src={resolved}
+                          alt={`${productDisplayName} ${i + 1}`}
+                          width={80}
+                          height={80}
+                          className="h-full w-full object-contain"
+                          sizes="76px"
+                          quality={65}
+                          loading="eager"
+                          fetchPriority="low"
+                        />
+                      </button>
+                    ) : null;
+                  })
+                : null}
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col">
               <div
-                className={`absolute inset-0 transition-transform duration-150 [transform-origin:center] ${
-                  zoom ? 'scale-110' : ''
-                }`}
+                className="relative w-full shrink-0 overflow-hidden rounded-lg sm:rounded-xl lg:rounded-2xl bg-neutral-100 shadow-sm lg:shadow-premium ring-1 ring-neutral-200/60 max-lg:rounded-[1.1rem] max-lg:border max-lg:border-white/90 max-lg:bg-neutral-50 max-lg:shadow-lift max-lg:ring-neutral-900/[0.04] max-lg:frame-media-inset"
+                onMouseEnter={() => setZoom(true)}
+                onMouseLeave={() => setZoom(false)}
               >
-                {serverHeroValid ? (
-                  serverHeroImage
-                ) : (
-                  <Image
-                    src={mainImage}
-                    alt={productDisplayName}
-                    fill
-                    className="object-contain"
-                    sizes={PRODUCT_HERO_IMAGE_SIZES}
-                    priority={true}
-                    fetchPriority="high"
-                    quality={PRODUCT_HERO_IMAGE_QUALITY}
-                    decoding="async"
-                    loading="eager"
-                  />
-                )}
+                {pctOff != null && pctOff > 0 ? (
+                  <span className="absolute top-3 right-12 z-20 rounded-full border border-neutral-900/12 bg-accent-cream px-2 py-1 text-[10px] sm:text-[11px] font-bold text-neutral-900 shadow-sm lg:hidden">
+                    {pctOff}% OFF
+                  </span>
+                ) : null}
+                <div className="relative isolate w-full h-0 pb-[125%] lg:pb-[100%]">
+                  <div
+                    className={`absolute inset-0 transition-transform duration-150 [transform-origin:center] ${
+                      zoom ? 'scale-110' : ''
+                    }`}
+                  >
+                    {serverHeroValid ? (
+                      serverHeroImage
+                    ) : (
+                      <Image
+                        src={mainImage}
+                        alt={productDisplayName}
+                        fill
+                        className="object-contain"
+                        sizes={PRODUCT_HERO_IMAGE_SIZES}
+                        priority={true}
+                        fetchPriority="high"
+                        quality={PRODUCT_HERO_IMAGE_QUALITY}
+                        decoding="async"
+                        loading="eager"
+                      />
+                    )}
+                  </div>
+                </div>
+                {variantImageList.length > 1 ? (
+                  <>
+                    <button
+                      type="button"
+                      aria-label="Previous image"
+                      className="absolute left-2 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/90 bg-white/95 text-neutral-800 shadow-md backdrop-blur-sm transition hover:bg-white lg:flex"
+                      onClick={() =>
+                        setSelectedImageIndex((idx) =>
+                          (idx - 1 + variantImageList.length) % variantImageList.length,
+                        )
+                      }
+                    >
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Next image"
+                      className="absolute right-2 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/90 bg-white/95 text-neutral-800 shadow-md backdrop-blur-sm transition hover:bg-white lg:flex"
+                      onClick={() =>
+                        setSelectedImageIndex((idx) => (idx + 1) % variantImageList.length)
+                      }
+                    >
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={handleWishlistToggle}
+                  className="absolute top-3 right-3 z-30 p-2.5 rounded-full bg-white/95 shadow-sm border border-neutral-200/80 hover:border-neutral-400 transition backdrop-blur-sm lg:z-10 lg:bg-white/90 lg:shadow-md lg:hover:bg-white lg:hover:shadow-lg"
+                  aria-label="Wishlist"
+                >
+                  <svg className="w-5 h-5 text-neutral-700" fill={wishlist.includes(product.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                </button>
+              </div>
+              <div className="mt-1.5 flex w-full flex-row flex-nowrap items-center justify-start gap-2 overflow-x-auto overflow-y-visible pb-0.5 [scrollbar-width:thin] sm:mt-2.5 sm:gap-2.5 sm:pb-1 lg:hidden">
+                {variantImageList.map((url, i) => {
+                  const resolved = resolveImageUrl(url);
+                  return resolved ? (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setSelectedImageIndex(i)}
+                      className={`relative flex h-[3.75rem] w-[3.75rem] shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 sm:h-16 sm:w-16 sm:rounded-xl ${
+                        selectedImageIndex === i
+                          ? 'border-neutral-900 ring-2 ring-neutral-200'
+                          : 'border-neutral-200'
+                      }`}
+                    >
+                      <Image
+                        src={resolved}
+                        alt={`${productDisplayName} ${i + 1}`}
+                        width={80}
+                        height={80}
+                        className="h-full w-full object-contain"
+                        sizes="(max-width: 1023px) 72px, 76px"
+                        quality={65}
+                        loading="eager"
+                        fetchPriority="low"
+                      />
+                    </button>
+                  ) : null;
+                })}
               </div>
             </div>
-            <button
-              type="button"
-              onClick={handleWishlistToggle}
-              className="absolute top-3 right-3 z-30 p-2.5 rounded-full bg-white/95 shadow-sm border border-neutral-200/80 hover:border-neutral-400 transition backdrop-blur-sm lg:z-10 lg:bg-white/90 lg:shadow-md lg:hover:bg-white lg:hover:shadow-lg"
-              aria-label="Wishlist"
-            >
-              <svg className="w-5 h-5 text-neutral-700" fill={wishlist.includes(product.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
-            </button>
-          </div>
-          <div className="mt-1.5 sm:mt-2.5 lg:mt-5 flex w-full flex-row flex-nowrap items-center justify-start gap-2 overflow-x-auto overflow-y-visible pb-0.5 sm:pb-1 sm:gap-2.5 lg:gap-3 lg:pb-0 [scrollbar-width:thin]">
-            {variantImageList.map((url, i) => {
-              const resolved = resolveImageUrl(url);
-              return resolved ? (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setSelectedImageIndex(i)}
-                  className={`relative flex h-[3.75rem] w-[3.75rem] shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 sm:h-16 sm:w-16 lg:h-[4.75rem] lg:w-[4.75rem] sm:rounded-xl ${selectedImageIndex === i ? 'border-neutral-900 ring-2 ring-neutral-200 lg:ring-neutral-400' : 'border-neutral-200 lg:border-neutral-300'}`}
-                >
-                  <Image
-                    src={resolved}
-                    alt={`${productDisplayName} ${i + 1}`}
-                    width={80}
-                    height={80}
-                    className="h-full w-full object-contain"
-                    sizes="(max-width: 1023px) 72px, 76px"
-                    quality={65}
-                    loading="eager"
-                    fetchPriority="low"
-                  />
-                </button>
-              ) : null;
-            })}
-          </div>
           </div>
         </div>
 
@@ -1369,288 +1447,392 @@ export default function ProductDetailClient({
           </article>
         </div>
 
-        <div className="min-w-0 space-y-2 sm:space-y-3 lg:space-y-5 xl:space-y-6">
-          {/* Desktop: purchase column (scrolls with page; disclaimer lives below FAQ in main column) */}
-          <div
-            ref={purchasePanelRef}
-            className="max-lg:hidden block space-y-3 xl:space-y-4 pb-6 lg:pb-8 rounded-2xl lg:pl-0 xl:pl-1"
-          >
-            <div>
-              <h1 className="text-3xl xl:text-[2.125rem] font-semibold text-neutral-900 tracking-tight leading-[1.15]">{productDisplayName}</h1>
-            </div>
-            <p className="text-2xl xl:text-[1.75rem] font-semibold text-neutral-900 pt-1 tabular-nums">
-              {(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice) && (
-                <span className="text-neutral-500 line-through mr-2 text-lg xl:text-xl">{formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}</span>
-              )}
-              {formatPrice(price, currency)}
-            </p>
-            {customerRatingTrust ? (
-              <div className="pt-3 xl:pt-4">
-                <CustomerRatingsTrustCard count={customerRatingTrust.count} average={customerRatingTrust.average} />
-              </div>
-            ) : null}
-            {product.description && (
-              <div className="pt-1 lg:pt-2">
-                <div
-                  className={`text-sm xl:text-[15px] text-neutral-600 leading-relaxed lg:leading-[1.65] product-description transition-all lg:[&_p]:text-[15px] lg:[&_li]:text-[15px] xl:[&_p]:text-[15px] xl:[&_li]:text-[15px] ${
-                    descriptionExpanded ? '' : 'line-clamp-3 max-h-[4.5rem] overflow-hidden'
-                  }`}
-                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(scrubMedicalTerms(product.description)) }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setDescriptionExpanded((v) => !v)}
-                  className="mt-2 text-xs font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/50 pb-0.5"
-                >
-                  {descriptionExpanded ? 'Read less' : 'Read more'}
-                </button>
-              </div>
-            )}
-            <div className="pt-1 lg:pt-2">
-              <div className="flex flex-wrap items-start justify-between gap-3 xl:gap-4">
-                {product.variants?.length > 1 ? (
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Size / Variant</p>
-                    <div className="flex flex-wrap gap-2 lg:gap-2.5">
-                      {product.variants.map((v) => {
-                        const sel = variant?.id === v.id;
-                        const showStrike = v.compareAtPrice != null && Number(v.compareAtPrice) > Number(v.price || 0);
-                        return (
-                          <button
-                            key={v.id}
-                            type="button"
-                            onClick={() => setSelectedVariant(v)}
-                            className={`rounded-full sm:rounded-2xl border-2 px-4 py-2 text-left text-sm font-medium transition ${
-                              sel ? 'border-neutral-900 bg-neutral-900 text-white shadow-sm' : 'border-neutral-200 text-neutral-700 hover:border-neutral-300 bg-white'
-                            }`}
-                          >
-                            <span className="block leading-tight">{v.name}</span>
-                            <span className={`mt-1 block text-xs font-bold tabular-nums ${sel ? 'text-neutral-100' : 'text-neutral-900'}`}>
-                              {formatPrice(v.price, currency)}
-                            </span>
-                            {showStrike ? (
-                              <span className={`mt-0.5 block text-[11px] tabular-nums line-through ${sel ? 'text-neutral-400' : 'text-neutral-400'}`}>
-                                {formatPrice(v.compareAtPrice, currency)}
-                              </span>
-                            ) : null}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+        <div
+          ref={purchasePanelRef}
+          className="max-lg:hidden lg:col-span-5 lg:sticky lg:top-24 lg:self-start lg:space-y-4 lg:pb-8 lg:pl-1 xl:pl-2"
+        >
+          <nav className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] font-medium text-neutral-500" aria-label="Breadcrumb">
+            <Link href="/shop" className="transition hover:text-neutral-800">
+              Shop
+            </Link>
+            <span className="text-neutral-300" aria-hidden>
+              /
+            </span>
+            {categoryCrumb ? (
+              <>
+                {categoryCrumb.slug ? (
+                  <Link
+                    href={`/shop?category=${encodeURIComponent(categoryCrumb.slug)}`}
+                    className="transition hover:text-neutral-800"
+                  >
+                    {categoryCrumb.name}
+                  </Link>
                 ) : (
-                  <div className="min-w-0 flex-1" aria-hidden />
+                  <span className="text-neutral-600">{categoryCrumb.name}</span>
                 )}
-                <div className="shrink-0 pt-0.5 text-right lg:max-w-[11rem] xl:max-w-none">
-                  <ProductRatingSummary
-                    product={product}
-                    starClassName="text-lg xl:text-xl leading-none"
-                    countClassName="text-sm mt-1 sm:mt-0 sm:ml-1"
-                    className="flex flex-col items-end gap-0 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-x-1"
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="pt-0.5 lg:pt-1">
-              <label
-                htmlFor={`product-qty-${formFieldSuffix}`}
-                className="block text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2"
-              >
-                Quantity
-              </label>
-              <div className="inline-flex items-stretch overflow-hidden rounded-full border-2 border-neutral-200 bg-white">
-                <button
-                  type="button"
-                  onClick={() => setQty((n) => Math.max(1, (n || 1) - 1))}
-                  className="w-11 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 text-lg leading-none"
-                  aria-label="Decrease"
-                >
-                  −
-                </button>
-                <div className="flex min-w-[3rem] items-center justify-center border-y border-neutral-100 bg-transparent px-1">
-                  <input
-                    id={`product-qty-${formFieldSuffix}`}
-                    name="quantity"
-                    type="number"
-                    min={1}
-                    max={99}
-                    value={effectiveQty}
-                    onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
-                    className="w-full min-w-0 text-center text-sm font-semibold tabular-nums text-neutral-900 border-0 bg-transparent p-0 m-0 h-11 leading-none align-middle focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setQty((n) => Math.min(99, (n || 1) + 1))}
-                  className="w-11 shrink-0 flex items-center justify-center text-neutral-600 hover:bg-neutral-50 text-lg leading-none"
-                  aria-label="Increase"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-            <div className="flex flex-col gap-2.5 lg:gap-3 pt-1 lg:pt-2">
-              {product.inventory === 0 ? (
-                <span className="rounded-2xl border border-neutral-200 bg-neutral-100 py-3 lg:py-3.5 text-center text-sm font-medium text-neutral-500">
-                  Out of stock
+                <span className="text-neutral-300" aria-hidden>
+                  /
                 </span>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    disabled={orderNowNavigating}
-                    onClick={() => {
-                      if (orderNowNavigating) return;
-                      void handleAddToCart();
-                      setAddCartVibrate(true);
-                      setTimeout(() => setAddCartVibrate(false), 400);
-                    }}
-                    className={`w-full rounded-full sm:rounded-2xl bg-neutral-900 py-2.5 lg:py-3 text-xs font-semibold text-white hover:bg-neutral-800 transition shadow-md disabled:opacity-50 disabled:pointer-events-none ${
-                      addCartVibrate ? 'animate-vibrate' : 'animate-cta-attract hover:animate-none'
-                    }`}
+              </>
+            ) : null}
+            <span className="min-w-0 max-w-[12rem] truncate text-neutral-900 xl:max-w-none">{productDisplayName}</span>
+          </nav>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-neutral-900 xl:text-[2.125rem]">{productDisplayName}</h1>
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="font-display text-2xl font-bold tabular-nums text-neutral-900 xl:text-[1.75rem]">{formatPrice(price, currency)}</span>
+            {(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice) ? (
+              <span className="text-lg text-neutral-400 line-through tabular-nums xl:text-xl">
+                {formatPrice(product.variants?.length > 1 ? variant?.compareAtPrice : product.compareAtPrice, currency)}
+              </span>
+            ) : null}
+            {saveLineCents != null && saveLineCents > 0 ? (
+              <span className="rounded-full border border-neutral-900/10 bg-white px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-neutral-900 shadow-sm">
+                Save {formatPrice(saveLineCents, currency)}
+              </span>
+            ) : null}
+            {pctOff != null && pctOff > 0 ? (
+              <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-900">{pctOff}% off</span>
+            ) : null}
+          </div>
+          {customerRatingTrust ? (
+            <CustomerRatingsTrustCard count={customerRatingTrust.count} average={customerRatingTrust.average} />
+          ) : (
+            <ProductRatingSummary
+              product={product}
+              starClassName="text-lg leading-none xl:text-xl"
+              countClassName="text-sm"
+              className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5"
+            />
+          )}
+          {introParagraphs[0] ? (
+            <p className="text-sm leading-relaxed text-neutral-600">{scrubMedicalTerms(introParagraphs[0])}</p>
+          ) : null}
+          <div>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              {product.variants?.length > 1 ? (
+                <div className="min-w-0 flex-1">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">Size / variant</p>
+                  <div className="flex flex-wrap gap-2 lg:gap-2.5">
+                    {product.variants.map((v) => {
+                      const sel = variant?.id === v.id;
+                      const showStrike = v.compareAtPrice != null && Number(v.compareAtPrice) > Number(v.price || 0);
+                      return (
+                        <button
+                          key={v.id}
+                          type="button"
+                          onClick={() => setSelectedVariant(v)}
+                          className={`rounded-full border-2 px-4 py-2 text-left text-sm font-medium transition sm:rounded-2xl ${
+                            sel
+                              ? 'border-neutral-900 bg-neutral-900 text-white shadow-sm'
+                              : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300'
+                          }`}
+                        >
+                          <span className="block leading-tight">{v.name}</span>
+                          <span className={`mt-1 block text-xs font-bold tabular-nums ${sel ? 'text-neutral-100' : 'text-neutral-900'}`}>
+                            {formatPrice(v.price, currency)}
+                          </span>
+                          {showStrike ? (
+                            <span className="mt-0.5 block text-[11px] tabular-nums line-through text-neutral-400">
+                              {formatPrice(v.compareAtPrice, currency)}
+                            </span>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+          {product.inventory === 0 ? (
+            <span className="block rounded-2xl border border-neutral-200 bg-neutral-100 py-3.5 text-center text-sm font-medium text-neutral-500">
+              Out of stock
+            </span>
+          ) : (
+            <>
+              <div className="flex flex-wrap items-end gap-3 pt-1">
+                <div>
+                  <label
+                    htmlFor={`product-qty-${formFieldSuffix}`}
+                    className="mb-2 block text-xs font-semibold uppercase tracking-wider text-neutral-500"
                   >
-                    Add to cart
-                  </button>
-                  <button
-                    type="button"
-                    disabled={orderNowNavigating}
-                    aria-busy={orderNowNavigating}
-                    onClick={() => {
-                      if (orderNowNavigating) return;
-                      setOrderNowVibrate(true);
-                      setTimeout(() => setOrderNowVibrate(false), 400);
-                      void handleOrderNowNavigate();
-                    }}
-                    className={`w-full rounded-full sm:rounded-2xl bg-neutral-900 py-2.5 lg:py-3 text-xs font-semibold text-white hover:bg-neutral-800 transition shadow-md disabled:opacity-90 disabled:pointer-events-none ${
-                      orderNowVibrate && !orderNowNavigating ? 'animate-vibrate' : ''
-                    }`}
-                  >
-                    <span className="relative z-10 inline-flex items-center justify-center gap-1.5">
-                      {orderNowNavigating ? (
-                        <span aria-hidden>
-                          <Spinner className="h-3.5 w-3.5 border-white/30 border-t-white" />
-                        </span>
-                      ) : null}
-                      Order Now
-                    </span>
-                  </button>
-                </>
-              )}
-              <p className="text-xs font-medium text-gold-700 flex items-center gap-1.5 pt-1 lg:pt-1.5">
-                <svg className="w-4 h-4 text-gold-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1h-1m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                    Quantity
+                  </label>
+                  <div className="inline-flex items-stretch overflow-hidden rounded-full border-2 border-neutral-200 bg-white">
+                    <button
+                      type="button"
+                      onClick={() => setQty((n) => Math.max(1, (n || 1) - 1))}
+                      className="flex h-11 w-11 shrink-0 items-center justify-center text-lg leading-none text-neutral-600 hover:bg-neutral-50"
+                      aria-label="Decrease"
+                    >
+                      −
+                    </button>
+                    <div className="flex min-w-[3rem] items-center justify-center border-y border-neutral-100 bg-transparent px-1">
+                      <input
+                        id={`product-qty-${formFieldSuffix}`}
+                        name="quantity"
+                        type="number"
+                        min={1}
+                        max={99}
+                        value={effectiveQty}
+                        onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
+                        className="m-0 h-11 w-full min-w-0 border-0 bg-transparent p-0 text-center text-sm font-semibold tabular-nums text-neutral-900 align-middle leading-none focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setQty((n) => Math.min(99, (n || 1) + 1))}
+                      className="flex h-11 w-11 shrink-0 items-center justify-center text-lg leading-none text-neutral-600 hover:bg-neutral-50"
+                      aria-label="Increase"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  disabled={orderNowNavigating}
+                  onClick={() => {
+                    if (orderNowNavigating) return;
+                    void handleAddToCart();
+                    setAddCartVibrate(true);
+                    setTimeout(() => setAddCartVibrate(false), 400);
+                  }}
+                  className={`min-h-[2.75rem] min-w-[10rem] flex-1 rounded-xl border-2 border-neutral-900 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm transition hover:bg-neutral-50 disabled:pointer-events-none disabled:opacity-50 ${
+                    addCartVibrate ? 'animate-vibrate' : ''
+                  }`}
+                >
+                  Add to cart
+                </button>
+              </div>
+              <button
+                type="button"
+                disabled={orderNowNavigating}
+                aria-busy={orderNowNavigating}
+                onClick={() => {
+                  if (orderNowNavigating) return;
+                  setOrderNowVibrate(true);
+                  setTimeout(() => setOrderNowVibrate(false), 400);
+                  void handleOrderNowNavigate();
+                }}
+                className={`btn-pdp-order-now relative z-0 flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-[15px] font-bold tracking-tight shadow-md transition hover:shadow-lg disabled:pointer-events-none disabled:opacity-90 ${
+                  orderNowVibrate && !orderNowNavigating ? 'animate-vibrate' : ''
+                }`}
+              >
+                {orderNowNavigating ? (
+                  <>
+                    <Spinner className="relative z-10 h-4 w-4 border-white/25 border-t-white" />
+                    <span className="relative z-10 text-[14px]">Please wait…</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="relative z-10 h-[18px] w-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24" aria-hidden>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"
+                      />
+                    </svg>
+                    <span className="relative z-10">Order now — cash on delivery</span>
+                  </>
+                )}
+              </button>
+              <p className="flex items-center gap-1.5 text-xs font-medium text-gold-700">
+                <svg className="h-4 w-4 shrink-0 text-gold-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1h-1m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"
+                  />
                 </svg>
                 Free shipping
               </p>
+            </>
+          )}
+          {product.inventory !== 0 ? (
+            <div className="pt-1">
+              <ProductTrustBar product={product} variant="pills" />
             </div>
-          </div>
-
-          {/* Mobile / tablet: out of stock only (trust + shipping live in purchase card) */}
-          <div className="space-y-2 lg:hidden">
-            {product.inventory === 0 ? (
-              <div className="pt-0 sm:pt-0.5">
-                <span className="mt-2 sm:mt-3 block rounded-xl border border-neutral-200 bg-neutral-100 py-2.5 sm:py-3 text-center text-xs sm:text-sm font-medium text-neutral-500">
-                  Out of stock
-                </span>
+          ) : null}
+          <div className="border-t border-neutral-200 pt-1">
+            {product.description ? (
+              <>
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between border-b border-neutral-200 py-3.5 text-left"
+                  aria-expanded={webAccordion === 'details'}
+                  aria-controls="product-details-lg"
+                  onClick={() => setWebAccordion((c) => (c === 'details' ? null : 'details'))}
+                >
+                  <span className="text-sm font-semibold text-neutral-900">Product details</span>
+                  <svg
+                    className={`h-5 w-5 shrink-0 text-neutral-500 transition ${webAccordion === 'details' ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    viewBox="0 0 24 24"
+                    aria-hidden
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {webAccordion === 'details' ? (
+                  <div
+                    id="product-details-lg"
+                    className="product-description border-b border-neutral-200 pb-4 pt-2 text-sm leading-relaxed text-neutral-600 [&_li]:text-sm [&_p]:text-sm"
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(scrubMedicalTerms(product.description)) }}
+                  />
+                ) : null}
+              </>
+            ) : null}
+            {(product.faq || []).map((item, i) => {
+              const aid = `faq-${i}`;
+              const open = webAccordion === aid;
+              return (
+                <div key={`faq-lg-${i}`}>
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between gap-3 border-b border-neutral-200 py-3.5 text-left"
+                    aria-expanded={open}
+                    onClick={() => setWebAccordion((c) => (c === aid ? null : aid))}
+                  >
+                    <span className="min-w-0 text-sm font-semibold text-neutral-900">{scrubMedicalTerms(item.q)}</span>
+                    <svg
+                      className={`h-5 w-5 shrink-0 text-neutral-500 transition ${open ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                      aria-hidden
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {open ? (
+                    <p className="border-b border-neutral-200 pb-4 pt-1 text-sm leading-relaxed text-neutral-600">{scrubMedicalTerms(item.a)}</p>
+                  ) : null}
+                </div>
+              );
+            })}
+            <button
+              type="button"
+              className="flex w-full items-center justify-between border-b border-neutral-200 py-3.5 text-left"
+              aria-expanded={webAccordion === 'ship'}
+              onClick={() => setWebAccordion((c) => (c === 'ship' ? null : 'ship'))}
+            >
+              <span className="text-sm font-semibold text-neutral-900">Shipping & returns</span>
+              <svg
+                className={`h-5 w-5 shrink-0 text-neutral-500 transition ${webAccordion === 'ship' ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+                aria-hidden
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {webAccordion === 'ship' ? (
+              <div className="space-y-2 border-b border-neutral-200 pb-4 pt-1 text-sm leading-relaxed text-neutral-600">
+                <p>
+                  <strong>Shipping:</strong> {SHIPPING_POLICY}
+                </p>
+                <p>
+                  <strong>Returns:</strong> {RETURN_POLICY}
+                </p>
               </div>
             ) : null}
+            {disclaimerEnabled ? (
+              <>
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between border-b border-neutral-200 py-3.5 text-left"
+                  aria-expanded={webAccordion === 'disc'}
+                  onClick={() => setWebAccordion((c) => (c === 'disc' ? null : 'disc'))}
+                >
+                  <span className="text-sm font-semibold text-neutral-900">{disclaimerTitleToShow}</span>
+                  <svg
+                    className={`h-5 w-5 shrink-0 text-neutral-500 transition ${webAccordion === 'disc' ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    viewBox="0 0 24 24"
+                    aria-hidden
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {webAccordion === 'disc' ? (
+                  <ul className="space-y-1 border-b border-neutral-200 pb-4 pt-1 text-sm leading-relaxed text-neutral-700 list-disc pl-4">
+                    {disclaimerItemsToShow.map((item, idx) => (
+                      <li key={`lg-d-${idx}-${item.slice(0, 12)}`}>{scrubMedicalTerms(item)}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </>
+            ) : null}
           </div>
+          {customProductBadges.length > 0 ? (
+            <div className="flex flex-wrap items-center pt-2" style={{ gap: 10 }}>
+              {customProductBadges.map((b, idx) => {
+                const src = resolveImageUrl(b.imageUrl);
+                const alt = String(b.label || 'Badge').trim() || 'Badge';
+                const bypassOpt = typeof src === 'string' && (src.startsWith('data:') || src.startsWith('blob:'));
+                const img = src ? (
+                  <Image
+                    src={src}
+                    alt={alt}
+                    width={124}
+                    height={124}
+                    className="h-[124px] w-[124px] object-contain"
+                    loading="lazy"
+                    sizes="124px"
+                    unoptimized={bypassOpt}
+                  />
+                ) : null;
+                return b.href ? (
+                  <a key={`badge-lg-${idx}`} href={b.href} target="_blank" rel="noopener noreferrer" className="shrink-0 hover:opacity-90">
+                    {img}
+                  </a>
+                ) : (
+                  <span key={`badge-lg-${idx}`} className="shrink-0">
+                    {img}
+                  </span>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="col-span-full space-y-2 lg:hidden">
+          {product.inventory === 0 ? (
+            <div className="pt-0 sm:pt-0.5">
+              <span className="mt-2 block rounded-xl border border-neutral-200 bg-neutral-100 py-2.5 text-center text-xs font-medium text-neutral-500 sm:mt-3 sm:py-3 sm:text-sm">
+                Out of stock
+              </span>
+            </div>
+          ) : null}
         </div>
       </div>
 
-      {/* Desktop: FAQ + policies only */}
-      <section className="max-lg:hidden block mt-16 xl:mt-20 pt-12 xl:pt-16 border-t border-neutral-200">
-        {(product.faq || []).length > 0 && (
-          <div>
-            <h3 className="text-base font-semibold text-neutral-900 mb-4 xl:mb-5 tracking-tight">FAQ</h3>
-            <ul className="space-y-1 max-w-2xl xl:max-w-3xl">
-              {(product.faq || []).map((item, i) => (
-                <li key={i} className="border-b border-neutral-100">
-                  <button type="button" onClick={() => setFaqOpen(faqOpen === i ? null : i)} className="w-full py-3.5 xl:py-4 text-left text-sm text-neutral-700 flex justify-between gap-4 font-medium">
-                    <span className="min-w-0 pr-2">{scrubMedicalTerms(item.q)}</span><span className="shrink-0">{faqOpen === i ? '−' : '+'}</span>
-                  </button>
-                  {faqOpen === i && <p className="pb-3.5 xl:pb-4 text-sm text-neutral-500 leading-relaxed max-w-2xl">{scrubMedicalTerms(item.a)}</p>}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {disclaimerEnabled ? (
-          <div className={`max-w-2xl xl:max-w-3xl ${(product.faq || []).length ? 'mt-8 xl:mt-10' : ''}`}>
-            <div className="flex w-full items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50/90 px-3 py-2.5">
-              <span className="min-w-0 text-[11px] xl:text-xs font-semibold text-neutral-900">{disclaimerTitleToShow}</span>
-              <button
-                type="button"
-                onClick={() => setDisclaimerExpanded((v) => !v)}
-                className="shrink-0 rounded-lg border border-neutral-200 bg-white px-3 py-1 text-[11px] xl:text-xs font-semibold text-neutral-900 shadow-sm transition hover:bg-neutral-50"
-                aria-expanded={disclaimerExpanded}
-                aria-controls="product-disclaimer-panel-desktop"
-                id="product-disclaimer-toggle-desktop"
-              >
-                {disclaimerExpanded ? 'Hide' : 'View'}
-              </button>
-            </div>
-            {disclaimerExpanded ? (
-              <div
-                id="product-disclaimer-panel-desktop"
-                role="region"
-                aria-labelledby="product-disclaimer-toggle-desktop"
-                className="mt-2 rounded-xl border border-neutral-200 bg-white px-3 py-2.5"
-              >
-                <ul className="space-y-1 text-[11px] xl:text-sm text-neutral-700 leading-relaxed list-disc pl-4">
-                  {disclaimerItemsToShow.map((item, idx) => (
-                    <li key={`d-${idx}-${item.slice(0, 12)}`}>{scrubMedicalTerms(item)}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-        <div
-          className={`rounded-2xl bg-neutral-50 border border-neutral-100 p-6 xl:p-8 text-sm xl:text-[15px] text-neutral-600 space-y-3 leading-relaxed max-w-2xl xl:max-w-3xl ${
-            (product.faq || []).length || disclaimerEnabled ? 'mt-10 xl:mt-12' : ''
-          }`}
-        >
-          <p><strong>Shipping:</strong> {SHIPPING_POLICY}</p>
-          <p><strong>Returns:</strong> {RETURN_POLICY}</p>
-        </div>
-        {customProductBadges.length > 0 ? (
-          <div className="mt-6 xl:mt-8 flex flex-wrap items-center" style={{ gap: 10 }}>
-            {customProductBadges.map((b, idx) => {
-              const src = resolveImageUrl(b.imageUrl);
-              const alt = String(b.label || 'Badge').trim() || 'Badge';
-              const bypassOpt = typeof src === 'string' && (src.startsWith('data:') || src.startsWith('blob:'));
-              const img = src ? (
-                <Image
-                  src={src}
-                  alt={alt}
-                  width={124}
-                  height={124}
-                  className="h-[124px] w-[124px] object-contain"
-                  loading="lazy"
-                  sizes="124px"
-                  unoptimized={bypassOpt}
-                />
-              ) : null;
-              return b.href ? (
-                <a
-                  key={`badge-${idx}`}
-                  href={b.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 hover:opacity-90"
-                >
-                  {img}
-                </a>
-              ) : (
-                <span key={`badge-${idx}`} className="shrink-0">
-                  {img}
+      {storyBullets.length > 0 ? (
+        <section className="mt-12 hidden border-t border-neutral-200 pt-12 lg:block" aria-labelledby="pdp-why-heading">
+          <h2 id="pdp-why-heading" className="font-display text-xl font-semibold tracking-tight text-neutral-900 xl:text-2xl">
+            Why customers choose this
+          </h2>
+          <ul className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {storyBullets.map((text, i) => (
+              <li key={`story-${i}`} className="flex gap-4">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-50 text-sm font-bold text-gold-900 ring-1 ring-gold-200/60">
+                  {i + 1}
                 </span>
-              );
-            })}
-        </div>
-        ) : null}
-      </section>
+                <p className="text-sm leading-relaxed text-neutral-600">{scrubMedicalTerms(text)}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {/* Product details: name, description, FAQs (mobile / tablet) */}
       <section className="mt-5 sm:mt-8 lg:mt-16 pt-5 sm:pt-8 lg:pt-12 border-t border-neutral-200 lg:hidden">
