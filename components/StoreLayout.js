@@ -92,6 +92,8 @@ export function StoreLayout({ children }) {
   }
 
   const showBreadcrumbs = pathname && pathname !== '/' && pathname.split('/').filter(Boolean).length > 0;
+  const pathParts = pathname?.split('/').filter(Boolean) ?? [];
+  const isShopProductDetail = pathParts.length === 2 && pathParts[0] === 'shop';
   return (
     <>
       {attribution}
@@ -107,7 +109,7 @@ export function StoreLayout({ children }) {
           <main className="flex-1 min-w-0">{children}</main>
         </div>
         <Footer />
-        <FloatingWhatsApp />
+        {!isShopProductDetail && <FloatingWhatsApp />}
         <CartDrawer />
         <Suspense fallback={null}>
           <AuthModal />
