@@ -341,7 +341,6 @@ export default function ProductDetailClient({
     [product?.id, variantsForProduct.length],
   );
   const [selectedVariant, setSelectedVariant] = useState(null);
-  const [faqOpen, setFaqOpen] = useState(null);
   const [zoom, setZoom] = useState(false);
   const [addCartVibrate, setAddCartVibrate] = useState(false);
   const [reviews, setReviews] = useState(() => (Array.isArray(initialReviews) ? initialReviews : []));
@@ -1594,11 +1593,9 @@ export default function ProductDetailClient({
             <h3 className="text-base font-semibold text-neutral-900 mb-4 xl:mb-5 tracking-tight">FAQ</h3>
             <ul className="space-y-1 max-w-2xl xl:max-w-3xl">
               {(product.faq || []).map((item, i) => (
-                <li key={i} className="border-b border-neutral-100">
-                  <button type="button" onClick={() => setFaqOpen(faqOpen === i ? null : i)} className="w-full py-3.5 xl:py-4 text-left text-sm text-neutral-700 flex justify-between gap-4 font-medium">
-                    <span className="min-w-0 pr-2">{scrubMedicalTerms(item.q)}</span><span className="shrink-0">{faqOpen === i ? '−' : '+'}</span>
-                  </button>
-                  {faqOpen === i && <p className="pb-3.5 xl:pb-4 text-sm text-neutral-500 leading-relaxed max-w-2xl">{scrubMedicalTerms(item.a)}</p>}
+                <li key={i} className="border-b border-neutral-100 py-3.5 xl:py-4">
+                  <p className="text-sm font-medium text-neutral-900">{scrubMedicalTerms(item.q)}</p>
+                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-500">{scrubMedicalTerms(item.a)}</p>
                 </li>
               ))}
             </ul>
@@ -1688,11 +1685,9 @@ export default function ProductDetailClient({
             <h3 className="text-xs sm:text-sm font-semibold text-neutral-900 mb-2 sm:mb-3 tracking-tight">FAQ</h3>
             <ul className="space-y-0.5 sm:space-y-1">
               {(product.faq || []).map((item, i) => (
-                <li key={i} className="border-b border-neutral-100">
-                  <button type="button" onClick={() => setFaqOpen(faqOpen === i ? null : i)} className="w-full py-2.5 sm:py-3 text-left text-xs sm:text-sm font-medium text-neutral-700 flex justify-between gap-2">
-                    <span className="min-w-0 pr-2">{scrubMedicalTerms(item.q)}</span><span className="shrink-0">{faqOpen === i ? '−' : '+'}</span>
-                  </button>
-                  {faqOpen === i && <p className="pb-2.5 sm:pb-3 text-xs sm:text-sm text-neutral-500 leading-relaxed">{scrubMedicalTerms(item.a)}</p>}
+                <li key={i} className="border-b border-neutral-100 py-2.5 sm:py-3">
+                  <p className="text-xs font-medium text-neutral-900 sm:text-sm">{scrubMedicalTerms(item.q)}</p>
+                  <p className="mt-1.5 text-xs leading-relaxed text-neutral-500 sm:mt-2 sm:text-sm">{scrubMedicalTerms(item.a)}</p>
                 </li>
               ))}
             </ul>
