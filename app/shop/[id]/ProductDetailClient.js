@@ -37,7 +37,7 @@ import {
 } from '@/lib/api';
 import { compressReviewMediaFile } from '@/lib/compressReviewMedia';
 import { getDefaultHeroImageSrcForProduct } from '@/lib/productImageResolve';
-import { extractIntroParagraphsFromDescription, pickBestValueVariantId } from '@/lib/productDetailMobileParse';
+import { pickBestValueVariantId } from '@/lib/productDetailMobileParse';
 import { ReviewMediaBlock, normalizeReviewMediaItems, mediaItemIsVideo, mediaItemIsAudio } from '@/components/review/ReviewMediaBlock';
 import { canonicalVariantId } from '@/lib/cartLine';
 import { InlineLoader, Spinner } from '@/components/ui/PageLoader';
@@ -415,6 +415,7 @@ export default function ProductDetailClient({
 
   useLayoutEffect(() => {
     setDisclaimerExpanded(false);
+    setDescriptionExpanded(false);
     viewContentSentForKeyRef.current = null;
     if (typeof window === 'undefined') return;
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
@@ -653,11 +654,11 @@ export default function ProductDetailClient({
     return products.filter((p) => p.categoryId === product.categoryId && p.id !== product.id).slice(0, 4);
   }, [product, products]);
 
-  const introParagraphs = useMemo(
-    () => (product?.description ? extractIntroParagraphsFromDescription(product.description) : []),
+  const bestValueVariantId = useMemo(() => pickBestValueVariantId(product?.variants), [product?.variants]);
+  const safeProductDescriptionHtml = useMemo(
+    () => (product?.description ? sanitizeHtml(scrubMedicalTerms(product.description)) : ''),
     [product?.description],
   );
-  const bestValueVariantId = useMemo(() => pickBestValueVariantId(product?.variants), [product?.variants]);
 
   const userReviewsList = useMemo(() => {
     if (!Array.isArray(reviews)) return [];
@@ -1207,11 +1208,30 @@ export default function ProductDetailClient({
                 </div>
               ) : null}
             </div>
-            {introParagraphs.length > 0 ? (
-              <div className="space-y-3 border-t border-neutral-100 px-5 py-5 text-[15px] leading-relaxed text-neutral-600 sm:px-7 sm:py-6 sm:text-[0.9375rem] sm:leading-[1.65]">
-                {introParagraphs.map((p, i) => (
-                  <p key={i}>{scrubMedicalTerms(p)}</p>
-                ))}
+            {safeProductDescriptionHtml ? (
+              <div className="border-t border-neutral-100 bg-white px-5 py-5 sm:px-7 sm:py-6">
+                <div className="relative">
+                  <div
+                    className={`product-description text-[15px] leading-relaxed text-neutral-600 sm:text-[0.9375rem] sm:leading-[1.65] max-sm:[&_p]:text-[15px] max-sm:[&_li]:text-[15px] sm:[&_p]:text-[0.9375rem] sm:[&_li]:text-[0.9375rem] [&_h3]:mt-4 [&_h3]:font-semibold [&_h3]:text-neutral-900 [&_h3:first-child]:mt-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 ${
+                      descriptionExpanded ? '' : 'max-h-[50vh] overflow-hidden'
+                    }`}
+                    dangerouslySetInnerHTML={{ __html: safeProductDescriptionHtml }}
+                  />
+                  {!descriptionExpanded ? (
+                    <div
+                      className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white via-white/95 to-transparent"
+                      aria-hidden
+                    />
+                  ) : null}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDescriptionExpanded((v) => !v)}
+                  className="mt-3 flex w-full min-h-[2.75rem] items-center justify-center rounded-xl border-2 border-neutral-900 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm transition hover:bg-neutral-50"
+                  aria-expanded={descriptionExpanded}
+                >
+                  {descriptionExpanded ? 'See less' : 'See more'}
+                </button>
               </div>
             ) : null}
             {product.inventory === 0 ? (
@@ -1389,23 +1409,32 @@ export default function ProductDetailClient({
                 <CustomerRatingsTrustCard count={customerRatingTrust.count} average={customerRatingTrust.average} />
               </div>
             ) : null}
-            {product.description && (
+            {safeProductDescriptionHtml ? (
               <div className="pt-1 lg:pt-2">
-                <div
-                  className={`text-sm xl:text-[15px] text-neutral-600 leading-relaxed lg:leading-[1.65] product-description transition-all lg:[&_p]:text-[15px] lg:[&_li]:text-[15px] xl:[&_p]:text-[15px] xl:[&_li]:text-[15px] ${
-                    descriptionExpanded ? '' : 'line-clamp-3 max-h-[4.5rem] overflow-hidden'
-                  }`}
-                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(scrubMedicalTerms(product.description)) }}
-                />
+                <div className="relative">
+                  <div
+                    className={`text-sm xl:text-[15px] text-neutral-600 leading-relaxed lg:leading-[1.65] product-description lg:[&_p]:text-[15px] lg:[&_li]:text-[15px] xl:[&_p]:text-[15px] xl:[&_li]:text-[15px] [&_h3]:mt-4 [&_h3]:font-semibold [&_h3]:text-neutral-900 [&_h3:first-child]:mt-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 ${
+                      descriptionExpanded ? '' : 'max-h-[min(50vh,22rem)] overflow-hidden'
+                    }`}
+                    dangerouslySetInnerHTML={{ __html: safeProductDescriptionHtml }}
+                  />
+                  {!descriptionExpanded ? (
+                    <div
+                      className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white via-white/95 to-transparent"
+                      aria-hidden
+                    />
+                  ) : null}
+                </div>
                 <button
                   type="button"
                   onClick={() => setDescriptionExpanded((v) => !v)}
-                  className="mt-2 text-xs font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/50 pb-0.5"
+                  className="mt-3 flex w-full min-h-[2.75rem] max-w-xl items-center justify-center rounded-xl border-2 border-neutral-900 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm transition hover:bg-neutral-50"
+                  aria-expanded={descriptionExpanded}
                 >
-                  {descriptionExpanded ? 'Read less' : 'Read more'}
+                  {descriptionExpanded ? 'See less' : 'See more'}
                 </button>
               </div>
-            )}
+            ) : null}
             <div className="pt-1 lg:pt-2">
               <div className="flex flex-wrap items-start justify-between gap-3 xl:gap-4">
                 {product.variants?.length > 1 ? (
@@ -1652,28 +1681,10 @@ export default function ProductDetailClient({
         ) : null}
       </section>
 
-      {/* Product details: name, description, FAQs (mobile / tablet) */}
+      {/* FAQs & policy (mobile / tablet); rich description lives in purchase card + desktop column */}
       <section className="mt-5 sm:mt-8 lg:mt-16 pt-5 sm:pt-8 lg:pt-12 border-t border-neutral-200 lg:hidden">
-        <h2 className="text-lg sm:text-xl font-semibold text-neutral-900 leading-snug tracking-tight">{productDisplayName}</h2>
-        {product.description && (
-            <div className="mt-3 sm:mt-4">
-            <div
-              className={`text-[13px] sm:text-sm text-neutral-600 leading-relaxed product-description transition-all max-lg:[&_p]:text-[13px] max-lg:[&_li]:text-[13px] sm:[&_p]:text-sm sm:[&_li]:text-sm ${
-                descriptionExpanded ? '' : 'max-h-52 sm:max-h-64 overflow-hidden'
-              }`}
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml(scrubMedicalTerms(product.description)) }}
-            />
-            <button
-              type="button"
-              onClick={() => setDescriptionExpanded((v) => !v)}
-              className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs font-medium text-gold-700 hover:text-gold-600 border-b border-gold-500/50 pb-0.5"
-            >
-              {descriptionExpanded ? 'View less' : 'View more'}
-            </button>
-          </div>
-        )}
         {(product.faq || []).length > 0 && (
-          <div className="mt-5 sm:mt-8">
+          <div>
             <h3 className="text-xs sm:text-sm font-semibold text-neutral-900 mb-2 sm:mb-3 tracking-tight">FAQ</h3>
             <ul className="space-y-0.5 sm:space-y-1">
               {(product.faq || []).map((item, i) => (
